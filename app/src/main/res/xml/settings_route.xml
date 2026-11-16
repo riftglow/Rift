@@ -30,11 +30,6 @@
             app:icon="@drawable/ic_baseline_info_24"
             android:summary="@string/explain_sniffing_summary"
             android:title="@string/explain_sniffing_title" />
-        <SwitchPreference
-            app:icon="@drawable/baseline_wrap_text_24"
-            app:key="resolveDestination"
-            app:summary="@string/resolve_destination_summary"
-            app:title="@string/resolve_destination" />
     </PreferenceCategory>
     <PreferenceCategory app:title="@string/settings_group_protocol_rules">
         <light.rift.core.ui.SimpleMenuPreference

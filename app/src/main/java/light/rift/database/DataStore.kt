@@ -113,6 +113,14 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     // 2026-11-07：与 settings_misc.xml 默认值 "1.2" 对齐（此前代码默认 ""）。
     // RawUpdater 只对 "1.3" 做 restrictedTLS，"1.2" 与 "" 行为相同，此处只为与 XML 一致。
     var enableClashAPI by configurationStore.boolean(Key.ENABLE_CLASH_API)
+    // 安全加固（0.2.29 -26）：值由 SecurityHardening.ensureInitialized() 在配置构建时生成一次并持久化。
+    var clashApiSecret by configurationStore.string(Key.CLASH_API_SECRET) { "" }
+    var mixedInboundUser by configurationStore.string(Key.MIXED_INBOUND_USER) { "rift" }
+    var mixedInboundPass by configurationStore.string(Key.MIXED_INBOUND_PASS) { "" }
+    var localProxyAuthEnabled by configurationStore.boolean(Key.LOCAL_PROXY_AUTH) { true }
+    // 应用内更新（0.2.29 -26）：待安装的版本名（用于复用已下载的 APK）、上次自动检查时间。
+    var pendingUpdateVersion by configurationStore.string(Key.PENDING_UPDATE_VERSION) { "" }
+    var lastUpdateCheckTime by configurationStore.long(Key.LAST_UPDATE_CHECK) { 0L }
     var showBottomBar by configurationStore.boolean(Key.SHOW_BOTTOM_BAR)
 
     var allowInsecureOnRequest by configurationStore.boolean(Key.ALLOW_INSECURE_ON_REQUEST)

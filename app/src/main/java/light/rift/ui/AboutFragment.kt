@@ -10,7 +10,6 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.text.util.Linkify
 import android.view.View
-import android.widget.Toast
 import androidx.activity.result.component1
 import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,18 +19,14 @@ import com.danielstone.materialaboutlibrary.MaterialAboutFragment
 import com.danielstone.materialaboutlibrary.items.MaterialAboutActionItem
 import com.danielstone.materialaboutlibrary.model.MaterialAboutCard
 import com.danielstone.materialaboutlibrary.model.MaterialAboutList
-import light.rift.BuildConfig
 import light.rift.R
 import light.rift.databinding.LayoutAboutBinding
 import light.rift.ktx.*
 import light.rift.widget.ListListener
 import libcore.Libcore
 import androidx.core.net.toUri
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import light.rift.RiftApp
 import light.rift.database.DataStore
-import light.rift.core.utils.Util
-import org.json.JSONObject
 
 class AboutFragment : ToolbarFragment(R.layout.layout_about) {
 
@@ -85,14 +80,9 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                             MaterialAboutActionItem.Builder()
                                 .text(R.string.check_update_release)
                                 .setOnClickAction {
-                                    checkUpdate(false)
-                                }
-                                .build())
-                        .addItem(
-                            MaterialAboutActionItem.Builder()
-                                .text(R.string.check_update_preview)
-                                .setOnClickAction {
-                                    checkUpdate(true)
+                                    // 只查正式版（0.2.29 -26）：预览版不进更新检查，走聊天发包。
+                                    // 应用内下载安装，见 AppUpdater。
+                                    AppUpdater.checkManually(requireActivity())
                                 }
                                 .build())
                         .addItem(
@@ -150,75 +140,6 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
 
             view.findViewById<RecyclerView>(R.id.mal_recyclerview).apply {
                 overScrollMode = RecyclerView.OVER_SCROLL_NEVER
-            }
-        }
-
-        fun checkUpdate(checkPreview: Boolean) {
-            runOnIoDispatcher {
-                // H10: only route through the proxy when the VPN is up.
-                // When it is down, check directly (no silent fallback:
-                // TrySocks5 now fails loudly instead of going direct).
-                val connected = DataStore.serviceState.connected
-                val client = Libcore.newHttpClient().apply {
-                    modernTLS()
-                    if (connected) trySocks5(DataStore.mixedPort)
-                }
-                try {
-                    val response = client.newRequest().apply {
-                        if (checkPreview) {
-                            setURL("https://api.github.com/repos/riftglow/Rift/releases/tags/preview")
-                        } else {
-                            setURL("https://api.github.com/repos/riftglow/Rift/releases/latest")
-                        }
-                    }.execute()
-                    val release = JSONObject(Util.getStringBox(response.contentString))
-                    val releaseName = release.getString("name")
-                    val releaseUrl = release.getString("html_url")
-                    var haveUpdate = releaseName.isNotBlank()
-                    haveUpdate = if (isPreview) {
-                        if (checkPreview) {
-                            haveUpdate && releaseName != BuildConfig.PRE_VERSION_NAME
-                        } else {
-                            // User: 1.3.9 pre-1.4.0 Stable: 1.3.9 -> No update
-                            haveUpdate && releaseName != BuildConfig.VERSION_NAME
-                        }
-                    } else {
-                        // User: 1.4.0 Preview: pre-1.4.0 -> No update
-                        // User: 1.4.0 Preview: pre-1.4.1 -> Update
-                        // User: 1.4.0 Stable: 1.4.0 -> No update
-                        // User: 1.4.0 Stable: 1.4.1 -> Update
-                        haveUpdate && !releaseName.contains(BuildConfig.VERSION_NAME)
-                    }
-                    runOnMainDispatcher {
-                        if (haveUpdate) {
-                            val context = requireContext()
-                            MaterialAlertDialogBuilder(context)
-                                .setTitle(R.string.update_dialog_title)
-                                .setMessage(
-                                    context.getString(
-                                        R.string.update_dialog_message,
-                                        RiftApp.appVersionNameForDisplay,
-                                        releaseName
-                                    )
-                                )
-                                .setPositiveButton(R.string.yes) { _, _ ->
-                                    val intent = Intent(Intent.ACTION_VIEW, releaseUrl.toUri())
-                                    context.startActivity(intent)
-                                }
-                                .setNegativeButton(R.string.no, null)
-                                .show()
-                        } else {
-                            Toast.makeText(app, R.string.check_update_no, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                } catch (e: Exception) {
-                    Logs.w(e)
-                    runOnMainDispatcher {
-                        Toast.makeText(app, e.readableMessage, Toast.LENGTH_SHORT).show()
-                    }
-                } finally {
-                    client.close()
-                }
             }
         }
 

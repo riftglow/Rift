@@ -74,6 +74,9 @@ class MainActivity : ThemedActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // 应用内更新的安装授权 launcher（0.2.29 -26）：必须在 onStart 前注册。
+        AppUpdater.registerInstallLauncher(this)
+
         binding = LayoutMainBinding.inflate(layoutInflater)
         binding.fab.initProgress(binding.fabProgress)
         // 抽屉：手写行（2026-11-10 第 19 项，OwnBox 式），不用 NavigationView，
@@ -180,6 +183,9 @@ class MainActivity : ThemedActivity(),
                 .setPositiveButton(android.R.string.ok, null)
                 .show()
         }
+
+        // 应用内更新每天自动查一次（0.2.29 -26）：静默，有更新才弹对话框。
+        AppUpdater.checkDaily(this)
     }
 
     fun refreshNavMenu(clashApi: Boolean) {

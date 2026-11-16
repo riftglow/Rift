@@ -38,6 +38,16 @@ object Key {
 
     const val MIXED_PORT = "mixedPort"
     const val ALLOW_ACCESS = "allowAccess"
+
+    // 安全加固（0.2.29 -26）
+    const val CLASH_API_SECRET = "clashApiSecret"
+    const val MIXED_INBOUND_USER = "mixedInboundUser"
+    const val MIXED_INBOUND_PASS = "mixedInboundPass"
+    const val LOCAL_PROXY_AUTH = "localProxyAuth"
+
+    // 应用内更新（0.2.29 -26）
+    const val PENDING_UPDATE_VERSION = "pendingUpdateVersion"
+    const val LAST_UPDATE_CHECK = "lastUpdateCheckTime"
     const val SPEED_INTERVAL = "speedInterval"
     const val SHOW_DIRECT_SPEED = "showDirectSpeed"
 

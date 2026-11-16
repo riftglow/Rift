@@ -42,6 +42,10 @@ type HTTPClient interface {
 	// 框架只传 port 一个参数（OwnBox 版多要 username/password，框架侧无此调用，
 	// 故这里收敛为单参数，握手时用空用户名/密码，与原行为一致）。
 	TrySocks5(port int32)
+	// TrySocks5Auth is TrySocks5 with username/password (0.2.29 -26:
+	// the mixed inbound now requires auth; the app's own libcore clients —
+	// egress check, subscription fetch, rule-set download — must authenticate).
+	TrySocks5Auth(port int32, username string, password string)
 	// TryBoxOutbound 经 mainInstance 默认 outbound 拨号（纯 TUN / 禁用 mixed 时用）。
 	TryBoxOutbound()
 	TryH3Direct()
@@ -142,6 +146,31 @@ func (c *httpClient) TrySocks5(port int32) {
 			return nil, err
 		}
 		_, err = socks.ClientHandshake5(socksConn, socks5.CommandConnect, metadata.ParseSocksaddr(addr), "", "")
+		if err != nil {
+			socksConn.Close()
+			if c.tryH3Direct {
+				return nil, errFailConnectSocks5
+			}
+			return nil, err
+		}
+		return socksConn, err
+	}
+	c.trySocks5 = true
+}
+
+// TrySocks5Auth is TrySocks5 with SOCKS5 username/password auth (0.2.29 -26).
+// Same dialer, but the handshake carries the mixed inbound credentials.
+func (c *httpClient) TrySocks5Auth(port int32, username string, password string) {
+	dialer := new(net.Dialer)
+	c.h1h2Transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+		socksConn, err := dialer.DialContext(ctx, "tcp", "127.0.0.1:"+strconv.Itoa(int(port)))
+		if err != nil {
+			if c.tryH3Direct {
+				return nil, errFailConnectSocks5
+			}
+			return nil, err
+		}
+		_, err = socks.ClientHandshake5(socksConn, socks5.CommandConnect, metadata.ParseSocksaddr(addr), username, password)
 		if err != nil {
 			socksConn.Close()
 			if c.tryH3Direct {

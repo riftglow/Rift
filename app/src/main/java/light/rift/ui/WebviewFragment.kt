@@ -33,7 +33,16 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
 
         mWebView = setupWebView(LayoutWebviewBinding.bind(view).webview)
         webViewDestroyed = false
-        mWebView.loadUrl(DataStore.yacdURL)
+        loadDashboard()
+    }
+
+    /** 加载仪表盘。Clash API secret（0.2.29 -26）放 URL 参数里带过去；不改存着的 yacdURL。 */
+    private fun loadDashboard() {
+        val url = DataStore.yacdURL
+        val secret = DataStore.clashApiSecret
+        mWebView.loadUrl(
+            if (secret.isNotBlank()) url + (if ("?" in url) "&" else "?") + "secret=" + secret else url
+        )
     }
 
     /** Stops the WebView and releases its native resources (M-7). */
@@ -88,7 +97,7 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
             .setView(input)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 DataStore.yacdURL = input.text.toString()
-                mWebView.loadUrl(DataStore.yacdURL)
+                loadDashboard()
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()

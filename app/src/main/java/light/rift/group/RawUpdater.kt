@@ -69,7 +69,12 @@ object RawUpdater : GroupUpdater() {
             // releases its transport. Close only after the body and
             // headers are read.
             val client = Libcore.newHttpClient().apply {
-                trySocks5(DataStore.mixedPort)
+                // 本地代理认证（0.2.29 -26）：mixed 入口开了 users 就得带账号密码。
+                if (DataStore.localProxyAuthEnabled) {
+                    trySocks5Auth(DataStore.mixedPort, DataStore.mixedInboundUser, DataStore.mixedInboundPass)
+                } else {
+                    trySocks5(DataStore.mixedPort)
+                }
                 // H10: H3-direct is only a fallback when the VPN is
                 // down. When it is up but the mixed port is dead, the
                 // update must fail loudly, not silently fetch direct.

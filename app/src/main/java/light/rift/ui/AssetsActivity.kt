@@ -485,7 +485,12 @@ class AssetsActivity : ThemedActivity() {
     private fun newHttpClient() = Libcore.newHttpClient().apply {
         modernTLS()
         keepAlive()
-        trySocks5(DataStore.mixedPort)
+        // 本地代理认证（0.2.29 -26）：mixed 入口开了 users 就得带账号密码。
+        if (DataStore.localProxyAuthEnabled) {
+            trySocks5Auth(DataStore.mixedPort, DataStore.mixedInboundUser, DataStore.mixedInboundPass)
+        } else {
+            trySocks5(DataStore.mixedPort)
+        }
     }
 
     // Branch HEAD commit (short SHA) for a repo's rule-set branch, via the

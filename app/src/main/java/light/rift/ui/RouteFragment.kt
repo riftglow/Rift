@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -112,6 +113,39 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
         when (item.itemId) {
             R.id.action_new_route -> {
                 startActivity(Intent(context, RouteSettingsActivity::class.java))
+            }
+            R.id.action_add_direct_domain -> {
+                // 自定义直连域名（0.2.29 -26，分流修法第一步）：域名表里没有的国内站，
+                // 在这里加一条直连规则，不用等补充表。outbound -1 = 直连；enabled 必须
+                // 显式置 true（RuleEntity 默认 false，新建规则默认是关着的）。
+                // 位置在列表末尾（userOrder 自动取最大值+1），与 geosite-cn 同为直连，
+                // 顺序不影响结果；想往前放可长按拖动。
+                val input = EditText(activity).apply {
+                    hint = getString(R.string.route_add_direct_domain_hint)
+                }
+                MaterialAlertDialogBuilder(activity)
+                    .setTitle(R.string.route_add_direct_domain)
+                    .setView(input)
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        val domains = input.text.toString()
+                            .lineSequence()
+                            .map { it.trim() }
+                            .filter { it.isNotBlank() }
+                            .joinToString("\n")
+                        if (domains.isBlank()) return@setPositiveButton
+                        runOnDefaultDispatcher {
+                            ProfileManager.createRule(
+                                RuleEntity(
+                                    name = domains.lineSequence().first(),
+                                    domains = domains,
+                                    outbound = -1L,
+                                    enabled = true,
+                                )
+                            )
+                        }
+                    }
+                    .setNegativeButton(R.string.no, null)
+                    .show()
             }
             R.id.action_reset_route -> {
                 MaterialAlertDialogBuilder(activity).setTitle(R.string.confirm)

@@ -1,6 +1,7 @@
 package light.rift.ui
 
 import android.content.Intent
+import android.graphics.Paint
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.View
@@ -49,7 +50,20 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
         binding.urlCheckTest.setOnClickListener {
             doUrlCheck(binding)
         }
+        binding.streamingTest.setOnClickListener {
+            doStreamingCheck(binding)
+        }
+        binding.ipPurityTest.setOnClickListener {
+            doIpPurityCheck(binding)
+        }
+        // 点出口 IP 测速（0.2.29 -26）：IP 下划线表示可点。
+        binding.egressIp.paintFlags = binding.egressIp.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+        binding.egressIp.setOnClickListener {
+            doSpeedTest(binding)
+        }
     }
+
+    private var speedTesting = false
 
     // “开始”已改成 TextView 药丸（2026-11-15，0.2.29）：TextView 禁用时字色不会自动变灰，
     // 这里手动换色（启用琥珀、禁用灰），不然检测中按钮看着还能点。
@@ -104,6 +118,9 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                     binding.egressSource.text = getString(
                         R.string.egress_check_source_elapsed, info.elapsedMs
                     )
+                    // 点 IP 测速的提示（0.2.29 -26）：测速结果复用这行。
+                    binding.egressSpeed.isVisible = true
+                    binding.egressSpeed.text = getString(R.string.egress_speed_tap_hint)
                 } else {
                     binding.egressOverview.isVisible = false
                     binding.egressResult.isVisible = true
@@ -351,6 +368,18 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
             .apply {
                 if (connected) {
                     proxy(Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", DataStore.mixedPort)))
+                    // 本地代理认证（0.2.29 -26）：OkHttp 不做 SOCKS5 认证（它的
+                    // proxyAuthenticator 只对 HTTP 代理生效）；SOCKS 握手是 Android 的
+                    // java.net.Socket（SocksSocketImpl）做的，账号密码走
+                    // java.net.socks.username / java.net.socks.password 两个系统属性。
+                    // 本进程唯一的 SOCKS 消费者就是这里。实机验：连着 VPN 时 URL 检查出结果。
+                    if (DataStore.localProxyAuthEnabled) {
+                        System.setProperty("java.net.socks.username", DataStore.mixedInboundUser)
+                        System.setProperty("java.net.socks.password", DataStore.mixedInboundPass)
+                    } else {
+                        System.clearProperty("java.net.socks.username")
+                        System.clearProperty("java.net.socks.password")
+                    }
                 }
             }
             .build()
@@ -420,6 +449,207 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
             client.connectionPool.evictAll()
         }
         return out.toString()
+    }
+
+    // 流媒体解锁（0.2.29 -26）：11 个服务并行探，结果按表顺序排。
+    private fun doStreamingCheck(binding: LayoutNetworkBinding) {
+        setStartEnabled(binding.streamingTest, false)
+        binding.streamingResult.isVisible = true
+        binding.streamingResult.text = getString(R.string.egress_check_testing)
+        binding.streamingResultList.isVisible = false
+        binding.streamingResultList.removeAllViews()
+        runOnLifecycleDispatcher {
+            val result: Pair<List<StreamingUnlock.Result>?, String?> = try {
+                StreamingUnlock.checkAll() to null
+            } catch (e: Exception) {
+                null to getString(R.string.egress_check_error, e.readableMessage)
+            }
+            onMainDispatcher {
+                if (!isAdded) return@onMainDispatcher
+                setStartEnabled(binding.streamingTest, true)
+                val (results, error) = result
+                if (results == null) {
+                    binding.streamingResult.text = error
+                    return@onMainDispatcher
+                }
+                val available = results.count { it.state == StreamingUnlock.State.AVAILABLE }
+                val restricted = results.count { it.state == StreamingUnlock.State.RESTRICTED }
+                val unavailable = results.size - available - restricted
+                val mode = getString(
+                    if (DataStore.serviceState.connected) R.string.url_check_via_node else R.string.url_check_direct
+                )
+                binding.streamingResult.text = getString(
+                    R.string.streaming_summary, available, restricted, unavailable, mode
+                )
+                binding.streamingResultList.isVisible = true
+                for (r in results) {
+                    val row = TextView(requireContext()).apply {
+                        text = getString(
+                            R.string.streaming_row,
+                            r.service.name,
+                            stateText(r.state),
+                            r.latencyMs,
+                            r.detail,
+                        )
+                        textSize = 13f
+                        setTextColor(
+                            ContextCompat.getColor(
+                                requireContext(),
+                                when (r.state) {
+                                    StreamingUnlock.State.AVAILABLE -> R.color.color_rift_success
+                                    StreamingUnlock.State.RESTRICTED -> R.color.color_rift_accent
+                                    StreamingUnlock.State.UNAVAILABLE -> R.color.color_rift_danger
+                                }
+                            )
+                        )
+                    }
+                    binding.streamingResultList.addView(row)
+                }
+            }
+        }
+    }
+
+    private fun stateText(state: StreamingUnlock.State): String {
+        return getString(
+            when (state) {
+                StreamingUnlock.State.AVAILABLE -> R.string.streaming_available
+                StreamingUnlock.State.RESTRICTED -> R.string.streaming_restricted
+                StreamingUnlock.State.UNAVAILABLE -> R.string.streaming_unavailable
+            }
+        )
+    }
+
+    // IP 纯净度（0.2.29 -26）：先拿出口 IP（复用出口自检的查询），再查质量。
+    private fun doIpPurityCheck(binding: LayoutNetworkBinding) {
+        setStartEnabled(binding.ipPurityTest, false)
+        binding.ipPurityResult.isVisible = true
+        binding.ipPurityResult.text = getString(R.string.egress_check_testing)
+        runOnLifecycleDispatcher {
+            val result: Pair<IpPurity.Result?, String?> = try {
+                val ip = EgressIp.queryJson().optString("query")
+                if (ip.isBlank()) {
+                    null to getString(R.string.ip_purity_no_ip)
+                } else {
+                    IpPurity.check(ip) to null
+                }
+            } catch (e: Exception) {
+                null to getString(R.string.egress_check_error, e.readableMessage)
+            }
+            onMainDispatcher {
+                if (!isAdded) return@onMainDispatcher
+                setStartEnabled(binding.ipPurityTest, true)
+                val (info, error) = result
+                binding.ipPurityResult.text = if (info != null) {
+                    getString(
+                        R.string.ip_purity_result,
+                        info.ip,
+                        listOf(info.country, info.city).filter { it.isNotBlank() }.joinToString(" · "),
+                        info.isp,
+                        typeText(info.type),
+                        gradeText(info.grade),
+                        info.riskScore,
+                        info.source,
+                    )
+                } else {
+                    error ?: getString(R.string.ip_purity_quality_unavailable)
+                }
+            }
+        }
+    }
+
+    private fun typeText(type: IpPurity.Type): String {
+        return getString(
+            when (type) {
+                IpPurity.Type.RESIDENTIAL -> R.string.ip_purity_type_residential
+                IpPurity.Type.DATACENTER -> R.string.ip_purity_type_datacenter
+                IpPurity.Type.MOBILE -> R.string.ip_purity_type_mobile
+                IpPurity.Type.BUSINESS -> R.string.ip_purity_type_business
+                IpPurity.Type.UNKNOWN -> R.string.ip_purity_type_unknown
+            }
+        )
+    }
+
+    private fun gradeText(grade: IpPurity.Grade): String {
+        return getString(
+            when (grade) {
+                IpPurity.Grade.GOOD -> R.string.ip_purity_grade_good
+                IpPurity.Grade.NORMAL -> R.string.ip_purity_grade_normal
+                IpPurity.Grade.RISK -> R.string.ip_purity_grade_risk
+            }
+        )
+    }
+
+    // 点出口 IP 测速（0.2.29 -26）：下 5MB 测下行，Cloudflare 测速端点。
+    // 走 SOCKS（连着 VPN 时）或直连，与 URL 检查同一做法。
+    private fun doSpeedTest(binding: LayoutNetworkBinding) {
+        if (speedTesting) return
+        speedTesting = true
+        binding.egressSpeed.isVisible = true
+        binding.egressSpeed.text = getString(R.string.egress_speed_testing)
+        runOnLifecycleDispatcher {
+            val result = try {
+                checkSpeed()
+            } catch (e: Exception) {
+                getString(R.string.egress_check_error, e.readableMessage)
+            }
+            onMainDispatcher {
+                if (!isAdded) return@onMainDispatcher
+                speedTesting = false
+                binding.egressSpeed.text = result
+            }
+        }
+    }
+
+    private fun checkSpeed(): String {
+        val connected = DataStore.serviceState.connected
+        val mode = getString(if (connected) R.string.url_check_via_node else R.string.url_check_direct)
+        val url = "https://speed.cloudflare.com/__down?bytes=5000000"
+        val client = OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .apply {
+                if (connected) {
+                    proxy(Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", DataStore.mixedPort)))
+                    if (DataStore.localProxyAuthEnabled) {
+                        System.setProperty("java.net.socks.username", DataStore.mixedInboundUser)
+                        System.setProperty("java.net.socks.password", DataStore.mixedInboundPass)
+                    } else {
+                        System.clearProperty("java.net.socks.username")
+                        System.clearProperty("java.net.socks.password")
+                    }
+                }
+            }
+            .build()
+        try {
+            val request = Request.Builder().url(url).get().build()
+            val start = SystemClock.elapsedRealtime()
+            var bytes = 0L
+            client.newCall(request).execute().use { response ->
+                if (response.code !in 200..299) {
+                    return getString(R.string.egress_check_error, "HTTP ${response.code}")
+                }
+                val stream = response.body?.byteStream()
+                    ?: return getString(R.string.egress_check_error, "empty body")
+                val buf = ByteArray(64 * 1024)
+                while (true) {
+                    val n = stream.read(buf)
+                    if (n < 0) break
+                    bytes += n
+                }
+            }
+            val seconds = (SystemClock.elapsedRealtime() - start) / 1000.0
+            if (seconds <= 0 || bytes <= 0) return getString(R.string.egress_check_error, "no data")
+            val mbps = bytes * 8.0 / seconds / 1_000_000.0
+            return getString(
+                R.string.egress_speed_result,
+                "%.1f Mbps".format(mbps),
+                "${bytes / 1024 / 1024}MB",
+                "%.1f s".format(seconds),
+            ) + "（$mode）"
+        } finally {
+            client.dispatcher.executorService.shutdown()
+            client.connectionPool.evictAll()
+        }
     }
 
 }

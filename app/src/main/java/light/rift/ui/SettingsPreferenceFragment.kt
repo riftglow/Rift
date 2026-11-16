@@ -220,7 +220,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
 
-        val resolveDestination = findPreference<SwitchPreference>(Key.RESOLVE_DESTINATION)
         val acquireWakeLock = findPreference<SwitchPreference>(Key.ACQUIRE_WAKE_LOCK)
         findPreference<SwitchPreference>(Key.ENABLE_CLASH_API)?.setOnPreferenceChangeListener { _, newValue ->
             (activity as MainActivity?)?.refreshNavMenu(newValue as Boolean)
@@ -252,7 +251,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         ipv6Mode?.onPreferenceChangeListener = reloadListener
         allowAccess?.onPreferenceChangeListener = reloadListener
 
-        resolveDestination?.onPreferenceChangeListener = reloadListener
         acquireWakeLock?.onPreferenceChangeListener = reloadListener
         if (::globalCustomConfig.isInitialized) {
             globalCustomConfig.onPreferenceChangeListener = reloadListener

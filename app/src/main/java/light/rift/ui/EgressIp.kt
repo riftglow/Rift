@@ -64,7 +64,14 @@ object EgressIp {
         val client = Libcore.newHttpClient().apply {
             modernTLS()
             keepAlive()
-            if (connected) trySocks5(DataStore.mixedPort)
+            if (connected) {
+                // 本地代理认证（0.2.29 -26）：mixed 入口开了 users 就得带账号密码。
+                if (DataStore.localProxyAuthEnabled) {
+                    trySocks5Auth(DataStore.mixedPort, DataStore.mixedInboundUser, DataStore.mixedInboundPass)
+                } else {
+                    trySocks5(DataStore.mixedPort)
+                }
+            }
         }
         try {
             val response = client.newRequest().apply {

@@ -35,6 +35,7 @@ import light.rift.core.proxy.config.ConfigBean
 import light.rift.core.proxy.shadowtls.ShadowTLSBean
 import light.rift.core.proxy.shadowtls.buildSingBoxOutboundShadowTLSBean
 import light.rift.core.utils.JavaUtil.gson
+import light.rift.core.utils.SecurityHardening
 import light.rift.core.utils.Util
 import light.rift.core.utils.listByLineOrComma
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -88,6 +89,10 @@ fun buildConfig(
             )
         }
     }
+
+    // 安全加固（0.2.29 -26）：生成 Clash secret、本地代理账号、随机端口（只一次）。
+    // 测速临时核心也走这里，幂等，不会重复生成。
+    SecurityHardening.ensureInitialized()
 
     val trafficMap = HashMap<String, List<ProxyEntity>>()
     val tagMap = HashMap<Long, String>()
@@ -204,6 +209,9 @@ fun buildConfig(
             if (DataStore.enableClashAPI) clash_api = ClashAPIOptions().apply {
                 external_controller = "127.0.0.1:9090"
                 external_ui = "../files/yacd"
+                // Clash API secret（0.2.29 -26）：9090 本来无认证，本机任何应用都能读完整配置；
+                // 随机 secret 由应用内自己带上（连接页 Bearer 头、仪表盘 ?secret=），对用户透明。
+                secret = DataStore.clashApiSecret
             }
         } else {
             // 测速临时核心（0.2.29 -14）：单独的缓存文件。
@@ -449,6 +457,13 @@ fun buildConfig(
                 tag = TAG_MIXED
                 listen = bind
                 listen_port = DataStore.mixedPort
+                // 本地代理强制认证（0.2.29 -26）：默认开；本机其他应用照设置里显示的账号密码填。
+                if (DataStore.localProxyAuthEnabled) {
+                    users = mutableListOf(User().apply {
+                        username = DataStore.mixedInboundUser
+                        password = DataStore.mixedInboundPass
+                    })
+                }
             })
         }
 
@@ -1058,12 +1073,15 @@ fun buildConfig(
             // 1.13 起嗅探改由路由规则动作实现（入站 sniff 字段已是 legacy，非空即报错）。
             // 两条都用 add(0)，后加的排前面，故先加 resolve、再加 sniff，
             // 最终顺序是 sniff、resolve：先嗅探出域名，后面的域名分流规则才能匹配。
-            if (DataStore.resolveDestination) {
-                route?.rules?.add(0, Rule_DefaultOptions().apply {
-                    action = "resolve"
-                    strategy = genDomainStrategy(true)
-                })
-            }
+            // resolve 默认生成（0.2.29 -26，分流修法第一步）：sing-box 的 geoip 规则是纯 IP
+            // 匹配，域名必须先由 resolve 动作解析成 IP 才能判；以前只在 resolveDestination
+            // 开关打开时才生成（默认关），geoip-cn 兜底是死代码，国内站漏到 final 走代理。
+            // 现在无条件生成，开关删了。代价：每连接多一次 DNS 解析，解析失败时连接直接
+            // 失败（不走 final）——显性失败比隐性漏网好。
+            route?.rules?.add(0, Rule_DefaultOptions().apply {
+                action = "resolve"
+                strategy = genDomainStrategy(true)
+            })
             if (needSniff) {
                 route?.rules?.add(0, Rule_DefaultOptions().apply {
                     action = "sniff"

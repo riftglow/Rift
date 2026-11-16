@@ -53,6 +53,8 @@ class ConnectionsFragment : ToolbarFragment(R.layout.layout_connections) {
                     val url = URL("http://127.0.0.1:9090/connections/${conn.id}")
                     (url.openConnection(Proxy.NO_PROXY) as HttpURLConnection).apply {
                         requestMethod = "DELETE"
+                        // Clash API secret（0.2.29 -26）：9090 现在要 Bearer 认证。
+                        setRequestProperty("Authorization", "Bearer ${DataStore.clashApiSecret}")
                         connectTimeout = 3000
                         readTimeout = 3000
                         connect()
@@ -78,6 +80,8 @@ class ConnectionsFragment : ToolbarFragment(R.layout.layout_connections) {
                     val url = URL("http://127.0.0.1:9090/connections")
                     (url.openConnection(Proxy.NO_PROXY) as HttpURLConnection).apply {
                         requestMethod = "DELETE"
+                        // Clash API secret（0.2.29 -26）：9090 现在要 Bearer 认证。
+                        setRequestProperty("Authorization", "Bearer ${DataStore.clashApiSecret}")
                         connectTimeout = 3000
                         readTimeout = 3000
                         connect()
@@ -161,6 +165,8 @@ class ConnectionsFragment : ToolbarFragment(R.layout.layout_connections) {
         conn.apply {
             requestMethod = "GET"
             setRequestProperty("Accept", "application/json")
+            // Clash API secret（0.2.29 -26）：9090 现在要 Bearer 认证。
+            setRequestProperty("Authorization", "Bearer ${DataStore.clashApiSecret}")
             connectTimeout = 3000
             readTimeout = 3000
         }

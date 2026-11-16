@@ -151,10 +151,12 @@ class ConfigurationFragment @JvmOverloads constructor(
     private var fetchingExitIp = false
     private var lastExitIpAttemptAt = 0L
 
-    // 列表旗（2026-11-17，PRE -23）：当前连接节点的出口国家；连着时列表优先用
-    // 出口画旗，断开或不是当前节点时返回 null，走名字/入口那套。
+    // 列表旗（2026-11-17，PRE -23；-25 改用 selectedProxy）：当前连接节点的
+    // 出口国家；连着时列表优先用出口画旗，断开或不是当前节点时返回 null，走
+    // 名字/入口那套。不能用 lastNodeId——它只在列表里点节点时才设，悬浮按钮/
+    // 通知栏切换/重启后已连着的连接都不会设它，永远是 -1。
     internal fun exitCountryForCurrentNode(nodeId: Long): String? =
-        if (nodeId == lastNodeId) cachedExitCountry else null
+        if (nodeId == DataStore.selectedProxy) cachedExitCountry else null
 
     fun getCurrentGroupFragment(): GroupFragment? {
         return try {
@@ -360,10 +362,13 @@ class ConfigurationFragment @JvmOverloads constructor(
         cachedExitIp = ip
         cachedExitCountry = countryCode
         cachedExitCity = city
-        // 记住出口（PRE -24）：出口到货时按当前节点记下，重连/切节点时刷新；
-        // 断开时 countryCode 为 null，不记。
-        if (!countryCode.isNullOrBlank() && lastNodeId > 0) {
-            DataStore.setNodeEgressCountry(lastNodeId, countryCode)
+        // 记住出口（PRE -24；-25 改用 selectedProxy）：出口到货时按当前节点记下，
+        // 重连/切节点时刷新；断开时 countryCode 为 null，不记。selectedProxy
+        // 是持久化的当前节点 id，悬浮按钮/通知栏切换/重启后已连着都对得上；
+        // lastNodeId 只在列表点选时才设，不能用。
+        val currentId = DataStore.selectedProxy
+        if (!countryCode.isNullOrBlank() && currentId > 0) {
+            DataStore.setNodeEgressCountry(currentId, countryCode)
         }
         onExitCacheChanged()
     }
@@ -510,8 +515,9 @@ class ConfigurationFragment @JvmOverloads constructor(
                     cachedExitIp = info.ip
                     cachedExitCountry = info.countryCode
                     cachedExitCity = info.city
-                    if (info.countryCode.isNotBlank() && lastNodeId > 0) {
-                        DataStore.setNodeEgressCountry(lastNodeId, info.countryCode)
+                    val currentId = DataStore.selectedProxy
+                    if (info.countryCode.isNotBlank() && currentId > 0) {
+                        DataStore.setNodeEgressCountry(currentId, info.countryCode)
                     }
                     onExitCacheChanged()
                 }

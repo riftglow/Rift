@@ -360,6 +360,11 @@ class ConfigurationFragment @JvmOverloads constructor(
         cachedExitIp = ip
         cachedExitCountry = countryCode
         cachedExitCity = city
+        // 记住出口（PRE -24）：出口到货时按当前节点记下，重连/切节点时刷新；
+        // 断开时 countryCode 为 null，不记。
+        if (!countryCode.isNullOrBlank() && lastNodeId > 0) {
+            DataStore.setNodeEgressCountry(lastNodeId, countryCode)
+        }
         onExitCacheChanged()
     }
 
@@ -505,6 +510,9 @@ class ConfigurationFragment @JvmOverloads constructor(
                     cachedExitIp = info.ip
                     cachedExitCountry = info.countryCode
                     cachedExitCity = info.city
+                    if (info.countryCode.isNotBlank() && lastNodeId > 0) {
+                        DataStore.setNodeEgressCountry(lastNodeId, info.countryCode)
+                    }
                     onExitCacheChanged()
                 }
             }
@@ -2049,6 +2057,13 @@ class ConfigurationFragment @JvmOverloads constructor(
                         setFlag(exitCountry)
                         return
                     }
+                }
+                // 记住的出口（PRE -24）：以前连过这台、记下了出口国家，断开也
+                // 显示真实出口；重连会刷新。
+                val recorded = DataStore.nodeEgressCountry(proxyEntity.id)
+                if (recorded != null) {
+                    setFlag(recorded)
+                    return
                 }
                 val name = proxyEntity.displayName() ?: ""
                 val codeFromName = NodeFlag.countryCodeForName(name)

@@ -94,6 +94,14 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     fun setGroupPrimaryProfile(groupId: Long, profileId: Long) =
         configurationStore.putLong("groupPrimaryProfile_$groupId", profileId)
 
+    // 列表旗记住出口（2026-11-17，PRE -24）：每台连过的节点记下它测到的出口国家，
+    // 断开也显示真实出口；重连/切节点时刷新。null = 这台还没连过、没测到。
+    fun nodeEgressCountry(nodeId: Long): String? =
+        configurationStore.getString("nodeEgressCountry_$nodeId", "")?.takeIf { it.isNotBlank() }
+
+    fun setNodeEgressCountry(nodeId: Long, countryCode: String) =
+        configurationStore.putString("nodeEgressCountry_$nodeId", countryCode)
+
     fun selectedGroupForImport(): Long {
         val current = currentGroup()
         if (current.type == GroupType.BASIC) return current.id

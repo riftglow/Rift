@@ -273,8 +273,11 @@ fun Fragment.needReload() {
 }
 
 fun Fragment.needRestart() {
+    // Snackbar 挂在 MainActivity 的 CoordinatorLayout 上，Fragment 退出后它还在；
+    // 用户先按返回再点“应用”时 Fragment 已 detach，requireContext() 会崩
+    // （2026-11-16 -20 实机崩溃）。用仓内已有写法：detach 时退回 app。
     snackbar(R.string.need_restart).setAction(R.string.apply) {
-        triggerFullRestart(requireContext())
+        triggerFullRestart(if (isAdded) requireContext() else app)
     }.show()
 }
 

@@ -157,7 +157,8 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 .setNegativeButton(R.string.no, null)
                 .setPositiveButton(R.string.yes) { _, _ ->
                     DataStore.configurationStore.reset()
-                    triggerFullRestart(requireContext())
+                    // 对话框按钮回调也可能在 Fragment detach 后才点到，同 needRestart
+                    triggerFullRestart(if (isAdded) requireContext() else app)
                 }
                 .show()
         }
@@ -726,7 +727,8 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                                     .setMessage(R.string.backup_import_webdav_kept)
                                     .setCancelable(false)
                                     .setPositiveButton(android.R.string.ok) { _, _ ->
-                                        triggerFullRestart(requireContext())
+                                        // 同 needRestart：按钮回调可能在 detach 后才点到
+                                        triggerFullRestart(if (isAdded) requireContext() else app)
                                     }
                                     .create()
                                     .tryToShow()

@@ -151,6 +151,11 @@ class ConfigurationFragment @JvmOverloads constructor(
     private var fetchingExitIp = false
     private var lastExitIpAttemptAt = 0L
 
+    // 列表旗（2026-11-17，PRE -23）：当前连接节点的出口国家；连着时列表优先用
+    // 出口画旗，断开或不是当前节点时返回 null，走名字/入口那套。
+    internal fun exitCountryForCurrentNode(nodeId: Long): String? =
+        if (nodeId == lastNodeId) cachedExitCountry else null
+
     fun getCurrentGroupFragment(): GroupFragment? {
         return try {
             childFragmentManager.findFragmentByTag("f" + DataStore.selectedGroup) as GroupFragment?
@@ -355,7 +360,13 @@ class ConfigurationFragment @JvmOverloads constructor(
         cachedExitIp = ip
         cachedExitCountry = countryCode
         cachedExitCity = city
+        onExitCacheChanged()
+    }
+
+    // 出口缓存变了（到货/断开清掉）：状态卡 + 列表都要刷，当前节点的行才变旗。
+    private fun onExitCacheChanged() {
         refreshStatusCard()
+        getCurrentGroupFragment()?.adapter?.notifyDataSetChanged()
     }
 
     // 通知栏切分流后刷新选中态（2026-11-12，0.2.21）。
@@ -494,7 +505,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                     cachedExitIp = info.ip
                     cachedExitCountry = info.countryCode
                     cachedExitCity = info.city
-                    refreshStatusCard()
+                    onExitCacheChanged()
                 }
             }
         }
@@ -2028,6 +2039,17 @@ class ConfigurationFragment @JvmOverloads constructor(
             // 查不到就不显示。holder 复用后只认 entity.id，别把旧结果
             // 刷到别的节点上。
             private fun bindFlag(proxyEntity: ProxyEntity) {
+                // 列表旗优先用出口（2026-11-17，PRE -23）：正连着且这行就是当前
+                // 节点、出口国家已查到时，用出口画旗；断开或没查到时走下面
+                // 名字/入口那套。
+                if (DataStore.serviceState.connected) {
+                    val exitCountry = (parentFragment as? ConfigurationFragment)
+                        ?.exitCountryForCurrentNode(proxyEntity.id)
+                    if (exitCountry != null) {
+                        setFlag(exitCountry)
+                        return
+                    }
+                }
                 val name = proxyEntity.displayName() ?: ""
                 val codeFromName = NodeFlag.countryCodeForName(name)
                 if (codeFromName != null) {

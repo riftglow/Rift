@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import light.rift.R
+import light.rift.core.utils.Socks5Tunnel
 import light.rift.database.DataStore
 import light.rift.database.RiftDatabase
 import light.rift.databinding.LayoutNetworkBinding
@@ -16,19 +17,10 @@ import light.rift.ktx.app
 import light.rift.ktx.onMainDispatcher
 import light.rift.ktx.readableMessage
 import light.rift.ktx.runOnLifecycleDispatcher
-import okhttp3.Call
-import okhttp3.EventListener
-import okhttp3.Handshake
-import okhttp3.OkHttpClient
-import okhttp3.Protocol
-import okhttp3.Request
-import okhttp3.Response
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.InetSocketAddress
-import java.net.Proxy
 import java.net.Socket
-import java.util.concurrent.TimeUnit
 
 class NetworkFragment : NamedFragment(R.layout.layout_network) {
 
@@ -245,8 +237,8 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
 
     // URL Check 诊断：真实请求全链路追踪（DNS → 连接 → TLS → HTTP），
     // 标出在哪一步失败。DNS 用系统解析单独测（与 DNS 泄露检测同一做法，
-    // FakeDNS 开时应返回 198.18.x.x）；连接/TLS/HTTP 用 OkHttp +
-    // EventListener 分步计时，VPN 开时经 mixed 入站 SOCKS5，关时直连。
+    // FakeDNS 开时应返回 198.18.x.x）；连接/TLS/HTTP 用 Socks5Tunnel 手动握手
+    // 分步计时，VPN 开时经 mixed 入站 SOCKS5，关时直连。
     // 目标是 https://www.youtube.com/generate_204（Android 探活端点，
     // 204 空响应，不下载整页），与首页同属一个 CDN。
     // 注意：App 自身流量默认不进 TUN，所以“连接”这一步不能拿裸 Socket
@@ -266,40 +258,6 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                 setStartEnabled(binding.urlCheckTest, true)
                 binding.urlCheckResult.text = result
             }
-        }
-    }
-
-    // OkHttp EventListener：只记各步时间戳，成败由调用方按走到哪一步判定。
-    private class UrlCheckTrace : EventListener() {
-        @Volatile var connectStartMs: Long = 0
-        @Volatile var connectEndMs: Long = 0
-        @Volatile var secureConnectStartMs: Long = 0
-        @Volatile var secureConnectEndMs: Long = 0
-        @Volatile var requestHeadersStartMs: Long = 0
-        @Volatile var responseHeadersEndMs: Long = 0
-
-        override fun connectStart(call: Call, inetSocketAddress: InetSocketAddress, proxy: Proxy) {
-            connectStartMs = SystemClock.elapsedRealtime()
-        }
-
-        override fun connectEnd(call: Call, inetSocketAddress: InetSocketAddress, proxy: Proxy, protocol: Protocol?) {
-            connectEndMs = SystemClock.elapsedRealtime()
-        }
-
-        override fun secureConnectStart(call: Call) {
-            secureConnectStartMs = SystemClock.elapsedRealtime()
-        }
-
-        override fun secureConnectEnd(call: Call, handshake: Handshake?) {
-            secureConnectEndMs = SystemClock.elapsedRealtime()
-        }
-
-        override fun requestHeadersStart(call: Call) {
-            requestHeadersStartMs = SystemClock.elapsedRealtime()
-        }
-
-        override fun responseHeadersEnd(call: Call, response: Response) {
-            responseHeadersEndMs = SystemClock.elapsedRealtime()
         }
     }
 
@@ -357,96 +315,55 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
             }
         }
 
-        // 3. 连接 / TLS / HTTP：OkHttp + EventListener 分步计时。
-        // 诊断用客户端每测一次新建，用完关掉线程池与连接池，不常驻。
-        val trace = UrlCheckTrace()
-        val client = OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(10, TimeUnit.SECONDS)
-            .writeTimeout(10, TimeUnit.SECONDS)
-            .eventListener(trace)
-            .apply {
-                if (connected) {
-                    proxy(Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", DataStore.mixedPort)))
-                    // 本地代理认证（0.2.29 -26）：OkHttp 不做 SOCKS5 认证（它的
-                    // proxyAuthenticator 只对 HTTP 代理生效）；SOCKS 握手是 Android 的
-                    // java.net.Socket（SocksSocketImpl）做的，账号密码走
-                    // java.net.socks.username / java.net.socks.password 两个系统属性。
-                    // 本进程唯一的 SOCKS 消费者就是这里。实机验：连着 VPN 时 URL 检查出结果。
-                    if (DataStore.localProxyAuthEnabled) {
-                        System.setProperty("java.net.socks.username", DataStore.mixedInboundUser)
-                        System.setProperty("java.net.socks.password", DataStore.mixedInboundPass)
+        // 3. 连接 / TLS / HTTP：Socks5Tunnel 手动握手，分步计时。
+        // -26 的 OkHttp + java.net.socks.* 系统属性在安卓上不工作
+        // （SocksSocketImpl 不读这俩属性，拿 user.name 加空密码去认证，
+        // 连着 VPN 时连接步直接报 "SOCKS : authentication failed"），改手动握手。
+        val connectStart = SystemClock.elapsedRealtime()
+        val socket = try {
+            Socks5Tunnel.connect(host, 443, 10000)
+        } catch (e: Exception) {
+            out.appendLine(getString(R.string.url_check_step_connect_failed, mode, e.readableMessage))
+            out.append(getString(R.string.url_check_conclusion_connect))
+            return out.toString()
+        }
+        val connectMs = SystemClock.elapsedRealtime() - connectStart
+        out.appendLine(getString(R.string.url_check_step_connect_ok, mode, connectMs))
+        var tlsDone = false
+        try {
+            socket.use {
+                val tlsStart = SystemClock.elapsedRealtime()
+                val ssl = Socks5Tunnel.startTls(it, host, 443, 10000)
+                val tlsMs = SystemClock.elapsedRealtime() - tlsStart
+                tlsDone = true
+                out.appendLine(getString(R.string.url_check_step_tls_ok, tlsMs))
+                ssl.use {
+                    val httpStart = SystemClock.elapsedRealtime()
+                    val code = Socks5Tunnel.getStatus(it, host, "/generate_204")
+                    val httpMs = SystemClock.elapsedRealtime() - httpStart
+                    if (code in 200..399) {
+                        out.appendLine(getString(R.string.url_check_step_http_ok, code, httpMs))
+                        out.append(
+                            getString(
+                                R.string.url_check_conclusion_ok,
+                                SystemClock.elapsedRealtime() - totalStart
+                            )
+                        )
                     } else {
-                        System.clearProperty("java.net.socks.username")
-                        System.clearProperty("java.net.socks.password")
+                        out.appendLine(getString(R.string.url_check_step_http_failed, "HTTP $code"))
+                        out.append(getString(R.string.url_check_conclusion_http))
                     }
                 }
             }
-            .build()
-        try {
-            val request = Request.Builder().url(url).get().build()
-            client.newCall(request).execute().use { response ->
-                if (trace.connectEndMs > 0) {
-                    out.appendLine(
-                        getString(
-                            R.string.url_check_step_connect_ok,
-                            mode,
-                            trace.connectEndMs - trace.connectStartMs
-                        )
-                    )
-                }
-                if (trace.secureConnectEndMs > 0) {
-                    out.appendLine(
-                        getString(
-                            R.string.url_check_step_tls_ok,
-                            trace.secureConnectEndMs - trace.secureConnectStartMs
-                        )
-                    )
-                }
-                val httpMs = maxOf(0L, trace.responseHeadersEndMs - trace.requestHeadersStartMs)
-                if (response.code in 200..399) {
-                    out.appendLine(getString(R.string.url_check_step_http_ok, response.code, httpMs))
-                    out.append(
-                        getString(
-                            R.string.url_check_conclusion_ok,
-                            SystemClock.elapsedRealtime() - totalStart
-                        )
-                    )
-                } else {
-                    out.appendLine(getString(R.string.url_check_step_http_failed, "HTTP ${response.code}"))
-                    out.append(getString(R.string.url_check_conclusion_http))
-                }
-            }
         } catch (e: Exception) {
-            // 按 EventListener 走到哪一步来定失败步骤。
-            if (trace.connectEndMs <= 0) {
-                out.appendLine(getString(R.string.url_check_step_connect_failed, mode, e.readableMessage))
-                out.append(getString(R.string.url_check_conclusion_connect))
+            // 按走到哪一步来定失败步骤。
+            if (!tlsDone) {
+                out.appendLine(getString(R.string.url_check_step_tls_failed, e.readableMessage))
+                out.append(getString(R.string.url_check_conclusion_tls))
             } else {
-                out.appendLine(
-                    getString(
-                        R.string.url_check_step_connect_ok,
-                        mode,
-                        trace.connectEndMs - trace.connectStartMs
-                    )
-                )
-                if (trace.secureConnectEndMs <= 0) {
-                    out.appendLine(getString(R.string.url_check_step_tls_failed, e.readableMessage))
-                    out.append(getString(R.string.url_check_conclusion_tls))
-                } else {
-                    out.appendLine(
-                        getString(
-                            R.string.url_check_step_tls_ok,
-                            trace.secureConnectEndMs - trace.secureConnectStartMs
-                        )
-                    )
-                    out.appendLine(getString(R.string.url_check_step_http_failed, e.readableMessage))
-                    out.append(getString(R.string.url_check_conclusion_http))
-                }
+                out.appendLine(getString(R.string.url_check_step_http_failed, e.readableMessage))
+                out.append(getString(R.string.url_check_conclusion_http))
             }
-        } finally {
-            client.dispatcher.executorService.shutdown()
-            client.connectionPool.evictAll()
         }
         return out.toString()
     }
@@ -580,7 +497,8 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
     }
 
     // 点出口 IP 测速（0.2.29 -26）：下 5MB 测下行，Cloudflare 测速端点。
-    // 走 SOCKS（连着 VPN 时）或直连，与 URL 检查同一做法。
+    // 走 Socks5Tunnel（连着 VPN 时）或直连，与 URL 检查同一做法。
+    // -27：旧的 OkHttp + java.net.socks.* 系统属性在安卓上不工作，改手动握手。
     private fun doSpeedTest(binding: LayoutNetworkBinding) {
         if (speedTesting) return
         speedTesting = true
@@ -603,52 +521,24 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
     private fun checkSpeed(): String {
         val connected = DataStore.serviceState.connected
         val mode = getString(if (connected) R.string.url_check_via_node else R.string.url_check_direct)
-        val url = "https://speed.cloudflare.com/__down?bytes=5000000"
-        val client = OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .apply {
-                if (connected) {
-                    proxy(Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", DataStore.mixedPort)))
-                    if (DataStore.localProxyAuthEnabled) {
-                        System.setProperty("java.net.socks.username", DataStore.mixedInboundUser)
-                        System.setProperty("java.net.socks.password", DataStore.mixedInboundPass)
-                    } else {
-                        System.clearProperty("java.net.socks.username")
-                        System.clearProperty("java.net.socks.password")
-                    }
-                }
+        val host = "speed.cloudflare.com"
+        val path = "/__down?bytes=5000000"
+        val start = SystemClock.elapsedRealtime()
+        val socket = Socks5Tunnel.connect(host, 443, 10000)
+        socket.use {
+            val ssl = Socks5Tunnel.startTls(it, host, 443, 10000)
+            ssl.use {
+                val bytes = Socks5Tunnel.downloadBytes(it, host, path, 30000)
+                val seconds = (SystemClock.elapsedRealtime() - start) / 1000.0
+                if (seconds <= 0 || bytes <= 0) return getString(R.string.egress_check_error, "no data")
+                val mbps = bytes * 8.0 / seconds / 1_000_000.0
+                return getString(
+                    R.string.egress_speed_result,
+                    "%.1f Mbps".format(mbps),
+                    "${bytes / 1024 / 1024}MB",
+                    "%.1f s".format(seconds),
+                ) + "（$mode）"
             }
-            .build()
-        try {
-            val request = Request.Builder().url(url).get().build()
-            val start = SystemClock.elapsedRealtime()
-            var bytes = 0L
-            client.newCall(request).execute().use { response ->
-                if (response.code !in 200..299) {
-                    return getString(R.string.egress_check_error, "HTTP ${response.code}")
-                }
-                val stream = response.body?.byteStream()
-                    ?: return getString(R.string.egress_check_error, "empty body")
-                val buf = ByteArray(64 * 1024)
-                while (true) {
-                    val n = stream.read(buf)
-                    if (n < 0) break
-                    bytes += n
-                }
-            }
-            val seconds = (SystemClock.elapsedRealtime() - start) / 1000.0
-            if (seconds <= 0 || bytes <= 0) return getString(R.string.egress_check_error, "no data")
-            val mbps = bytes * 8.0 / seconds / 1_000_000.0
-            return getString(
-                R.string.egress_speed_result,
-                "%.1f Mbps".format(mbps),
-                "${bytes / 1024 / 1024}MB",
-                "%.1f s".format(seconds),
-            ) + "（$mode）"
-        } finally {
-            client.dispatcher.executorService.shutdown()
-            client.connectionPool.evictAll()
         }
     }
 

@@ -4,13 +4,9 @@ import android.os.SystemClock
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import light.rift.database.DataStore
+import light.rift.core.utils.Socks5Tunnel
 import light.rift.ktx.readableMessage
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import java.net.InetSocketAddress
-import java.net.Proxy
-import java.util.concurrent.TimeUnit
+import java.net.URL
 
 /**
  * 流媒体/AI/社交解锁检测（0.2.29 -26，第二批）：
@@ -20,8 +16,10 @@ import java.util.concurrent.TimeUnit
  * 通不通就是解锁问题本身（它们按出口地区直接封或直接放行）。
  * Netflix、Disney+ 不在表里：它们的解锁要查目录/片库（不是通不通），
  * 简单 GET 会误报“可用”，不列比列错好。
- * 探测走 OkHttp + SOCKS（连着 VPN 时），认证走 java.net.socks.* 系统属性
- * （与 NetworkFragment 的 URL 检查同一做法）。
+ * 探测走手动 SOCKS5 隧道（Socks5Tunnel）：-26 用的 OkHttp + java.net.socks.*
+ * 系统属性在安卓上根本不起作用（SocksSocketImpl 不读这俩属性，拿 user.name
+ * 加空密码去认证，全被服务端拒绝），11 个服务全报 "SOCKS : authentication failed"。
+ * 这里直接发握手、账号密码、CONNECT，账号密码与配置里同一份。
  */
 object StreamingUnlock {
     data class Service(val name: String, val url: String)
@@ -45,56 +43,28 @@ object StreamingUnlock {
         Service("Wikipedia", "https://www.wikipedia.org/"),
     )
 
-    private fun newClient(): OkHttpClient {
-        val connected = DataStore.serviceState.connected
-        return OkHttpClient.Builder()
-            .connectTimeout(4, TimeUnit.SECONDS)
-            .readTimeout(4, TimeUnit.SECONDS)
-            .writeTimeout(4, TimeUnit.SECONDS)
-            .followRedirects(true)
-            .apply {
-                if (connected) {
-                    proxy(Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", DataStore.mixedPort)))
-                    if (DataStore.localProxyAuthEnabled) {
-                        System.setProperty("java.net.socks.username", DataStore.mixedInboundUser)
-                        System.setProperty("java.net.socks.password", DataStore.mixedInboundPass)
-                    } else {
-                        System.clearProperty("java.net.socks.username")
-                        System.clearProperty("java.net.socks.password")
-                    }
-                }
-            }
-            .build()
-    }
-
     /** 并行探全部服务；返回顺序与 SERVICES 一致。 */
     suspend fun checkAll(): List<Result> {
-        val client = newClient()
-        return try {
-            coroutineScope {
-                SERVICES.map { service ->
-                    async { probe(client, service) }
-                }.awaitAll()
-            }
-        } finally {
-            client.dispatcher.executorService.shutdown()
-            client.connectionPool.evictAll()
+        return coroutineScope {
+            SERVICES.map { service ->
+                async { probe(service) }
+            }.awaitAll()
         }
     }
 
-    private fun probe(client: OkHttpClient, service: Service): Result {
+    /** 单个服务：隧道 + TLS + GET，只读状态行。 */
+    private fun probe(service: Service): Result {
         val start = SystemClock.elapsedRealtime()
         return try {
             // GET（不用 HEAD：有些站对 HEAD 回 405）；只读响应头就关掉，不下载整页。
-            val request = Request.Builder().url(service.url).get().build()
-            client.newCall(request).execute().use { response ->
-                val ms = SystemClock.elapsedRealtime() - start
-                when (response.code) {
-                    in 200..399 -> Result(service, State.AVAILABLE, ms, "HTTP ${response.code}")
-                    // 403/451 往往是地区封锁（不是连不上）；429 是被限流，也算受限。
-                    403, 429, 451 -> Result(service, State.RESTRICTED, ms, "HTTP ${response.code}")
-                    else -> Result(service, State.UNAVAILABLE, ms, "HTTP ${response.code}")
-                }
+            val url = URL(service.url)
+            val result = Socks5Tunnel.httpsGet(url.host, url.path.ifBlank { "/" }, 4000)
+            val ms = SystemClock.elapsedRealtime() - start
+            when (result.statusCode) {
+                in 200..399 -> Result(service, State.AVAILABLE, ms, "HTTP ${result.statusCode}")
+                // 403/451 往往是地区封锁（不是连不上）；429 是被限流，也算受限。
+                403, 429, 451 -> Result(service, State.RESTRICTED, ms, "HTTP ${result.statusCode}")
+                else -> Result(service, State.UNAVAILABLE, ms, "HTTP ${result.statusCode}")
             }
         } catch (e: Exception) {
             Result(service, State.UNAVAILABLE, SystemClock.elapsedRealtime() - start, e.readableMessage)

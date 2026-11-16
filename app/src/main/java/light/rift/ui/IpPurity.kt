@@ -51,14 +51,19 @@ object IpPurity {
         val json = fetchJson("https://iplocate.io/api/lookup/$ip") ?: return null
         val privacy = json.optJSONObject("privacy")
         val company = json.optJSONObject("company")
-        val tor = privacy?.optBoolean("tor") == true
-        val hosting = privacy?.optBoolean("hosting") == true ||
-            company?.optString("type") == "hosting"
-        val type = when (company?.optString("type")) {
-            "hosting" -> Type.DATACENTER
-            "business" -> Type.BUSINESS
-            "isp" -> Type.RESIDENTIAL
-            else -> if (hosting) Type.DATACENTER else Type.UNKNOWN
+        val asn = json.optJSONObject("asn")
+        // iplocate 的 privacy 字段是 is_hosting / is_tor（不是 hosting / tor）；
+        // company.type 是 ASN 注册类型——BAGE CLOUD 这种机房 ASN 也注册成 isp，
+        // 不能单独当住宅依据。机房判定以 privacy.is_hosting 为准，它优先于 type。
+        // （167.253.97.154 的教训：is_hosting=true 但 company.type=isp，
+        // 旧代码读错键又信了 type，结果把机房 IP 判成住宅、优 10 分。）
+        val tor = privacy?.optBoolean("is_tor") == true
+        val hosting = privacy?.optBoolean("is_hosting") == true
+        val type = when {
+            hosting || company?.optString("type") == "hosting" -> Type.DATACENTER
+            company?.optString("type") == "business" -> Type.BUSINESS
+            company?.optString("type") == "isp" -> Type.RESIDENTIAL
+            else -> Type.UNKNOWN
         }
         val (grade, score, detail) = when {
             tor -> Triple(Grade.RISK, 85, "Tor")
@@ -69,7 +74,7 @@ object IpPurity {
             ip = ip,
             country = json.optString("country"),
             city = json.optString("city"),
-            isp = json.optString("org"),
+            isp = company?.optString("name").orEmpty().ifBlank { asn?.optString("name").orEmpty() },
             type = type,
             grade = grade,
             riskScore = score,

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 琥珀描边药丸（工具页“开始”、实时连接页“全部断开”，2026-11-15，0.2.29）：
+     琥珀描边 + 透明底 + 琥珀字，按压有水波纹。与实心 bg_amber_pill 一个路子，
+     只是描边版。做成 TextView 的背景用——Button 加自定义背景会变灰（0.2.25 -3 教训），
+     只能用 TextView。圆角 24dp：药丸高 40dp 时正好全圆。 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="24dp" />
+            <stroke
+                android:width="1.5dp"
+                android:color="@color/color_rift_accent" />
+        </shape>
+    </item>
+</ripple>

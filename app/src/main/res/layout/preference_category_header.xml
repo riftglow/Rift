@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 设置子页分组小标题（2026-11-15）：卡片上方的分组名，小字、次要色。
+     PreferenceCategory 的 onBindViewHolder 会把标题绑到 @android:id/title。 -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/title"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:textColor="?android:attr/textColorSecondary"
+    android:textSize="13sp" />

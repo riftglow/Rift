@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 调节滑块（备份页“选项”卡头，设计图）：两条横线 + 两个滑钮。
+     纯黑画，调用处用 android:tint 着琥珀色。 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M3,7h18v2H3zM3,15h18v2H3z" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12,8a3,3 0 1,0 6,0a3,3 0 1,0 -6,0zM6,16a3,3 0 1,0 6,0a3,3 0 1,0 -6,0z" />
+</vector>

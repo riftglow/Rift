@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <EditTextPreference
+        app:defaultValue=""
+        app:key="anytlsIdleCheckInterval"
+        app:summary="@string/anytls_idle_check_interval_summary"
+        app:title="@string/anytls_idle_check_interval"
+        app:useSimpleSummaryProvider="true" />
+    <EditTextPreference
+        app:defaultValue=""
+        app:key="anytlsIdleTimeout"
+        app:summary="@string/anytls_idle_timeout_summary"
+        app:title="@string/anytls_idle_timeout"
+        app:useSimpleSummaryProvider="true" />
+    <EditTextPreference
+        app:defaultValue=""
+        app:key="anytlsMinIdleSession"
+        app:summary="@string/anytls_min_idle_session_summary"
+        app:title="@string/anytls_min_idle_session"
+        app:useSimpleSummaryProvider="true" />
+    <Preference
+        android:selectable="false"
+        app:icon="@drawable/ic_baseline_info_24"
+        android:summary="@string/explain_anytls_summary"
+        android:title="@string/explain_anytls_title" />
+</PreferenceScreen>

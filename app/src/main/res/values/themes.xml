@@ -1,0 +1,250 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Theme.Rift" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="actionBarStyle">@style/Widget.MaterialComponents.ActionBar.Solid</item>
+        <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
+        <item name="colorButtonNormal">?colorAccent</item>
+        <item name="android:navigationBarColor">?colorPrimaryDark</item>
+        <item name="colorPrimary">@color/material_pink_500</item>
+        <item name="colorPrimaryDark">@color/material_pink_700</item>
+        <item name="colorAccent">@color/material_pink_accent_200</item>
+
+        <item name="colorMaterial100">@color/material_pink_100</item>
+        <item name="colorMaterial300">@color/material_pink_300</item>
+
+        <item name="accentOrTextSecondary">?colorAccent</item>
+        <item name="accentOrTextPrimary">?colorAccent</item>
+        <item name="primaryOrTextSecondary">?colorPrimary</item>
+        <item name="primaryOrTextPrimary">?colorPrimary</item>
+
+        <item name="fabColorBackground">?colorPrimary</item>
+        <item name="selectedColorPrimary">?colorPrimary</item>
+        <item name="topbarColor">?colorPrimary</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="tabTextColor">#99FFFFFF</item>
+        <item name="tabSelectedTextColor">@color/white</item>
+        <item name="tabIndicatorColor">@color/white</item>
+        <item name="tabRippleColor">@color/white</item>
+        <item name="whiteOrTextPrimary">@color/white</item>
+
+        <item name="windowActionModeOverlay">true</item>
+
+        <!-- Remove ActionBar but keep styles and themes -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+
+        <item name="chipStyle">@style/Widget.MaterialComponents.Chip.Choice.RiftApp</item>
+
+        <item name="itemShapeAppearance">
+            @style/ShapeAppearance.MaterialComponents.MediumComponent
+        </item>
+
+        <item name="alertDialogTheme">
+            @style/ThemeOverlay.MaterialComponents.MaterialAlertDialog.RiftApp
+        </item>
+
+        <item name="materialAlertDialogTheme">
+            @style/ThemeOverlay.MaterialComponents.MaterialAlertDialog.RiftApp
+        </item>
+
+    </style>
+
+    <style name="Theme.Rift.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
+        <item name="actionBarStyle">@style/Widget.MaterialComponents.ActionBar.Solid</item>
+        <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
+        <item name="colorButtonNormal">?colorAccent</item>
+        <item name="android:navigationBarColor">?colorPrimaryDark</item>
+        <item name="colorPrimary">@color/material_pink_500</item>
+        <item name="colorPrimaryDark">@color/material_pink_700</item>
+        <item name="colorAccent">@color/material_pink_accent_200</item>
+
+        <item name="colorMaterial100">@color/material_pink_100</item>
+        <item name="colorMaterial300">@color/material_pink_300</item>
+
+        <item name="accentOrTextSecondary">?colorAccent</item>
+        <item name="accentOrTextPrimary">?colorAccent</item>
+        <item name="primaryOrTextSecondary">?colorPrimary</item>
+        <item name="primaryOrTextPrimary">?colorPrimary</item>
+
+        <item name="fabColorBackground">?colorPrimary</item>
+        <item name="selectedColorPrimary">?colorPrimary</item>
+        <item name="topbarColor">?colorPrimary</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="tabTextColor">#99FFFFFF</item>
+        <item name="tabSelectedTextColor">@color/white</item>
+        <item name="tabIndicatorColor">@color/white</item>
+        <item name="tabRippleColor">@color/white</item>
+        <item name="whiteOrTextPrimary">@color/white</item>
+
+        <item name="windowActionModeOverlay">true</item>
+
+        <!-- Remove ActionBar but keep styles and themes -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+
+        <item name="chipStyle">@style/Widget.MaterialComponents.Chip.Choice.RiftApp</item>
+
+        <item name="itemShapeAppearance">
+            @style/ShapeAppearance.MaterialComponents.MediumComponent
+        </item>
+
+        <item name="alertDialogTheme">
+            @style/ThemeOverlay.MaterialComponents.MaterialAlertDialog.RiftApp
+        </item>
+
+        <item name="materialAlertDialogTheme">
+            @style/ThemeOverlay.MaterialComponents.MaterialAlertDialog.RiftApp
+        </item>
+
+        <item name="windowFixedHeightMajor" type="dimen">95%</item>
+
+    </style>
+
+    <style name="AppearanceFoundation.Title" parent="TextAppearance.AppCompat.Title">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="ThemeOverlay.MaterialComponents.MaterialAlertDialog.RiftApp">
+        <item name="buttonBarPositiveButtonStyle">
+            @style/Widget.MaterialComponents.Button.TextButton.Dialog.Primary
+        </item>
+        <item name="buttonBarNegativeButtonStyle">
+            @style/Widget.MaterialComponents.Button.TextButton.Dialog.Primary
+        </item>
+        <item name="buttonBarNeutralButtonStyle">
+            @style/Widget.MaterialComponents.Button.TextButton.Dialog.Flush.Primary
+        </item>
+    </style>
+
+    <style name="Widget.MaterialComponents.Button.TextButton.Dialog.Primary">
+        <item name="android:textColor">?primaryOrTextPrimary</item>
+    </style>
+
+    <style name="Widget.MaterialComponents.Button.TextButton.Dialog.Flush.Primary">
+        <item name="android:textColor">?primaryOrTextPrimary</item>
+    </style>
+
+    <style name="Widget.MaterialComponents.Chip.Choice.RiftApp">
+        <item name="textStartPadding">30dp</item>
+        <item name="textEndPadding">30dp</item>
+        <item name="chipBackgroundColor">@color/chip_background</item>
+        <item name="android:textColor">@color/chip_text_color</item>
+        <item name="checkedIconTint">?primaryOrTextPrimary</item>
+        <item name="rippleColor">@color/chip_ripple_color</item>
+    </style>
+
+
+
+
+
+    <style name="Theme.Rift.Rift">
+        <item name="colorPrimary">@color/color_rift_primary</item>
+        <item name="colorPrimaryDark">@color/color_rift_primary_dark</item>
+        <item name="colorAccent">@color/color_rift_accent</item>
+        <!-- 内页底统一暖灰：窗口底用 color_rift_page_bg（白天 #EDEAE3、夜间 #121212），
+             抽屉外所有页（分组/路由/日志/连接/用量/工具/关于/设置）都继承它，不再逐布局设。 -->
+        <item name="android:windowBackground">@color/color_rift_page_bg</item>
+        <!-- 小字号次级文字用深琥珀（#B45309，白底约 5:1），不用亮琥珀 #D97706（约 3.5:1）。 -->
+        <item name="accentOrTextSecondary">@color/color_rift_accent_dark</item>
+        <!-- 全局卡片：20dp 圆角、0 阴影、1dp 描边（OwnBox 式描边分层，白天 #29000000、夜间 #29FFFFFF）。 -->
+        <item name="materialCardViewStyle">@style/Widget.Rift.CardView</item>
+        <item name="colorMaterial100">@color/color_rift_100</item>
+        <item name="colorMaterial300">@color/color_rift_300</item>
+        <item name="primaryOrTextPrimary">@color/color_rift_primary_text</item>
+        <item name="primaryOrTextSecondary">@color/color_rift_primary_text</item>
+        <item name="itemShapeFillColor">@color/color_rift_drawer_selected</item>
+        <item name="fabColorBackground">@color/color_rift_fab</item>
+        <item name="selectedColorPrimary">@color/color_rift_accent</item>
+        <item name="tabTextColor">@color/color_rift_tab_text</item>
+        <item name="tabSelectedTextColor">@color/color_rift_tab_selected</item>
+        <item name="tabIndicatorColor">@color/color_rift_accent</item>
+        <item name="tabRippleColor">@color/color_rift_accent</item>
+        <item name="whiteOrTextPrimary">@color/color_rift_stats_text</item>
+        <item name="topbarColor">@color/color_rift_topbar</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Rift.ActionBar</item>
+        <item name="android:statusBarColor">@color/color_rift_topbar</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/color_rift_topbar</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <!-- 顶栏图标（搜索/添加/更多）用主文字色（深蓝 #16224A），不用默认灰。
+         白天用浅色 ActionBar 底；夜间在 values-night 里用深色底。 -->
+    <style name="ThemeOverlay.Rift.ActionBar" parent="ThemeOverlay.AppCompat.ActionBar">
+        <item name="colorControlNormal">@color/color_rift_primary_text</item>
+    </style>
+
+    <style name="Widget.Rift.CardView" parent="Widget.MaterialComponents.CardView">
+        <item name="cardCornerRadius">20dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/color_rift_card_stroke</item>
+        <!-- 卡片底色钉死（白天白、夜间深灰），不依赖 Material 默认 surface。 -->
+        <item name="cardBackgroundColor">@color/color_rift_card</item>
+    </style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <style name="Theme.Rift.Dialog.Rift">
+        <item name="colorPrimary">@color/color_rift_primary</item>
+        <item name="colorPrimaryDark">@color/color_rift_primary_dark</item>
+        <item name="colorAccent">@color/color_rift_accent</item>
+        <item name="colorMaterial100">@color/color_rift_100</item>
+        <item name="colorMaterial300">@color/color_rift_300</item>
+        <item name="primaryOrTextPrimary">@color/color_rift_primary_text</item>
+        <item name="primaryOrTextSecondary">@color/color_rift_primary_text</item>
+        <item name="fabColorBackground">@color/color_rift_fab</item>
+        <item name="selectedColorPrimary">@color/color_rift_accent</item>
+        <item name="tabTextColor">@color/color_rift_tab_text</item>
+        <item name="tabSelectedTextColor">@color/color_rift_tab_selected</item>
+        <item name="tabIndicatorColor">@color/color_rift_accent</item>
+        <item name="tabRippleColor">@color/color_rift_accent</item>
+        <item name="topbarColor">@color/color_rift_topbar</item>
+    </style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <style name="Theme.Start" parent="Theme.MaterialComponents.DayNight">
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="colorPrimary">@android:color/transparent</item>
+        <item name="colorPrimaryDark">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+</resources>

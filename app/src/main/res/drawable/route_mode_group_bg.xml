@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 分流模式切换组底色（2026-11-12 首页重设计 -4）：整排一块灰底（白天浅灰、
+     夜间深灰），无描边；选中的那格是一颗圆角琥珀药丸（route_mode_selected_bg），
+     未选中的透明、透出这块灰底。圆角 16dp = 组高 32dp 的一半，整排是胶囊形。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="16dp" />
+    <solid android:color="@color/color_rift_pills_track" />
+</shape>

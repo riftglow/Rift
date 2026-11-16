@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 日志页级别筛选 chip 背景（2026-11-16，0.2.29）：选中琥珀描边药丸，未选中灰药丸。 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true" android:drawable="@drawable/bg_amber_outline_pill" />
+    <item android:drawable="@drawable/bg_grey_pill" />
+</selector>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="bottom"
+    android:orientation="vertical"
+    android:paddingStart="20dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="@dimen/drawer_header_padding_bottom">
+
+    <!-- 抽屉图标不用 mipmap：15 上 @mipmap 引用会按启动图标那套画、透明处垫白底，
+         四角发白（#79/#81/#82/#83 都走 mipmap 都失败）。drawable 是普通位图，
+         透明角直接透出抽屉底。 -->
+    <!-- 注意：不要给这个 ImageView 加负边距。v4 图标是贴边画满的 squircle（左沿空 0dp），
+         直接放就跟下方标题左沿对齐；负边距会把图标推出父容器左边界，被 clipChildren 裁掉左圆角，变直角。 -->
+    <ImageView
+        android:layout_width="@dimen/drawer_header_logo"
+        android:layout_height="@dimen/drawer_header_logo"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/ic_drawer" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/drawer_header_title_margin_top"
+        android:text="@string/app_name"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="30sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="@string/app_name_long"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="13sp" />
+
+</LinearLayout>

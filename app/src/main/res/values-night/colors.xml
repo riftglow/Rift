@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="fab_color_progress">@color/material_light_white</color>
+    <color name="preference_simple_menu_background">#303030</color>
+    <color name="color_rift_primary">#121212</color>
+    <color name="color_rift_topbar">#121212</color>
+    <color name="color_rift_primary_dark">#121212</color>
+    <color name="color_rift_accent">#E8A33D</color>
+    <color name="color_rift_accent_dark">#E8A33D</color>
+    <!-- 淡底夜色：审计批深暖色 #2A2113。 -->
+    <color name="color_rift_100">#2A2113</color>
+    <color name="color_rift_300">#121212</color>
+    <color name="color_rift_primary_text">#A7BBC0</color>
+    <color name="color_rift_secondary_text">#8A9BA8</color>
+    <color name="color_rift_fab">#B45309</color>
+    <color name="color_rift_tab_text">#99FFFFFF</color>
+    <color name="color_rift_tab_selected">#FFFFFF</color>
+    <color name="color_rift_stats_text">#FFFFFF</color>
+    <color name="color_rift_drawer_selected">#2A2113</color>
+    <!-- 抽屉底：夜间 #121212，与夜间页面底同色，抽屉仍是深色。 -->
+    <color name="color_rift_drawer_bg">#121212</color>
+    <!-- 卡片描边：审计批 12% 白。 -->
+    <color name="color_rift_card_stroke">#1FFFFFFF</color>
+    <color name="color_rift_success">#66BB6A</color>
+    <color name="color_rift_danger">#EF5350</color>
+    <color name="color_rift_protocol_pill_bg">#2A2A2A</color>
+    <!-- 底栏：夜间用标准深色面（#121212，与顶栏/页面底同色），不用深海军蓝。
+         用户 2026-11-11 定：暗黑模式底栏深蓝色接受不了，做成标准的。 -->
+    <color name="color_rift_bottom_bar">#121212</color>
+    <!-- 卡片底色：夜间略亮于页面底（#121212），卡片才分得清。 -->
+    <color name="color_rift_card">#1E1E1E</color>
+    <!-- 分流切换组底色（2026-11-12 首页重设计 -4）：整排一块灰底，夜间深灰。 -->
+    <color name="color_rift_pills_track">#2A2A2A</color>
+    <!-- 实时连接徽章与图标底（2026-11-15，0.2.29）：夜间对应深色。 -->
+    <color name="color_conn_rule_bg">#262B33</color>
+    <color name="color_conn_rule_text">#CBD5E1</color>
+    <color name="color_conn_icon_bg">#2A2A2A</color>
+    <!-- 首页悬浮感（2026-11-13）：夜间两值与现有夜间底/卡同色，夜间不动。 -->
+    <color name="color_rift_page_bg">#121212</color>
+    <color name="color_rift_status_card_bg">#1E1E1E</color>
+</resources>

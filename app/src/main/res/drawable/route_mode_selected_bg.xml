@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 分流模式选中态（2026-11-12 首页重设计 -4）：一颗圆角琥珀药丸，盖在灰底组上。
+     圆角 14dp = 格高 28dp（组 32dp 减 2dp 内边距 ×2）的一半，整颗是胶囊形。
+     选中底色用 color_rift_accent（白天 #D97706、夜间 #E8A33D），文字色由代码设深蓝。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="14dp" />
+    <solid android:color="@color/color_rift_accent" />
+</shape>

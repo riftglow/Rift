@@ -1,0 +1,12 @@
+<resources>
+    <dimen name="qrcode_size">264dp</dimen>
+    <dimen name="main_list_padding_bottom">88dp</dimen>
+    <dimen name="bottom_sheet_padding">8dp</dimen>
+    <!-- 抽屉竖向尺寸（默认 = 收紧档，给矮屏；高屏见 values-h900dp/dimens.xml）。
+         2026-11-15：竖向收紧一刀切后 14 Pro 下面空余变大，改按屏高分档。 -->
+    <dimen name="drawer_row_height">48dp</dimen>
+    <dimen name="drawer_card_padding">4dp</dimen>
+    <dimen name="drawer_header_logo">56dp</dimen>
+    <dimen name="drawer_header_title_margin_top">8dp</dimen>
+    <dimen name="drawer_header_padding_bottom">12dp</dimen>
+</resources>

@@ -1,0 +1,9 @@
+<resources>
+    <!-- 抽屉竖向尺寸（高屏档，屏高 ≥ 900dp，用原来宽松值；矮屏用 values/dimens.xml 的收紧值）。
+         2026-11-15：竖向收紧一刀切后 14 Pro 下面空余变大，改按屏高分档。 -->
+    <dimen name="drawer_row_height">50dp</dimen>
+    <dimen name="drawer_card_padding">6dp</dimen>
+    <dimen name="drawer_header_logo">56dp</dimen>
+    <dimen name="drawer_header_title_margin_top">12dp</dimen>
+    <dimen name="drawer_header_padding_bottom">16dp</dimen>
+</resources>

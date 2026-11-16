@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Night override for Rift only: day uses a light action bar, night must
+         use a dark action bar, otherwise dark title/icons would sit on a dark
+         top bar at night. This file replaces the day Rift style at night, so
+         it repeats all Rift items, changing only the action-bar overlay and
+         the light-status/navigation flags. -->
+    <style name="Theme.Rift.Rift">
+        <item name="colorPrimary">@color/color_rift_primary</item>
+        <item name="colorPrimaryDark">@color/color_rift_primary_dark</item>
+        <item name="colorAccent">@color/color_rift_accent</item>
+        <!-- 内页底统一暖灰：窗口底用 color_rift_page_bg（夜间 #121212），与白天 themes.xml 同项。 -->
+        <item name="android:windowBackground">@color/color_rift_page_bg</item>
+        <!-- 小字号次级文字用深琥珀（夜间 accent_dark 即亮琥珀 #E8A33D，深底上可读）。
+             白天 themes.xml:146 有此项，夜间漏了会回退到 ?colorAccent。 -->
+        <item name="accentOrTextSecondary">@color/color_rift_accent_dark</item>
+        <!-- 全局卡片：20dp 圆角、0 阴影、1dp 描边（昼夜一致）。
+             白天 themes.xml:148 有此项，夜间漏了会回退库默认样式。 -->
+        <item name="materialCardViewStyle">@style/Widget.Rift.CardView</item>
+        <item name="colorMaterial100">@color/color_rift_100</item>
+        <item name="colorMaterial300">@color/color_rift_300</item>
+        <item name="primaryOrTextPrimary">@color/color_rift_primary_text</item>
+        <item name="primaryOrTextSecondary">@color/color_rift_primary_text</item>
+        <item name="fabColorBackground">@color/color_rift_fab</item>
+        <item name="selectedColorPrimary">@color/color_rift_accent</item>
+        <item name="tabTextColor">@color/color_rift_tab_text</item>
+        <item name="tabSelectedTextColor">@color/color_rift_tab_selected</item>
+        <item name="tabIndicatorColor">@color/color_rift_accent</item>
+        <item name="tabRippleColor">@color/color_rift_accent</item>
+        <item name="whiteOrTextPrimary">@color/color_rift_stats_text</item>
+        <item name="itemShapeFillColor">@color/color_rift_drawer_selected</item>
+        <item name="topbarColor">@color/color_rift_topbar</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Rift.ActionBar</item>
+        <item name="android:statusBarColor">@color/color_rift_topbar</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">@color/color_rift_topbar</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
+    <!-- 顶栏图标夜间用主文字色（浅灰蓝 #A7BBC0），不用默认灰。 -->
+    <style name="ThemeOverlay.Rift.ActionBar" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="colorControlNormal">@color/color_rift_primary_text</item>
+    </style>
+</resources>

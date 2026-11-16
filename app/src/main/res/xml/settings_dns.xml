@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!-- 设置子页卡片分组（2026-11-15）：每组收进一张白圆角卡片，标题为分组名。 -->
+    <PreferenceCategory app:title="@string/settings_group_remote_dns">
+        <EditTextPreference
+            app:defaultValue="https://dns.google/dns-query"
+            app:icon="@drawable/ic_action_dns"
+            app:key="remoteDns"
+            app:title="@string/remote_dns"
+            app:useSimpleSummaryProvider="true" />
+        <light.rift.core.ui.SimpleMenuPreference
+            app:defaultValue="auto"
+            app:entries="@array/dns_network_select"
+            app:entryValues="@array/dns_network_select"
+            app:key="domain_strategy_for_remote"
+            app:title="@string/domain_strategy_for_remote"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/settings_group_direct_dns">
+        <EditTextPreference
+            app:defaultValue="https://223.5.5.5/dns-query"
+            app:icon="@drawable/ic_action_dns"
+            app:key="directDns"
+            app:title="@string/direct_dns"
+            app:useSimpleSummaryProvider="true" />
+        <light.rift.core.ui.SimpleMenuPreference
+            app:defaultValue="auto"
+            app:entries="@array/dns_network_select"
+            app:entryValues="@array/dns_network_select"
+            app:key="domain_strategy_for_direct"
+            app:title="@string/domain_strategy_for_direct"
+            app:useSimpleSummaryProvider="true" />
+        <light.rift.core.ui.SimpleMenuPreference
+            app:defaultValue="auto"
+            app:entries="@array/dns_network_select"
+            app:entryValues="@array/dns_network_select"
+            app:key="domain_strategy_for_server"
+            app:title="@string/domain_strategy_for_server"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/settings_group_dns_features">
+        <SwitchPreference
+            app:defaultValue="true"
+            app:icon="@drawable/ic_baseline_camera_24"
+            app:key="enableDnsRouting"
+            app:summary="@string/dns_routing_message"
+            app:title="@string/enable_dns_routing" />
+        <SwitchPreference
+            app:defaultValue="true"
+            app:icon="@drawable/ic_action_lock"
+            app:key="enableFakeDns"
+            app:summary="@string/fakedns_message"
+            app:title="@string/enable_fakedns" />
+        <Preference
+            android:selectable="false"
+            app:icon="@drawable/ic_baseline_info_24"
+            android:summary="@string/explain_fakedns_summary"
+            android:title="@string/explain_fakedns_title" />
+        <SwitchPreference
+            app:defaultValue="false"
+            app:icon="@drawable/ic_action_dns"
+            app:key="dnsOptimisticEnabled"
+            app:summary="@string/dns_optimistic_summary"
+            app:title="@string/dns_optimistic" />
+        <light.rift.core.ui.SimpleMenuPreference
+            app:defaultValue=""
+            app:entries="@array/dns_optimistic_timeout_entries"
+            app:entryValues="@array/dns_optimistic_timeout_values"
+            app:key="dnsOptimisticTimeout"
+            app:title="@string/dns_optimistic_timeout"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+</PreferenceScreen>

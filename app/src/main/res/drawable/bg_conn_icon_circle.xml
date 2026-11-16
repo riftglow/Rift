@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 实时连接图标圆底（2026-11-15，0.2.29）：浅灰圆，按压有水波纹。
+     左侧链接图标和右侧 X 断开按钮共用。 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/color_conn_icon_bg" />
+        </shape>
+    </item>
+</ripple>

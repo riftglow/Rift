@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 设置子页跳转项右侧小箭头（2026-11-15）：供 SettingsPreferenceFragment 给可跳转偏好
+     设 app:widgetLayout 用，开关与说明项不设。 -->
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="24dp"
+    android:layout_height="24dp"
+    android:contentDescription="@null"
+    android:src="@drawable/ic_chevron_right_24"
+    android:tint="?attr/colorControlNormal" />

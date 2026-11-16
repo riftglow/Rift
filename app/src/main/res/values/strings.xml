@@ -1,0 +1,674 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Rift</string>
+    <string name="app_name_long" translatable="false">Rift for Android</string>
+    <string name="app_desc">Rift for Android: a clean, simple proxy client built on sing-box.</string>
+    <string name="project">Project</string>
+    <string name="github">Source code</string>
+    <string name="app_version">Version</string>
+    <string name="version_x">Version (%s)</string>
+    <string name="logcat">Export debug information</string>
+    <string name="export_logcat">Export log to local file</string>
+    <string name="log_exported">Log exported</string>
+    <string name="log_exported_redacted">Log exported, sensitive info hidden</string>
+    <string name="log_filter_all">All</string>
+    <string name="menu_configuration">Configuration</string>
+    <string name="menu_group">Group</string>
+    <string name="drawer_section_nav">Navigation</string>
+    <string name="drawer_section_tools">Tools</string>
+    <string name="menu_about">About</string>
+    <string name="group_default">Ungrouped</string>
+    <string name="quick_toggle">Toggle</string>
+    <string name="quick_enable">Enable</string>
+    <string name="quick_disable">Disable</string>
+    <string name="tile_title">Switcher</string>
+    <string name="menu_dashboard">sing-box Dashboard</string>
+    <!-- externel -->
+    <!-- group -->
+    <string name="group_name">Group name</string>
+    <string name="group_update">Update</string>
+    <string name="group_subscription_link">Subscription Link</string>
+    <string name="group_create">Create group</string>
+    <string name="update_all_subscription">Update all subscriptions</string>
+    <string name="group_status_empty">Empty group</string>
+    <string name="group_status_empty_subscription">Not updated yet</string>
+    <string name="group_status_proxies">%d Proxies</string>
+    <string name="group_status_proxies_subscription">%d Proxies | Updated on %s</string>
+    <string name="group_no_difference">%s: No difference</string>
+    <string name="group_updated">%s: Updated %d proxies</string>
+    <string name="group_diff">Diff (%s)</string>
+    <string name="group_added">Added: \n%s</string>
+    <string name="group_changed">Updated: \n%s</string>
+    <string name="group_deleted">Deleted: \n%s</string>
+    <string name="group_duplicate">Duplicate: \n%s</string>
+    <!-- misc -->
+    <string name="service_mode">Service Mode</string>
+    <string name="port_proxy">Proxy Port</string>
+    <string name="cag_route">Route Settings</string>
+    <string name="allow_access">Allow Connections from the LAN</string>
+    <string name="allow_access_sum">Bind inbound servers to 0.0.0.0</string>
+    <string name="inbound_settings">Inbound Settings</string>
+    <string name="general_settings">App Settings</string>
+    <string name="cag_ws">WebSocket Settings</string>
+    <string name="ws_max_early_data" translatable="false">Max early data</string>
+    <string name="speed_interval">Speed Notification Update Interval</string>
+    <string name="cag_misc">Misc Settings</string>
+    <string name="show_direct_speed">Show Direct Speed</string>
+    <string name="show_direct_speed_sum">Show the traffic speed without proxy in the notification as
+        well</string>
+    <string name="security_settings">TLS Security Settings</string>
+    <string name="allow_insecure">Allow Insecure</string>
+    <string name="allow_insecure_sum">Disable certificate checking. When enabled, this configuration
+        is as secure as plaintext</string>
+    <string name="traffic" translatable="false">%1$s↑ %2$s↓</string>
+    <string name="speed_detail">Proxy： %1$s↑ %2$s↓\nDirect： %3$s↑ %4$s↓</string>
+    <string name="speed">%s/s</string>
+    <string name="connection_test_testing">Testing…</string>
+    <string name="connection_test_available">Delay %dms</string>
+    <string name="connection_test_retest">Retest</string>
+    <string name="connection_test_available_http">Delay %dms</string>
+    <string name="connection_test_error">Failed: %s</string>
+    <string name="cag_dns">DNS Settings</string>
+    <string name="remote_dns">Remote DNS</string>
+    <string name="direct_dns">Direct DNS</string>
+    <string name="enable_dns_routing">Enable DNS Routing</string>
+    <string name="dns_routing_message">Resolve domains in bypass routes with Direct DNS. Be aware of
+        potential DNS leaks</string>
+    <string name="enable_fakedns">Enable FakeDNS</string>
+    <string name="fakedns_message">May cause other applications need to be restarted to reconnect to
+        the network after proxy stopped</string>
+    <string name="connection_test_url">Connection Test URL</string>
+    <!-- proxy category -->
+    <string name="profile_name">Profile Name</string>
+    <string name="server_address">Server</string>
+    <string name="server_port">Remote Port</string>
+    <string name="username">Username</string>
+    <string name="username_opt">Username (Optional)</string>
+    <string name="password_opt">Password (Optional)</string>
+    <string name="password">Password</string>
+    <string name="enc_method">Encrypt Method</string>
+    <string name="protocol">Protocol</string>
+    <string name="uuid">User ID</string>
+    <string name="alter_id">Alter ID</string>
+    <string name="security">Transport layer encryption</string>
+    <string name="network">Network</string>
+    <string name="ws_host">WebSocket Host</string>
+    <string name="ws_path">WebSocket Path</string>
+    <string name="http_host">HTTP Host</string>
+    <string name="http_path">HTTP Path</string>
+    <string name="grpc_service_name">gRPC ServiceName</string>
+    <string name="sni">Server Name Indication</string>
+    <string name="alpn">Application-Layer Protocol Negotiation</string>
+    <string name="certificates">Certificates</string>
+    <string name="early_data_header_name">Early Data Header Name</string>
+    <string name="encryption">Encryption</string>
+    <string name="extra_headers">Extra Headers</string>
+    <!-- feature category -->
+    <string name="ipv6">IPv6 Route</string>
+    <string name="metered">Metered Hint</string>
+    <string name="metered_summary">Hint system to treat VPN as metered</string>
+    <string name="menu_route">Route</string>
+    <string name="route_add">Create Route</string>
+    <string name="delete_route_prompt">Are you sure you want to remove this route?</string>
+    <string name="route_name">Route Name</string>
+    <string name="route_proxy">Proxy</string>
+    <string name="route_bypass">Bypass</string>
+    <string name="route_block">Block</string>
+    <string name="empty_route">Empty Route</string>
+    <string name="empty_route_notice">Set some rules before saving</string>
+    <string name="route_bypass_domain">Domain rule for %s</string>
+    <string name="route_play_store">Play store rule for %s</string>
+    <string name="route_bypass_ip">IP rule for %s</string>
+    <string name="route_reset">Reset</string>
+    <string name="route_manage_assets">Manage Route Assets</string>
+    <string name="route_assets">Assets</string>
+    <string name="route_rules_provider">Rule Assets Provider</string>
+    <string name="route_asset_status">Local version: %s</string>
+    <string name="route_asset_no_update">No update</string>
+    <string name="route_not_asset">Not an asset file: expected .srs, but %s</string>
+    <string name="route_update_all">Update Rule Sets</string>
+    <string name="route_rollback">Rollback</string>
+    <string name="route_rollback_title">Roll back rule set</string>
+    <string name="route_rules_updated">Rule sets updated. New connections use the new rules.</string>
+    <string name="route_reconnect_now">Reconnect now</string>
+    <string name="route_later">Later</string>
+    <string name="route_stale_hint">Update check available</string>
+    <string name="route_update_failed">Update failed: %s</string>
+    <string name="route_import_overwrite">Importing %1$s will replace the bundled rule set. Replace it?</string>
+    <string name="route_delete_blocked">Cannot delete %1$s: it is referenced by stored rules.</string>
+    <string name="backup_import_partial">Import partially applied: please check profiles, rules and settings.</string>
+    <string name="backup_import_webdav_kept">The imported WebDAV password could not be decrypted on this device, so your current WebDAV configuration was kept.</string>
+    <string name="route_update_partial">Some rule sets failed to update: %s</string>
+    <string name="route_opt_bypass_lan">Bypass LAN</string>
+    <string name="route_opt_block_ads">Block ADs</string>
+    <string name="route_opt_block_quic">Block QUIC</string>
+    <string name="traffic_sniffing">Enable Traffic Sniffing</string>
+    <string name="enable_mux">Enable Multiplexer</string>
+    <string name="mux_sum">Mux is designed to reduce TCP handshake latency, not to increase
+        connection throughput. Using Mux to watch videos, download or speed test is usually counter
+        productive. If the server does not support it, you will not be able to access the Internet.</string>
+    <string name="mux_concurrency">Mux Concurrent Connections</string>
+    <string name="proxied_apps">Apps VPN mode</string>
+    <string name="proxied_apps_summary">Configure VPN mode for selected apps</string>
+    <string name="off">Off</string>
+    <string name="search_apps">Search…</string>
+    <string name="invert_selections">Invert selections</string>
+    <string name="clear_selections">Clear selections</string>
+    <string name="bypass_apps">Bypass</string>
+    <string name="show_system_apps">Show system apps</string>
+    <string name="auto_connect">Auto Connect</string>
+    <string name="auto_connect_summary">Enable proxy on startup/app update if it was running before</string>
+    <!-- notification category -->
+    <string name="service_vpn">VPN Service</string>
+    <string name="service_proxy">Proxy Service</string>
+    <string name="forward_success">Proxy started.</string>
+    <string name="invalid_server">Invalid server name</string>
+    <string name="service_failed">Failed: </string>
+    <string name="stop">Stop</string>
+    <string name="stopping">Shutting down…</string>
+    <string name="vpn_error">%s</string>
+    <string name="vpn_permission_denied">Permission denied to create a VPN service</string>
+    <string name="reboot_required">Failed to start VPN service. You might need to reboot your
+        device.</string>
+    <!-- alert category -->
+    <string name="profile_empty">Please select a profile</string>
+    <string name="connect">Connect</string>
+    <string name="clipboard_empty">Clipboard is empty</string>
+    <!-- menu category -->
+    <string name="settings">Settings</string>
+    <string name="edit">Edit</string>
+    <string name="share">Share</string>
+    <string name="add_profile">Add Profile</string>
+    <string name="select_profile">Select Profile</string>
+    <string name="action_socks" translatable="false">SOCKS</string>
+    <string name="action_http" translatable="false">HTTP</string>
+    <string name="action_shadowsocks" translatable="false">Shadowsocks</string>
+    <string name="action_vmess" translatable="false">VMess</string>
+    <string name="action_trojan" translatable="false">Trojan</string>
+    <string name="action_anytls" translatable="false">AnyTLS</string>
+    <string name="action_hysteria" translatable="false">Hysteria</string>
+    <string name="action_ssh" translatable="false">SSH</string>
+    <string name="action_tuic" translatable="false">TUIC</string>
+    <string name="proxy_chain">Proxy Chain</string>
+    <string name="custom_config">Custom Config</string>
+    <string name="chain_settings">Chain Settings</string>
+    <string name="config_settings">Config Settings</string>
+    <string name="circular_reference">Circular reference</string>
+    <string name="circular_reference_sum">The route cannot contain itself.</string>
+    <string name="clear_profiles">Clear</string>
+    <string name="action_export_file">Export to file</string>
+    <string name="action_export_clipboard">Export to Clipboard</string>
+    <string name="action_export">Export</string>
+    <string name="action_import">Import from Clipboard</string>
+    <string name="action_import_file">Import from file</string>
+    <string name="action_export_msg">Successfully export!</string>
+    <string name="action_export_err">Failed to export.</string>
+    <string name="action_import_msg">Successfully import!</string>
+    <string name="action_import_err">Failed to import.</string>
+    <string name="file_manager_missing">Your device lacks an Android standard file selector, please
+        install one, such as Material Files.</string>
+    <!-- share -->
+    <!-- profile -->
+    <string name="profile_config">Profile config</string>
+    <string name="delete">Remove</string>
+    <string name="delete_confirm_prompt">Are you sure you want to remove this profile?</string>
+    <string name="share_qr_nfc">QR code</string>
+    <string name="more_options">More options</string>
+    <string name="add_profile_methods_scan_qr_code">Scan QR code</string>
+    <string name="add_profile_methods_manual_settings">Manual Settings</string>
+    <plurals name="removed">
+        <item quantity="one">Removed</item>
+        <item quantity="other">%d items removed</item>
+    </plurals>
+    <plurals name="added">
+        <item quantity="one">Added</item>
+        <item quantity="other">%d proxies added</item>
+    </plurals>
+    <string name="undo">Undo</string>
+    <!-- tasker -->
+    <!-- status -->
+    <string name="connecting">Connecting…</string>
+    <string name="vpn_connected">Connected</string>
+    <string name="not_connected">Not connected</string>
+    <!-- subscriptions -->
+    <string name="subscriptions">Subscriptions</string>
+    <string name="cleartext_http_warning">Cleartext HTTP traffic is insecure</string>
+    <string name="error_title">Error</string>
+    <string name="no_proxies_found">No proxies found in the link</string>
+    <string name="no_proxies_found_in_subscription">No proxies found in the subscription</string>
+    <string name="no_proxies_found_in_file">No proxies found in the file</string>
+    <string name="no_proxies_found_in_clipboard">No proxies found in the clipboard</string>
+    <string name="deduplication">Deduplication</string>
+    <string name="ignore_battery_optimizations">Ignore battery optimizations</string>
+    <string name="ignore_battery_optimizations_sum">Remove some restrictions</string>
+    <!-- plugin -->
+    <string name="plugin">Plugin</string>
+    <string name="plugin_configure">Configure…</string>
+    <string name="proxy_cat">Server Settings</string>
+    <string name="ss_cat">Shadowsocks Settings</string>
+    <string name="unsaved_changes_prompt">Changes not saved. Do you want to save?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="apply">Apply</string>
+    <string name="need_reload">Reload proxy service to apply changes</string>
+    <string name="license">License</string>
+    <string name="license_short">Copyright (C) 2021 by nekohasekai\nCopyright (C) 2026 riftglow\n\nThis program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. The full license text is included in the LICENSE file.</string>
+    <string name="route_warn">Make sure you have read the documentation before adding custom rules,
+        otherwise you may not be able to connect to the Internet.</string>
+    <string name="lines">%d Lines</string>
+    <string name="night_mode">Night Mode</string>
+    <string name="enable">Enable</string>
+    <string name="auto">Auto</string>
+    <string name="standard">Standard</string>
+    <string name="available" translatable="false">%dms</string>
+    <string name="unavailable">Unavailable</string>
+    <string name="always_show_address">Always Show Address</string>
+    <string name="always_show_address_sum">Always display the server address on the configuration
+        card</string>
+    <string name="clear_traffic_statistics">Clear traffic statistics</string>
+    <string name="connection_test">Connection test</string>
+    <string name="connection_test_clear_results">Clear test results</string>
+    <string name="connection_test_tcp_ping">TCPing</string>
+    <string name="connection_test_url_test">URL Test</string>
+    <string name="connection_test_delete_slow">Clear slow profiles</string>
+    <string name="connection_test_domain_not_found">Domain not found</string>
+    <string name="connection_test_refused">Connection refused</string>
+    <string name="connection_test_tls">TLS handshake failed, try another node</string>
+    <string name="connection_test_plugin">Required plugin is missing, install it first</string>
+    <string name="connection_test_unsupported">Unsupported encryption or method, check node settings</string>
+    <string name="connection_test_config">Node config is incomplete, check node settings</string>
+    <string name="connection_test_network">Network unreachable, try another node or check network</string>
+    <string name="menu_connections">Connections</string>
+    <string name="connections_vpn_off">VPN is off, no live connections.</string>
+    <string name="connections_clash_off">Clash API is off. Turn it on in Settings and reconnect to see live connections.</string>
+    <string name="connections_empty">No live connections right now.</string>
+    <string name="connections_count">%1$d live connections</string>
+    <string name="connections_error">Failed to load connections: %1$s</string>
+    <string name="connections_detail">Rule: %1$s · Outbound: %2$s</string>
+    <string name="connections_close">Close</string>
+    <string name="connections_close_all">Close all</string>
+    <string name="connections_rule_badge">Rule: %1$s</string>
+    <string name="connections_outbound_badge">Outbound: %1$s</string>
+    <string name="connection_test_unreachable">Unreachable</string>
+    <string name="connection_test_timeout">Timeout</string>
+    <string name="append_http_proxy">Append HTTP Proxy to VPN</string>
+    <string name="append_http_proxy_sum">HTTP proxy will be used directly from (browser/ some
+        supported apps), without going through the virtual NIC device (Android 10+)</string>
+    <string name="group_settings">Group Settings</string>
+    <string name="subscription">Subscription</string>
+    <string name="subscription_settings">Subscription Settings</string>
+    <string name="group_type">Group Type</string>
+    <string name="delete_group_prompt">Are you sure you want to remove this group?</string>
+    <string name="force_resolve">Force Resolve</string>
+    <string name="force_resolve_sum">Resolve all domain names to IP addresses when updating. Host
+        and SNI will be automatically appended if possible</string>
+    <string name="deduplication_sum">Remove duplicate configurations when updating</string>
+    <string name="update_settings">Update Settings</string>
+    <string name="auto_update">Auto Update</string>
+    <string name="auto_update_delay">Auto Update Delay (In minutes)</string>
+    <string name="update_when_connected_only">Update only when connected</string>
+    <string name="update_when_connected_only_sum">Prevent IP address leakage</string>
+    <string name="subscription_user_agent">UserAgent</string>
+    <string name="confirm">Confirm</string>
+    <string name="action_learn_more">LEARN MORE</string>
+    <string name="action_download">DOWNLOAD</string>
+    <string name="install_from_play_store">Install from Play Store</string>
+    <string name="install_from_fdroid">Install from F-Droid</string>
+    <string name="download">Download</string>
+    <string name="update_subscription_warning">Proxy is not connected, are you sure you want to
+        continue updating?</string>
+    <string name="ooc_warning">Warning</string>
+    <string name="service_subscription">Subscription Update Service</string>
+    <string name="subscription_update">Subscription Update</string>
+    <string name="subscription_update_message">Updating %s …</string>
+    <string name="subscription_link_expired">The subscription link has expired. Go to your provider\'s website to renew it.</string>
+    <string name="subscription_used">%s Used</string>
+    <string name="subscription_traffic">%s Used / %s Remaining</string>
+    <string name="subscription_expire">Expire: %s</string>
+    <string name="subscription_import">Import subscription</string>
+    <string name="subscription_import_message">Confirm you want to import subscription %s? If you
+        are coming from an untrusted source, doing this may result in your IP and this behavior
+        being leaked.</string>
+    <string name="profile_import">Import profile</string>
+    <string name="profile_import_message">Confirm you want to import profile %s?</string>
+    <string name="clear_profiles_message">Are you sure you want to clear this group?</string>
+    <string name="apps">Applications</string>
+    <string name="select_apps">Select Applications</string>
+    <string name="apps_message">%d Applications</string>
+<string name="hysteria_auth_type">Authentication Type</string>
+<string name="hysteria_auth_payload">Authentication Payload</string>
+    <string name="hysteria_obfs">Obfuscation Password</string>
+    <string name="hysteria_upload_mbps">Max Upload Speed (in Mbps)</string>
+    <string name="hysteria_download_mbps">Max Download Speed (in Mbps)</string>
+    <string name="group_order">Order</string>
+    <string name="group_order_origin">Origin</string>
+    <string name="group_order_by_name">By Name</string>
+    <string name="group_order_by_delay">By Delay</string>
+    <string name="route_for">Rule for %s</string>
+
+    <string name="route_need_vpn">Routing rule %s relies on the VPN to be in effect, so it is
+        ignored.</string>
+
+    <string name="profile_traffic_statistics">Profile Traffic Statistics</string>
+    <string name="profile_traffic_statistics_summary">When disabled, the used traffic will not be
+        counted</string>
+    <string name="ssh_public_key">Public Key</string>
+    <string name="ssh_private_key">Private Key</string>
+    <string name="ssh_private_key_passphrase">Private Key Passphrase</string>
+    <string name="menu_tools">Tools</string>
+    <string name="menu_log">Logs</string>
+    <string name="clear_logcat">Clear Logcat</string>
+    <string name="wireguard_local_address">Local Address</string>
+    <string name="wireguard_public_key">Peer Public Key</string>
+    <string name="wireguard_psk">Peer Pre-Shared Key</string>
+    <string name="tun_implementation">TUN Implementation</string>
+    <string name="tun_implementation_sing_tun">Sing-Tun (sing-box 1.15 native stack)</string>
+    <string name="resolve_destination">Resolve Destination</string>
+    <string name="resolve_destination_summary">If the destination address is a domain, it is then
+        passed out based on the IPv6 strategy (conflicts with FakeDNS)</string>
+
+    <string name="egress_check">Egress check</string>
+    <string name="egress_check_summary">Check the current egress IP, region and ISP through the active node. When VPN is off the result is your direct connection, not an egress node.</string>
+    <string name="egress_check_idle">Not checked yet.</string>
+    <string name="egress_check_testing">Checking…</string>
+    <string name="egress_check_error">Check failed: %1$s</string>
+    <string name="egress_check_mixed_unready">Local mixed inbound is not ready, cannot confirm traffic goes through the node.</string>
+    <string name="egress_check_direct">Mode: direct (VPN off)</string>
+    <string name="egress_check_via_node">Mode: via current node (%1$s)</string>
+    <string name="egress_check_via_node_plain">Mode: via current node</string>
+    <string name="egress_check_source_elapsed">Source: ip-api.com · Request time: %1$d ms</string>
+    <string name="dns_leak_test">DNS leak test</string>
+    <string name="dns_leak_test_summary">Resolve a domain and check whether it lands in the VPN Fake-IP range, then compare with the egress IP. Not a full leak test.</string>
+    <string name="dns_leak_resolved">Resolved: %1$s → %2$s (%3$s)</string>
+    <string name="dns_leak_fake_ip_on">Fake-IP active</string>
+    <string name="dns_leak_fake_ip_off">not Fake-IP</string>
+    <string name="dns_leak_resolve_failed">Failed to resolve %1$s: %2$s</string>
+    <string name="dns_leak_egress">Egress IP: %1$s</string>
+    <string name="dns_leak_conclusion_safe">DNS goes through the VPN Fake-IP, no leak found.</string>
+    <string name="dns_leak_conclusion_maybe">DNS did not go through Fake-IP, it may leak to local resolution. Check DNS settings.</string>
+    <string name="dns_leak_conclusion_direct">Direct mode: DNS uses local resolution, VPN is off — not a leak.</string>
+    <string name="dns_leak_conclusion_no_fakedns">FakeDNS is off, resolution returns real IPs — cannot tell from here.</string>
+    <string name="dns_leak_conclusion_unknown">Resolution failed, cannot tell whether DNS leaks.</string>
+    <string name="url_check_test">URL Check</string>
+    <string name="url_check_test_summary">Trace a real request to www.youtube.com end to end (DNS → connection → TLS → HTTP) and show which step fails. Sends one tiny probe request, not the full page.</string>
+    <string name="url_check_target">Target: %1$s</string>
+    <string name="url_check_step_dns_ok">DNS: ✓ %1$s (%2$d ms)</string>
+    <string name="url_check_step_dns_failed">DNS: ✗ %1$s</string>
+    <string name="url_check_step_connect_ok">Connection (%1$s): ✓ %2$d ms</string>
+    <string name="url_check_step_connect_failed">Connection (%1$s): ✗ %1$s</string>
+    <string name="url_check_step_tls_ok">TLS: ✓ %1$d ms</string>
+    <string name="url_check_step_tls_failed">TLS: ✗ %1$s</string>
+    <string name="url_check_step_http_ok">HTTP: ✓ %1$d (%2$d ms)</string>
+    <string name="url_check_step_http_failed">HTTP: ✗ %1$s</string>
+    <string name="url_check_via_node">via node</string>
+    <string name="url_check_direct">direct</string>
+    <string name="url_check_conclusion_ok">All steps OK, total %1$d ms.</string>
+    <string name="url_check_conclusion_dns">DNS failed. Check DNS settings.</string>
+    <string name="url_check_conclusion_connect">Connection failed. Check the node or VPN status.</string>
+    <string name="url_check_conclusion_tls">TLS handshake failed. The node or network may be blocking TLS.</string>
+    <string name="url_check_conclusion_http">HTTP request failed. The node connects but the request did not complete.</string>
+    <string name="egress_check_unknown">Not provided</string>
+    <string name="stun_test">NAT behaviour discovery</string>
+    <string name="stun_test_summary">Determine the client\'s NAT mapping behaviour and the NAT
+        filtering behaviour defined in RFC 3478 using STUN.</string>
+    <string name="start">Start</string>
+    <string name="stun_attest_loading">This may take a few minutes…</string>
+    <string name="nat_stun_server_hint">Stun server</string>
+    <string name="nat_result_hint">NAT check result</string>
+    <string name="tools_network">Network</string>
+    <string name="mtu" translatable="false">MTU</string>
+
+    <string name="backup">Backup</string>
+    <string name="backup_groups_and_configurations">Groups and configurations</string>
+    <string name="backup_rules">Routing rules</string>
+    <string name="backup_summary">If the routing settings are not backed up with configurations,
+        then custom outbounds will be lost.</string>
+    <string name="backup_not_file">Not a backup file: expected .json, but %s</string>
+    <string name="invalid_backup_file">Invalid backup file</string>
+    <string name="backup_import">Import</string>
+    <string name="backup_import_summary">Importing follows the restore strategy in the Options card: overwrite clears first, merge keeps existing data.</string>
+    <string name="backup_importing">Importing…</string>
+    <string name="webdav_title">WebDAV backup</string>
+    <string name="webdav_server">WebDAV server</string>
+    <string name="webdav_username">Username</string>
+    <string name="webdav_password">App password (not your login password)</string>
+    <string name="webdav_hint">Enter just the server root (e.g. https://dav.jianguoyun.com/dav/); Rift creates a Rift folder under it automatically and stores one fixed file, rift_backup.json, overwriting the previous copy. Auto backup uploads 5 minutes after a config change and also keeps timestamped history copies (latest 5). For Nutstore, use the app password from your account security page.</string>
+    <string name="webdav_upload">Upload backup to WebDAV</string>
+    <string name="webdav_download">Download backup from WebDAV</string>
+    <string name="webdav_upload_success">Backup uploaded to WebDAV</string>
+    <string name="webdav_configured">Configured</string>
+    <string name="webdav_not_configured">Not configured</string>
+    <string name="webdav_decrypt_failed">Password decrypt failed, re-enter password</string>
+    <string name="backup_options_title">Options</string>
+    <string name="backup_remote_title">Remote backup</string>
+    <string name="backup_remote_subtitle">WebDAV · Nutstore</string>
+    <string name="backup_local_title">Local backup</string>
+    <string name="backup_local_subtitle">Export to a file, or import from one</string>
+    <string name="backup_local_export_hint">Choose what to export</string>
+    <string name="auto_backup_short">5 minutes after a config change, auto-uploads to the cloud</string>
+    <string name="backup_retention_title">Retention</string>
+    <string name="backup_recent_title">Recent backups</string>
+    <string name="auto_backup_title">Auto backup</string>
+    <string name="auto_backup_summary">5 minutes after a config change, the full backup uploads to Nutstore automatically. A timestamped history copy is kept too (latest 5).</string>
+    <string name="auto_backup_never">Last auto backup: never</string>
+    <string name="auto_backup_last_success">Last auto backup: %1$s · OK</string>
+    <string name="auto_backup_last_failed">Last auto backup: %1$s · failed</string>
+    <string name="restore_strategy_title">Restore strategy</string>
+    <string name="restore_strategy_overwrite">Overwrite (clear existing data first)</string>
+    <string name="restore_strategy_merge">Merge (keep existing, add what is missing)</string>
+    <string name="restore_strategy_summary">Overwrite clears nodes, groups and rules before restoring. Merge only adds items from the backup that are not already there; settings in the backup win on conflict.</string>
+    <string name="restore_scope_title">Restore scope</string>
+    <string name="restore_scope_config_only">Config only (nodes, groups and rules)</string>
+    <string name="restore_scope_all">All data (nodes, groups, rules and settings)</string>
+    <string name="export_tier_title">Export content</string>
+    <string name="export_tier_full">Full (includes node credentials)</string>
+    <string name="export_tier_anonymous">Anonymous (credentials removed)</string>
+    <string name="webdav_probe_checking">Checking…</string>
+    <string name="webdav_probe_ok">Connected</string>
+    <string name="webdav_probe_failed">Connection failed</string>
+    <string name="route_mode_label">Routing:</string>
+    <string name="route_mode_rule">Rule</string>
+    <string name="route_mode_global">Global</string>
+    <string name="route_mode_direct">Direct</string>
+    <string name="mtu_summary">Maximum packet size. Try 1400 if connections are unstable.</string>
+    <string name="network_change_reset_connections_summary">When Wi-Fi or mobile data switches, drop stale connections and reconnect.</string>
+    <string name="wake_reset_connections_summary">Off by default. Tested: leaving it off keeps connections alive after sleep.</string>
+    <string name="traffic_sniffing_summary">Detect traffic protocols/domains for more accurate routing.</string>
+    <string name="explain_fakedns_title">Domains resolve to fake IPs inside the VPN</string>
+    <string name="explain_fakedns_summary">When on, domains resolve to 198.18.x.x fake addresses inside the VPN and the node fetches the real address. This prevents DNS leaks and improves routing accuracy. Note: some apps may need a restart to reconnect after the proxy stops. Recommended: keep on.</string>
+    <string name="explain_mtu_title">Maximum packet size</string>
+    <string name="explain_mtu_summary">If the network is unstable or streams drop often, try a smaller value (e.g. 1400); it takes effect after reconnecting. Leave it alone otherwise.</string>
+    <string name="explain_sniffing_title">Detect traffic protocol and domain for accurate routing</string>
+    <string name="explain_sniffing_summary">When on, the core inspects each flow\'s protocol and domain for more accurate routing. Turning it off may make routing less accurate. Recommended: keep on.</string>
+    <string name="explain_network_reset_title">Drop old connections and reconnect on network change</string>
+    <string name="explain_network_reset_summary">After switching between Wi-Fi and mobile data, old connections may hang; when on, they are dropped and reconnected automatically. Recommended: keep on.</string>
+    <string name="explain_wake_reset_title">Reset connections after waking from sleep</string>
+    <string name="explain_wake_reset_summary">Off by default. Tested more stable when off: no stream drops after waking. Turning it on may cause an extra reconnect on wake.</string>
+    <string name="explain_auto_backup">Uploads only after a config change; failures stay silent and are only noted in the status line below. Recommended: keep on.</string>
+    <string name="local_backup_title">Local backup</string>
+    <string name="wireguard_removed">WireGuard was removed in the sing-box 1.15 core. This profile cannot be edited or started; please delete it and use another protocol.</string>
+    <string name="local_backup_none_selected">None selected</string>
+    <string name="webdav_nutstore_title">Nutstore WebDAV</string>
+    <string name="webdav_file_name">Backup file</string>
+    <string name="webdav_backup_now">Backup now</string>
+    <string name="webdav_restore_cloud">Restore from cloud</string>
+    <string name="webdav_last_backup_success">Last %1$s · OK</string>
+    <string name="webdav_last_backup_failed">Last %1$s · failed</string>
+    <string name="webdav_last_backup_never">Never backed up</string>
+    <string name="webdav_bind">Bind WebDAV</string>
+    <string name="local_backup_to_file">Backup to file</string>
+    <string name="local_restore_from_file">Restore from file</string>
+    <string name="backup_history_title">Cloud history</string>
+    <string name="backup_history_keep5">Keep latest 5 on cloud</string>
+    <string name="list_separator">, </string>
+
+    <string name="packet_encoding">Packet Encoding</string>
+    <string name="acquire_wake_lock">Acquire WakeLock</string>
+    <string name="acquire_wake_lock_summary">Keep the CPU on</string>
+    <string name="action_switch">Switch</string>
+
+    <string name="tuic_udp_relay_mode">UDP Relay Mode</string>
+    <string name="tuic_congestion_controller">Congestion Controller</string>
+    <string name="tuic_disable_sni">Disable SNI</string>
+    <string name="tuic_reduce_rtt">Enable 0-RTT QUIC handshake</string>
+    <string name="connection_test_delete_unavailable">Clear unavailable</string>
+    <string name="move">Move</string>
+    <string name="create_shortcut">Create Shortcut</string>
+    <string name="app_tls_version">Subscription Min TLS Version</string>
+    <string name="hop_interval">Port Hopping Interval(second)</string>
+    <string name="domain_strategy_for_remote">Domain strategy for Remote</string>
+    <string name="domain_strategy_for_direct">Domain strategy for Direct</string>
+    <string name="domain_strategy_for_server">Domain strategy for Server address</string>
+    <string name="show_bottom_bar">Show bottom bar</string>
+    <string name="utls_fingerprint">uTLS fingerprint</string>
+    <string name="custom_outbound_json">Custom outbound JSON</string>
+    <string name="custom_config_json">Custom config JSON</string>
+    <string name="is_outbound_only">The JSON set is outbound</string>
+    <string name="set_panel_url">Set panel URL</string>
+    <string name="enable_clash_api">Enable Clash API</string>
+    <string name="log_level">Log Level</string>
+    <string name="enable_clash_api_summary">Provide clash api and yacd dashboard at 127.0.0.1:9090</string>
+    <string name="xtls_flow">Flow (VLESS Sub-protocol)</string>
+    <string name="bypass_lan_in_core">Bypass LAN in Core</string>
+    <string name="need_restart">Restart APP to apply changes</string>
+    <string name="use_selector">Use selector</string>
+    <string name="front_proxy">Front proxy</string>
+    <string name="landing_proxy">Landing Proxy</string>
+    <string name="action_shadowtls" translatable="false">ShadowTLS</string>
+    <string name="protocol_version">Protocol Version</string>
+    <string name="share_subscription">Share Subscription</string>
+    <string name="show_group_in_notification">Show group name in notification</string>
+    <string name="reset_connections">Reset Connections</string>
+    <string name="remove_duplicate">Remove duplicate servers</string>
+    <string name="mtu_help">Long press the preference to set custom MTU.</string>
+    <string name="log_level_help">Long press the preference to set the buffer size.</string>
+    <string name="tls_camouflage_settings">TLS Camouflage Settings</string>
+    <string name="test_concurrency">Test concurrency</string>
+    <string name="mux_type">Mux protocol</string>
+    <string name="auto_select_proxy_apps">Auto select proxy apps</string>
+    <string name="auto_select_proxy_apps_message">Auto select proxy apps, this will clear your
+        current selection.</string>
+    <string name="ech_config">ECH Config</string>
+    <string name="http_upgrade_host">HTTPUpgrade Host</string>
+    <string name="http_upgrade_path">HTTPUpgrade Path</string>
+    <string name="update_current_subscription">Update current Group\'s subscription</string>
+    <string name="group_not_subscription">Group type is not subscription</string>
+    <string name="allow_insecure_on_request_sum">Disable certificate checking when updating
+        subscriptions</string>
+    <string name="global_allow_insecure">Always allow insecure</string>
+    <string name="mux_preference">Multiplex</string>
+    <string name="padding">Padding</string>
+    <string name="network_change_reset_connections">Reset outbound connections when network changes</string>
+    <string name="wake_reset_connections">Reset outbound connections when device wake from sleep</string>
+    <string name="preview_version_hint">This application is a preview version and may contain many problems. If you do not want to test it, please go to GitHub to download the Release version!</string>
+    <string name="check_update_preview">Check for preview version updates</string>
+    <string name="check_update_release">Check for release version updates</string>
+    <string name="update_dialog_title">New version available</string>
+    <string name="update_dialog_message">Current version: %1$s\nAvailable version: %2$s\nDo you want to download it?</string>
+    <string name="check_update_no">Check successful, but no updates.</string>
+    <string name="reset_settings">Restore default settings</string>
+    <string name="reset_settings_message">Restore default settings, but data such as nodes and groups will be retained. To completely clear data, clear application data directly in the system settings.</string>
+    <string name="minimize">Minimize</string>
+    <string name="app_list_permission_denied">Unable to read installed apps.\nThis is usually because the system has restricted app read permissions.\nPlease grant permissions in the system settings.</string>
+    <string name="open_app_settings">Open System Settings</string>
+    <string name="xhttp_host">XHTTP Host</string>
+    <string name="xhttp_path">XHTTP Path</string>
+    <string name="xhttp_mode">XHTTP Mode</string>
+    <string name="xhttp_extra">XHTTP Extra</string>
+    <string name="xhttp_settings">XHTTP Settings</string>
+<string name="disable">Disable</string>
+<string name="follow_system">Follow System</string>
+<string name="group_basic">Basic</string>
+<string name="only">Only</string>
+<string name="plugin_disabled">Disabled</string>
+<string name="prefer">Prefer</string>
+<string name="route_profile">Select Profile…</string>
+    <string name="route_group">Select Group…</string>
+    <string name="route_group_name">Group: %1$s</string>
+    <string name="route_group_pick">Pick a group</string>
+    <string name="route_group_none">No groups yet. Create a group first.</string>
+    <string name="group_skipped">Skipped (unsupported, not imported):\n%1$s</string>
+<string name="route_rules_official">Official</string>
+<string name="service_mode_proxy">Proxy only</string>
+<string name="service_mode_vpn" translatable="false">VPN</string>
+<string name="sniff_override">Sniff result for destination</string>
+<string name="sniff_routing">Sniff result for routing</string>
+<string name="ssh_auth_type_none">None</string>
+    <!-- 主页状态卡 / 订阅卡 / 空状态（2026-11-10，批三第 4、16、17 项） -->
+    <string name="home_status_node_none">No node selected</string>
+    <string name="home_status_ip">Exit IP: %1$s</string>
+    <string name="home_status_ip_off">Not connected</string>
+    <string name="home_status_ip_fetching">Fetching…</string>
+    <!-- 卡顶状态行（2026-11-12 首页重设计 -4）：绿“已连接” / 灰“未连接”。 -->
+    <string name="home_status_connected">Connected</string>
+    <string name="home_status_disconnected">Disconnected</string>
+    <!-- 用量统计页 + 通知栏分流切换（2026-11-12，0.2.21） -->
+    <string name="menu_usage">Usage</string>
+    <string name="usage_today">Today</string>
+    <string name="usage_period">This period</string>
+    <string name="usage_period_from">Since %1$d/%2$d</string>
+    <string name="usage_billing_day">Billing day</string>
+    <string name="usage_billing_day_value">Monthly on day %1$d</string>
+    <string name="usage_billing_day_n">Day %1$d</string>
+    <string name="usage_last_30_days">Last 30 days</string>
+    <string name="usage_per_node">Per-node traffic</string>
+    <string name="usage_per_node_note">Cumulative since import, including data recorded before 0.2.21</string>
+    <string name="usage_no_data">No traffic recorded yet</string>
+    <string name="usage_session_today">Session %1$s↑ %2$s↓ · Today %3$s↑ %4$s↓</string>
+    <string name="route_mode_next">Route: %1$s</string>
+    <string name="home_subscription_updated">Last updated: %1$s</string>
+    <string name="home_subscription_update">Update</string>
+    <string name="home_empty_state">No nodes here yet — add one to get started.</string>
+    <string name="home_empty_add">Add node</string>
+    <!-- 核心选项（2026-11-10，批四第 13、14 项） -->
+    <string name="cag_hysteria2">Hysteria2 Settings</string>
+    <string name="cag_anytls">AnyTLS Settings</string>
+    <string name="hy2_bbr_profile">BBR profile</string>
+    <string name="hy2_bbr_profile_summary">Congestion control profile for Hysteria2. Default: unset (core default).</string>
+    <string name="hy2_bbr_default">Default</string>
+    <string name="hy2_bbr_standard">Standard</string>
+    <string name="hy2_bbr_conservative">Conservative</string>
+    <string name="hy2_bbr_aggressive">Aggressive</string>
+    <string name="hy2_disable_chrome_parrot">Disable Chrome QUIC mimicry</string>
+    <string name="hy2_disable_chrome_parrot_summary">Chrome QUIC mimicry is on by default. Turn this on to disable it.</string>
+    <string name="hy2_hop_interval_max">Max port hop interval</string>
+    <string name="hy2_hop_interval_max_summary">Upper bound of the randomized port hop interval, in seconds. Default: unset (same as hop interval).</string>
+    <string name="hy2_hop_max_default">Default</string>
+    <string name="hy2_hop_max_30">30 seconds</string>
+    <string name="hy2_hop_max_60">60 seconds</string>
+    <string name="hy2_hop_max_120">120 seconds</string>
+    <string name="hy2_brutal_debug">BBR debug mode</string>
+    <string name="hy2_brutal_debug_summary">Enable brutal congestion control debug output. Default: off.</string>
+    <string name="explain_hy2_title">Hysteria2 tuning</string>
+    <string name="explain_hy2_summary">Applies to all Hysteria2 nodes. Everything here is off / unset by default and changes nothing until you set it.</string>
+    <string name="anytls_idle_check_interval">Idle session check interval (s)</string>
+    <string name="anytls_idle_check_interval_summary">How often to check for idle sessions. Leave blank for the core default.</string>
+    <string name="anytls_idle_timeout">Idle session timeout (s)</string>
+    <string name="anytls_idle_timeout_summary">How long a session can stay idle before it is closed. Leave blank for the core default.</string>
+    <string name="anytls_min_idle_session">Min idle sessions</string>
+    <string name="anytls_min_idle_session_summary">Minimum number of idle sessions to keep ready. Leave blank for the core default.</string>
+    <string name="explain_anytls_title">AnyTLS session reuse</string>
+    <string name="explain_anytls_summary">Applies to all AnyTLS nodes. All fields are blank by default and change nothing until you fill them in.</string>
+    <string name="dns_optimistic">Optimistic DNS</string>
+    <string name="dns_optimistic_summary">Answer from expired cache while refreshing in the background. Default: off.</string>
+    <string name="dns_optimistic_timeout">Optimistic cache window</string>
+    <string name="dns_optimistic_timeout_summary">How long an expired entry may still be served. Default: core default (72 hours).</string>
+    <string name="dns_optimistic_timeout_default">Default (72 hours)</string>
+    <string name="dns_optimistic_timeout_1h">1 hour</string>
+    <string name="dns_optimistic_timeout_24h">24 hours</string>
+    <string name="dns_optimistic_timeout_72h">72 hours</string>
+    <!-- 设置子页卡片分组标题（2026-11-15）：每组一项，子页按组收进白圆角卡片。 -->
+    <string name="settings_group_basic_connection">Basic Connection</string>
+    <string name="settings_group_network_core">Network &amp; Core</string>
+    <string name="settings_group_notification_usage">Notifications &amp; Usage</string>
+    <string name="settings_group_advanced">Advanced</string>
+    <string name="settings_group_perapp_direct">Per-App &amp; Direct</string>
+    <string name="settings_group_traffic">Traffic</string>
+    <string name="settings_group_protocol_rules">Protocol &amp; Rules</string>
+    <string name="settings_group_remote_dns">Remote DNS</string>
+    <string name="settings_group_direct_dns">Direct DNS</string>
+    <string name="settings_group_dns_features">DNS Features</string>
+    <string name="settings_group_connection_api">Connection Test &amp; API</string>
+    <string name="settings_group_reconnect">Reconnect</string>
+    <string name="settings_group_security_display">Security &amp; Display</string>
+</resources>

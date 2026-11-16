@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_import_file"
+        android:icon="@drawable/ic_action_note_add"
+        android:title="@string/action_import_file"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_update_all_srs"
+        android:title="@string/route_update_all"
+        app:showAsAction="never" />
+</menu>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 琥珀全圆药丸（备份页“立即备份”，设计图）：琥珀底 + 白字，按压有水波纹。
+     圆角 24dp：按钮高 48dp 时正好全圆。 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="24dp" />
+            <solid android:color="@color/color_rift_accent" />
+        </shape>
+    </item>
+</ripple>

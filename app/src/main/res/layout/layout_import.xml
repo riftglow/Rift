@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- 恢复范围（2026-11-10，规划第 2 项）：先二选一，再由勾选微调。
+         仅恢复配置 = 节点、分组与规则，不动应用设置；恢复全部数据 = 再加设置。
+         没有设置段可排时（备份里无 settings），这组隐藏，勾选框本身就够了。 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/restore_scope_title"
+        android:textAppearance="?attr/textAppearanceSubtitle2"
+        android:textStyle="bold" />
+
+    <RadioGroup
+        android:id="@+id/restore_scope_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/restore_scope_config_only"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/restore_scope_config_only" />
+
+        <RadioButton
+            android:id="@+id/restore_scope_all"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/restore_scope_all" />
+
+    </RadioGroup>
+
+    <CheckBox
+        android:id="@+id/backup_configurations"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:text="@string/backup_groups_and_configurations"
+        android:textAppearance="?attr/textAppearanceSubtitle2" />
+
+    <CheckBox
+        android:id="@+id/backup_rules"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:text="@string/backup_rules"
+        android:textAppearance="?attr/textAppearanceSubtitle2" />
+
+    <CheckBox
+        android:id="@+id/backup_settings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:text="@string/settings"
+        android:textAppearance="?attr/textAppearanceSubtitle2" />
+
+    <!-- 恢复策略（设计图实施，2026-11-13，0.2.24 -9）：覆盖/合并。
+         原在备份页选项卡，设计图把选项卡精简后挪到这里——
+         恢复时才 relevant，选备份、点恢复之前定。默认取上次存的值。 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/restore_strategy_title"
+        android:textAppearance="?attr/textAppearanceSubtitle2"
+        android:textStyle="bold" />
+
+    <RadioGroup
+        android:id="@+id/restore_strategy_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/restore_strategy_overwrite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/restore_strategy_overwrite" />
+
+        <RadioButton
+            android:id="@+id/restore_strategy_merge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/restore_strategy_merge" />
+
+    </RadioGroup>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/material_red_accent_200"
+        android:text="@string/backup_import_summary">
+
+    </TextView>
+
+</LinearLayout>

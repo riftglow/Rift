@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 日志页级别筛选 chip 文字色（2026-11-16，0.2.29）：选中琥珀，未选中主文字色。 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true" android:color="@color/color_rift_accent" />
+    <item android:color="?android:attr/textColorPrimary" />
+</selector>

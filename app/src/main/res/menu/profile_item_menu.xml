@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 节点卡 ⋮ 菜单（2026-11-13，0.2.23 -4）：节点卡改两行后，编辑/分享/删除收进这里；
+     测速只测这一个节点（不弹批量测速框）；二维码直接出码。 -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_item_connect"
+        android:title="@string/connect" />
+    <item
+        android:id="@+id/action_item_test"
+        android:title="@string/connection_test" />
+    <item
+        android:id="@+id/action_item_edit"
+        android:title="@string/edit" />
+    <item
+        android:id="@+id/action_item_share"
+        android:title="@string/share" />
+    <item
+        android:id="@+id/action_item_qr"
+        android:title="@string/share_qr_nfc" />
+    <item
+        android:id="@+id/action_item_delete"
+        android:title="@string/delete" />
+</menu>

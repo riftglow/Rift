@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!-- 设置子页卡片分组（2026-11-15）：每组收进一张白圆角卡片，标题为分组名。 -->
+    <PreferenceCategory app:title="@string/settings_group_connection_api">
+        <light.rift.core.ui.UrlTestPreference
+            app:defaultValue="http://cp.cloudflare.com/"
+            app:icon="@drawable/ic_baseline_cast_connected_24"
+            app:key="connectionTestURL"
+            app:title="@string/connection_test_url"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            app:icon="@drawable/baseline_construction_24"
+            app:key="enableClashAPI"
+            app:summary="@string/enable_clash_api_summary"
+            app:title="@string/enable_clash_api" />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/settings_group_reconnect">
+        <SwitchPreference
+            android:summary="@string/network_change_reset_connections_summary"
+            app:defaultValue="true"
+            app:icon="@drawable/ic_baseline_flip_camera_android_24"
+            app:key="networkChangeResetConnections"
+            app:title="@string/network_change_reset_connections" />
+        <Preference
+            android:selectable="false"
+            app:icon="@drawable/ic_baseline_info_24"
+            android:summary="@string/explain_network_reset_summary"
+            android:title="@string/explain_network_reset_title" />
+        <SwitchPreference
+            android:summary="@string/wake_reset_connections_summary"
+            app:defaultValue="false"
+            app:key="wakeResetConnections"
+            app:title="@string/wake_reset_connections" />
+        <Preference
+            android:selectable="false"
+            app:icon="@drawable/ic_baseline_info_24"
+            android:summary="@string/explain_wake_reset_summary"
+            android:title="@string/explain_wake_reset_title" />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/settings_group_security_display">
+        <SwitchPreference
+            app:icon="@drawable/ic_action_lock_open"
+            app:key="globalAllowInsecure"
+            app:title="@string/global_allow_insecure" />
+        <SwitchPreference
+            app:key="allowInsecureOnRequest"
+            app:title="@string/allow_insecure_on_request_sum" />
+        <light.rift.core.ui.SimpleMenuPreference
+            app:defaultValue="1.2"
+            app:entries="@array/app_tls_version"
+            app:entryValues="@array/app_tls_version"
+            app:key="appTLSVersion"
+            app:title="@string/app_tls_version"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            app:key="showBottomBar"
+            app:title="@string/show_bottom_bar" />
+    </PreferenceCategory>
+</PreferenceScreen>

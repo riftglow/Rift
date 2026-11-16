@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!-- 设置子页卡片分组（2026-11-15）：每组收进一张白圆角卡片，标题为分组名。 -->
+    <PreferenceCategory app:title="@string/settings_group_perapp_direct">
+        <SwitchPreference
+            app:icon="@drawable/ic_navigation_apps"
+            app:key="proxyApps"
+            app:summary="@string/proxied_apps_summary"
+            app:title="@string/proxied_apps" />
+        <SwitchPreference
+            app:icon="@drawable/ic_baseline_legend_toggle_24"
+            app:key="bypassLan"
+            app:title="@string/route_opt_bypass_lan" />
+        <SwitchPreference
+            app:key="bypassLanInCore"
+            app:title="@string/bypass_lan_in_core" />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/settings_group_traffic">
+        <light.rift.core.ui.SimpleMenuPreference
+            app:defaultValue="1"
+            app:entries="@array/traffic_sniffing_values"
+            app:entryValues="@array/int_array_3"
+            app:icon="@drawable/ic_baseline_manage_search_24"
+            app:key="trafficSniffing"
+            app:summary="@string/traffic_sniffing_summary"
+            app:title="@string/traffic_sniffing" />
+        <Preference
+            android:selectable="false"
+            app:icon="@drawable/ic_baseline_info_24"
+            android:summary="@string/explain_sniffing_summary"
+            android:title="@string/explain_sniffing_title" />
+        <SwitchPreference
+            app:icon="@drawable/baseline_wrap_text_24"
+            app:key="resolveDestination"
+            app:summary="@string/resolve_destination_summary"
+            app:title="@string/resolve_destination" />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/settings_group_protocol_rules">
+        <light.rift.core.ui.SimpleMenuPreference
+            app:defaultValue="0"
+            app:entries="@array/ipv6_mode"
+            app:entryValues="@array/int_array_4"
+            app:icon="@drawable/ic_image_looks_6"
+            app:key="ipv6Mode"
+            app:title="@string/ipv6"
+            app:useSimpleSummaryProvider="true" />
+        <light.rift.core.ui.SimpleMenuPreference
+            app:defaultValue="0"
+            app:entries="@array/rules_dat_provider"
+            app:entryValues="@array/int_array_4"
+            app:icon="@drawable/ic_baseline_rule_folder_24"
+            app:key="rulesProvider"
+            app:title="@string/route_rules_provider"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+</PreferenceScreen>

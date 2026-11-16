@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 备份页卡头图标底座（设计图）：浅琥珀圆角方底，图标本身琥珀色。
+     底色用抽屉选中底（白天 #FDEBD6、夜间 #2A2113），随主题走。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="12dp" />
+    <solid android:color="@color/color_rift_drawer_selected" />
+</shape>

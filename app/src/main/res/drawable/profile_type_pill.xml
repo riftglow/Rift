@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 协议标签（2026-11-13，0.2.23 -6）：暖灰底 + 深色字，跟暖色整页一路；
+     原来的饱和蓝跟琥珀/暖灰配色打架，改掉。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="8dp" />
+    <solid android:color="@color/color_rift_protocol_pill_bg" />
+</shape>

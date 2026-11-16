@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 实时连接出口徽章底（2026-11-15，0.2.29）：淡琥珀底，复用抽屉选中底色，8dp 圆角。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="8dp" />
+    <solid android:color="@color/color_rift_drawer_selected" />
+</shape>

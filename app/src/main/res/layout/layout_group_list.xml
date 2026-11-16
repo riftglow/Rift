@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_rift_page_bg"
+    android:orientation="vertical"
+    tools:context=".ui.ConfigurationFragment">
+
+    <include
+        layout="@layout/layout_appbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/group_tab"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="?colorPrimary"
+        android:elevation="4dp"
+        android:visibility="gone"
+        app:tabIndicatorColor="?tabIndicatorColor"
+        app:tabIndicatorFullWidth="false"
+        app:tabMode="scrollable"
+        app:tabPaddingBottom="6dp"
+        app:tabPaddingTop="6dp"
+        app:tabPaddingStart="16dp"
+        app:tabRippleColor="?tabRippleColor"
+        app:tabSelectedTextColor="?tabSelectedTextColor"
+        app:tabTextColor="?tabTextColor"
+        app:tabUnboundedRipple="false" />
+
+    <!-- 列表顶状态卡（2026-11-10 批三第 16 项；2026-11-12 首页重设计）：
+         当前节点 + 上下行速度 + 出口 IP + 波形（主角，48dp）+ 卡内分流药丸。
+         与底栏信息重复，用户已点头。速度每秒更新，setText 有变化才写（防闪）。
+         2026-11-13 悬浮感：卡面暖色、阴影 6dp（节点卡 2dp），页面底暖灰，夜间不动。 -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/home_status_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:clickable="false"
+        android:focusable="false"
+        app:cardBackgroundColor="@color/color_rift_status_card_bg"
+        app:cardElevation="6dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="8dp">
+
+            <!-- 卡顶状态行（2026-11-12 首页重设计 -4）：左边绿“已连接”（未连接时灰“未连接”），
+                 右边当前节点延时（有测速结果才显示）。设计图里这行在节点名上面。 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/home_status_conn"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    android:textColor="@color/color_rift_success" />
+
+                <TextView
+                    android:id="@+id/home_status_ping"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/home_status_node"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="@string/home_status_node_none"
+                android:textAppearance="?attr/textAppearanceSubtitle1"
+                android:textStyle="bold" />
+
+            <!-- 上下行速度（2026-11-12 首页重设计）：设计图是左右两个大数字，
+                 下载在左、上传在右，各带小标签；原来的一行小字不够主角。
+                 数字只在变化时写（防闪），与原来同一套 guard。 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="▼ 下载"
+                        android:textAppearance="?attr/textAppearanceBody2"
+                        android:textColor="?android:attr/textColorSecondary" />
+
+                    <TextView
+                        android:id="@+id/home_status_rx"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceHeadline6"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="▲ 上传"
+                        android:textAppearance="?attr/textAppearanceBody2"
+                        android:textColor="?android:attr/textColorSecondary" />
+
+                    <TextView
+                        android:id="@+id/home_status_tx"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceHeadline6"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- 实时下行速度波形（2026-11-12，0.2.21）：ConfigurationFragment 每秒喂点。
+                 首页重设计（2026-11-12）：波形是首页主角，加高到 48dp、整卡通宽；
+                 空闲（0 B/s）时 View 自己画贴底基线，不留大片空白。
+                 2026-11-13（0.2.23 -4）：波形只是装饰、看走势，留白能压就压，高度
+                 48dp 压到 28dp；尖峰由 SparklineView 平滑曲线磨圆成波浪。 -->
+            <light.rift.widget.SparklineView
+                android:id="@+id/home_status_sparkline"
+                android:layout_width="match_parent"
+                android:layout_height="28dp"
+                android:layout_marginTop="8dp" />
+
+            <!-- 出口 IP 行（2026-11-12 首页重设计 -4）：设计图里出口 IP 在波形下面，
+                 左边是“出口 IP：国旗 IP”，右边是国家 · 英文城市（“美国 · Los Angeles”），
+                 右边那块是装饰、填右边的空。城市名 ip-api 只给英文，系统翻不了中文。
+                 未连接/获取中时右边那块隐藏。 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/home_status_ip"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    android:textColor="?android:attr/textColorSecondary" />
+
+                <TextView
+                    android:id="@+id/home_status_location"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+            <!-- 分流模式切换（2026-11-12 首页重设计）：从卡外独立行挪进状态卡底部，
+                 一排小药丸。三个 TextView 手动管理选中态，不用 MaterialButtonToggleGroup
+                 （冷启动/主题切换首帧会在每字后留竖条残影，#79/#81 两版都复现）。
+                 外框描边由 route_mode_group_bg 提供，选中底色/文字色由代码设置。
+                 id 不变，ConfigurationFragment 的 syncRouteMode / refreshRouteMode
+                 不用改。 -->
+            <LinearLayout
+                android:id="@+id/route_mode_group"
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/route_mode_group_bg"
+                android:clipToOutline="true"
+                android:orientation="horizontal"
+                android:padding="2dp">
+
+                <TextView
+                    android:id="@+id/route_mode_rule"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:gravity="center"
+                    android:text="@string/route_mode_rule"
+                    android:textIsSelectable="false"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/route_mode_global"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:gravity="center"
+                    android:text="@string/route_mode_global"
+                    android:textIsSelectable="false"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/route_mode_direct"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:cursorVisible="false"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:gravity="center"
+                    android:text="@string/route_mode_direct"
+                    android:textIsSelectable="false"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/group_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</LinearLayout>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content xmlns:tools="http://schemas.android.com/tools"
+                     tools:ignore="FullBackupContent">
+    <!-- Credential databases hold node credentials: excluded from cloud backup, settings etc. still back up by default. -->
+    <exclude domain="database" path="sager_net.db"/>
+    <exclude domain="database" path="configuration.db"/>
+</full-backup-content>

@@ -1,0 +1,58 @@
+package light.rift.fmt.trojan
+
+import com.esotericsoftware.kryo.io.ByteBufferInput
+import com.esotericsoftware.kryo.io.ByteBufferOutput
+import light.rift.fmt.KryoConverters
+import light.rift.fmt.v2ray.StandardV2RayBean
+
+class TrojanBean : StandardV2RayBean() {
+
+    var password: String = ""
+
+    override fun initializeDefaultValues() {
+        super.initializeDefaultValues()
+        if (security == null || security!!.isEmpty()) security = "tls"
+        if (password == null) password = ""
+    }
+
+    override fun serialize(output: ByteBufferOutput) {
+        output.writeInt(2)
+        super.serialize(output)
+        output.writeString(password)
+    }
+
+    override fun deserialize(input: ByteBufferInput) {
+        val version = input.readInt()
+        if (version >= 2) {
+            super.deserialize(input) // StandardV2RayBean
+            password = input.readString()
+        } else {
+            // From AbstractBean
+            serverAddress = input.readString()
+            serverPort = input.readInt()
+            // From TrojanBean
+            password = input.readString()
+            security = input.readString()
+            sni = input.readString()
+            alpn = input.readString()
+            if (version == 1) allowInsecure = input.readBoolean()
+        }
+    }
+
+    override fun clone(): TrojanBean {
+        return KryoConverters.deserialize(TrojanBean(), KryoConverters.serialize(this))
+    }
+
+    companion object {
+        @JvmField
+        val CREATOR = object : CREATOR<TrojanBean>() {
+            override fun newInstance(): TrojanBean {
+                return TrojanBean()
+            }
+
+            override fun newArray(size: Int): Array<TrojanBean?> {
+                return arrayOfNulls(size)
+            }
+        }
+    }
+}

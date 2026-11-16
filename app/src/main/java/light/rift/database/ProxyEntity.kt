@@ -1,0 +1,464 @@
+package light.rift.database
+
+import android.content.Context
+import android.content.Intent
+import androidx.room.*
+import com.esotericsoftware.kryo.io.ByteBufferInput
+import com.esotericsoftware.kryo.io.ByteBufferOutput
+import light.rift.R
+import light.rift.fmt.*
+import light.rift.fmt.http.HttpBean
+import light.rift.fmt.http.toUri
+import light.rift.fmt.hysteria.*
+import light.rift.fmt.internal.ChainBean
+import light.rift.fmt.shadowsocks.*
+import light.rift.core.proxy.shadowtls.ShadowTLSBean
+import light.rift.fmt.socks.SOCKSBean
+import light.rift.fmt.socks.toUri
+import light.rift.fmt.ssh.SSHBean
+import light.rift.fmt.trojan.TrojanBean
+import light.rift.fmt.tuic.TuicBean
+import light.rift.fmt.tuic.toUri
+import light.rift.fmt.v2ray.*
+import light.rift.fmt.wireguard.WireGuardBean
+import light.rift.ktx.app
+import light.rift.ui.profile.*
+import light.rift.core.SingBoxOptions.MultiplexOptions
+import light.rift.core.proxy.anytls.AnyTLSBean
+import light.rift.core.proxy.anytls.AnyTLSSettingsActivity
+import light.rift.core.proxy.anytls.toUri
+import light.rift.core.proxy.config.ConfigBean
+import light.rift.core.proxy.config.ConfigSettingActivity
+import light.rift.core.proxy.shadowtls.ShadowTLSSettingsActivity
+
+@Entity(
+    tableName = "proxy_entities", indices = [Index("groupId", name = "groupId")]
+)
+data class ProxyEntity(
+    @PrimaryKey(autoGenerate = true) var id: Long = 0L,
+    var groupId: Long = 0L,
+    var type: Int = 0,
+    var userOrder: Long = 0L,
+    var tx: Long = 0L,
+    var rx: Long = 0L,
+    var status: Int = 0,
+    var ping: Int = 0,
+    var uuid: String = "",
+    var error: String? = null,
+    var socksBean: SOCKSBean? = null,
+    var httpBean: HttpBean? = null,
+    var ssBean: ShadowsocksBean? = null,
+    var vmessBean: VMessBean? = null,
+    var trojanBean: TrojanBean? = null,
+    var hysteriaBean: HysteriaBean? = null,
+    var tuicBean: TuicBean? = null,
+    var sshBean: SSHBean? = null,
+    var wgBean: WireGuardBean? = null,
+    var shadowTLSBean: ShadowTLSBean? = null,
+    var anyTLSBean: AnyTLSBean? = null,
+    var chainBean: ChainBean? = null,
+    var configBean: ConfigBean? = null,
+) : Serializable() {
+
+    companion object {
+        const val TYPE_SOCKS = 0
+        const val TYPE_HTTP = 1
+        const val TYPE_SS = 2
+        const val TYPE_VMESS = 4
+        const val TYPE_TROJAN = 6
+
+        const val TYPE_SSH = 17
+        const val TYPE_WG = 18
+
+        // 退役类型号，永不复用（2026-11-16 删插件协议）：
+        // TYPE_TROJAN_GO = 7、TYPE_NAIVE = 9、TYPE_MIERU = 21
+        // TYPE_NEKO = 999（2026-11-16 删 NekoBean，永不复用）
+        const val TYPE_HYSTERIA = 15
+        const val TYPE_SHADOWTLS = 19
+        const val TYPE_TUIC = 20
+        const val TYPE_ANYTLS = 22
+
+        const val TYPE_CONFIG = 998
+
+        const val TYPE_CHAIN = 8
+
+        val chainName by lazy { app.getString(R.string.proxy_chain) }
+
+        @JvmField
+        val CREATOR = object : CREATOR<ProxyEntity>() {
+
+            override fun newInstance(): ProxyEntity {
+                return ProxyEntity()
+            }
+
+            override fun newArray(size: Int): Array<ProxyEntity?> {
+                return arrayOfNulls(size)
+            }
+        }
+    }
+
+    @Ignore
+    @Transient
+    var dirty: Boolean = false
+
+    override fun initializeDefaultValues() {
+    }
+
+    override fun serializeToBuffer(output: ByteBufferOutput) {
+        output.writeInt(0)
+
+        output.writeLong(id)
+        output.writeLong(groupId)
+        output.writeInt(type)
+        output.writeLong(userOrder)
+        output.writeLong(tx)
+        output.writeLong(rx)
+        output.writeInt(status)
+        output.writeInt(ping)
+        output.writeString(uuid)
+        output.writeString(error)
+
+        val data = KryoConverters.serialize(requireBean())
+        output.writeVarInt(data.size, true)
+        output.writeBytes(data)
+
+        output.writeBoolean(dirty)
+    }
+
+    override fun deserializeFromBuffer(input: ByteBufferInput) {
+        val version = input.readInt()
+
+        id = input.readLong()
+        groupId = input.readLong()
+        type = input.readInt()
+        userOrder = input.readLong()
+        tx = input.readLong()
+        rx = input.readLong()
+        status = input.readInt()
+        ping = input.readInt()
+        uuid = input.readString()
+        error = input.readString()
+        putByteArray(input.readBytes(input.readVarInt(true)))
+
+        dirty = input.readBoolean()
+    }
+
+
+    fun putByteArray(byteArray: ByteArray) {
+        when (type) {
+            TYPE_SOCKS -> socksBean = KryoConverters.socksDeserialize(byteArray)
+            TYPE_HTTP -> httpBean = KryoConverters.httpDeserialize(byteArray)
+            TYPE_SS -> ssBean = KryoConverters.shadowsocksDeserialize(byteArray)
+            TYPE_VMESS -> vmessBean = KryoConverters.vmessDeserialize(byteArray)
+            TYPE_TROJAN -> trojanBean = KryoConverters.trojanDeserialize(byteArray)
+            TYPE_HYSTERIA -> hysteriaBean = KryoConverters.hysteriaDeserialize(byteArray)
+            TYPE_SSH -> sshBean = KryoConverters.sshDeserialize(byteArray)
+            TYPE_WG -> wgBean = KryoConverters.wireguardDeserialize(byteArray)
+            TYPE_TUIC -> tuicBean = KryoConverters.tuicDeserialize(byteArray)
+            TYPE_SHADOWTLS -> shadowTLSBean = KryoConverters.shadowTLSDeserialize(byteArray)
+            TYPE_ANYTLS -> anyTLSBean = KryoConverters.anyTLSDeserialize(byteArray)
+            TYPE_CHAIN -> chainBean = KryoConverters.chainDeserialize(byteArray)
+            TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
+        }
+    }
+
+    fun displayType(): String = when (type) {
+        TYPE_SOCKS -> socksBean!!.protocolName()
+        TYPE_HTTP -> if (httpBean!!.isTLS()) "HTTPS" else "HTTP"
+        TYPE_SS -> "Shadowsocks"
+        TYPE_VMESS -> if (vmessBean!!.isVLESS) "VLESS" else "VMess"
+        TYPE_TROJAN -> "Trojan"
+        TYPE_HYSTERIA -> "Hysteria" + hysteriaBean!!.protocolVersion
+        TYPE_SSH -> "SSH"
+        TYPE_WG -> "WireGuard"
+        TYPE_TUIC -> "TUIC"
+        TYPE_SHADOWTLS -> "ShadowTLS"
+        TYPE_ANYTLS -> "AnyTLS"
+        TYPE_CHAIN -> chainName
+        TYPE_CONFIG -> configBean!!.displayType()
+        else -> "Undefined type $type"
+    }
+
+    fun displayName() = requireBean().displayName()
+    fun displayAddress() = requireBean().displayAddress()
+
+    fun requireBean(): AbstractBean {
+        return when (type) {
+            TYPE_SOCKS -> socksBean
+            TYPE_HTTP -> httpBean
+            TYPE_SS -> ssBean
+            TYPE_VMESS -> vmessBean
+            TYPE_TROJAN -> trojanBean
+            TYPE_HYSTERIA -> hysteriaBean
+            TYPE_SSH -> sshBean
+            TYPE_WG -> wgBean
+            TYPE_TUIC -> tuicBean
+            TYPE_SHADOWTLS -> shadowTLSBean
+            TYPE_ANYTLS -> anyTLSBean
+            TYPE_CHAIN -> chainBean
+            TYPE_CONFIG -> configBean
+            else -> error("Undefined type $type")
+        } ?: error("Null ${displayType()} profile")
+    }
+
+    fun haveLink(): Boolean {
+        return when (type) {
+            TYPE_CHAIN -> false
+            else -> true
+        }
+    }
+
+    fun haveStandardLink(): Boolean {
+        return when (requireBean()) {
+            is SSHBean -> false
+            is WireGuardBean -> false
+            is ShadowTLSBean -> false
+            is ConfigBean -> false
+            else -> true
+        }
+    }
+
+    fun toStdLink(compact: Boolean = false): String = with(requireBean()) {
+        when (this) {
+            is SOCKSBean -> toUri()
+            is HttpBean -> toUri()
+            is ShadowsocksBean -> toUri()
+            is VMessBean -> toUriVMessVLESSTrojan(false)
+            is TrojanBean -> toUriVMessVLESSTrojan(true)
+            is HysteriaBean -> toUri()
+            is TuicBean -> toUri()
+            is AnyTLSBean -> toUri()
+            else -> toUniversalLink()
+        }
+    }
+
+    fun exportConfig(): Pair<String, String> {
+        var name = "${requireBean().displayName()}.json"
+
+        return with(requireBean()) {
+            StringBuilder().apply {
+                val config = buildConfig(this@ProxyEntity, forExport = true)
+                append(config.config)
+
+                if (!config.externalIndex.all { it.chain.isEmpty() }) {
+                    name = "profiles.txt"
+                }
+
+                // 链式外挂配置：插件协议已删（2026-11-16），不再有外挂配置可导出。
+                // 没有任何 Bean 需要外挂。
+            }.toString()
+        } to name
+    }
+
+    // 外挂已全部删除（2026-11-16）：没有任何类型需要外部进程，恒为 false。
+    // 调用方（ConfigBuilder 的链式外挂分支）保留原结构，恒走内部出站分支。
+    fun needExternal(): Boolean {
+        return false
+    }
+
+    fun singMux(): MultiplexOptions? {
+        return when (type) {
+            TYPE_VMESS -> MultiplexOptions().apply {
+                enabled = vmessBean!!.enableMux
+                padding = vmessBean!!.muxPadding
+                max_streams = vmessBean!!.muxConcurrency
+                protocol = when (vmessBean!!.muxType) {
+                    1 -> "smux"
+                    2 -> "yamux"
+                    else -> "h2mux"
+                }
+            }
+
+            TYPE_TROJAN -> MultiplexOptions().apply {
+                enabled = trojanBean!!.enableMux
+                padding = trojanBean!!.muxPadding
+                max_streams = trojanBean!!.muxConcurrency
+                protocol = when (trojanBean!!.muxType) {
+                    1 -> "smux"
+                    2 -> "yamux"
+                    else -> "h2mux"
+                }
+            }
+
+            else -> null
+        }
+    }
+
+    fun putBean(bean: AbstractBean): ProxyEntity {
+        socksBean = null
+        httpBean = null
+        ssBean = null
+        vmessBean = null
+        trojanBean = null
+        hysteriaBean = null
+        sshBean = null
+        wgBean = null
+        tuicBean = null
+        shadowTLSBean = null
+        anyTLSBean = null
+        chainBean = null
+        configBean = null
+
+        when (bean) {
+            is SOCKSBean -> {
+                type = TYPE_SOCKS
+                socksBean = bean
+            }
+
+            is HttpBean -> {
+                type = TYPE_HTTP
+                httpBean = bean
+            }
+
+            is ShadowsocksBean -> {
+                type = TYPE_SS
+                ssBean = bean
+            }
+
+            is VMessBean -> {
+                type = TYPE_VMESS
+                vmessBean = bean
+            }
+
+            is TrojanBean -> {
+                type = TYPE_TROJAN
+                trojanBean = bean
+            }
+
+            is HysteriaBean -> {
+                type = TYPE_HYSTERIA
+                hysteriaBean = bean
+            }
+
+            is SSHBean -> {
+                type = TYPE_SSH
+                sshBean = bean
+            }
+
+            is WireGuardBean -> {
+                type = TYPE_WG
+                wgBean = bean
+            }
+
+            is TuicBean -> {
+                type = TYPE_TUIC
+                tuicBean = bean
+            }
+
+            is ShadowTLSBean -> {
+                type = TYPE_SHADOWTLS
+                shadowTLSBean = bean
+            }
+
+            is AnyTLSBean -> {
+                type = TYPE_ANYTLS
+                anyTLSBean = bean
+            }
+
+            is ChainBean -> {
+                type = TYPE_CHAIN
+                chainBean = bean
+            }
+
+            is ConfigBean -> {
+                type = TYPE_CONFIG
+                configBean = bean
+            }
+
+            else -> error("Undefined type $type")
+        }
+        return this
+    }
+
+    fun settingIntent(ctx: Context, isSubscription: Boolean): Intent {
+        return Intent(
+            ctx, when (type) {
+                TYPE_SOCKS -> SocksSettingsActivity::class.java
+                TYPE_HTTP -> HttpSettingsActivity::class.java
+                TYPE_SS -> ShadowsocksSettingsActivity::class.java
+                TYPE_VMESS -> VMessSettingsActivity::class.java
+                TYPE_TROJAN -> TrojanSettingsActivity::class.java
+                TYPE_HYSTERIA -> HysteriaSettingsActivity::class.java
+                TYPE_SSH -> SSHSettingsActivity::class.java
+                TYPE_WG -> WireGuardSettingsActivity::class.java
+                TYPE_TUIC -> TuicSettingsActivity::class.java
+                TYPE_SHADOWTLS -> ShadowTLSSettingsActivity::class.java
+                TYPE_ANYTLS -> AnyTLSSettingsActivity::class.java
+                TYPE_CHAIN -> ChainSettingsActivity::class.java
+                TYPE_CONFIG -> ConfigSettingActivity::class.java
+                else -> throw IllegalArgumentException()
+            }
+        ).apply {
+            putExtra(ProfileSettingsActivity.EXTRA_PROFILE_ID, id)
+            putExtra(ProfileSettingsActivity.EXTRA_IS_SUBSCRIPTION, isSubscription)
+        }
+    }
+
+    @androidx.room.Dao
+    interface Dao {
+
+        @Query("select * from proxy_entities")
+        fun getAll(): List<ProxyEntity>
+
+        @Query("SELECT id FROM proxy_entities WHERE groupId = :groupId ORDER BY userOrder")
+        fun getIdsByGroup(groupId: Long): List<Long>
+
+        @Query("SELECT * FROM proxy_entities WHERE groupId = :groupId ORDER BY userOrder")
+        fun getByGroup(groupId: Long): List<ProxyEntity>
+
+        @Query("SELECT * FROM proxy_entities WHERE id in (:proxyIds)")
+        fun getEntities(proxyIds: List<Long>): List<ProxyEntity>
+
+        @Query("SELECT COUNT(*) FROM proxy_entities WHERE groupId = :groupId")
+        fun countByGroup(groupId: Long): Long
+
+        @Query("SELECT  MAX(userOrder) + 1 FROM proxy_entities WHERE groupId = :groupId")
+        fun nextOrder(groupId: Long): Long?
+
+        @Query("SELECT * FROM proxy_entities WHERE id = :proxyId")
+        fun getById(proxyId: Long): ProxyEntity?
+
+        @Query("DELETE FROM proxy_entities WHERE id IN (:proxyId)")
+        fun deleteById(proxyId: Long): Int
+
+        @Query("DELETE FROM proxy_entities WHERE groupId = :groupId")
+        fun deleteByGroup(groupId: Long)
+
+        @Query("DELETE FROM proxy_entities WHERE groupId in (:groupId)")
+        fun deleteByGroup(groupId: LongArray)
+
+        @Delete
+        fun deleteProxy(proxy: ProxyEntity): Int
+
+        @Delete
+        fun deleteProxy(proxies: List<ProxyEntity>): Int
+
+        @Update
+        fun updateProxy(proxy: ProxyEntity): Int
+
+        @Update
+        fun updateProxy(proxies: List<ProxyEntity>): Int
+
+        @Insert
+        fun addProxy(proxy: ProxyEntity): Long
+
+        @Insert
+        fun insert(proxies: List<ProxyEntity>)
+
+        // Merge restore (2026-11-10): insert without clearing, skip
+        // rows whose id already exists instead of aborting.
+        @Insert(onConflict = OnConflictStrategy.IGNORE)
+        fun insertIgnore(proxies: List<ProxyEntity>)
+
+        @Query("DELETE FROM proxy_entities WHERE groupId = :groupId")
+        fun deleteAll(groupId: Long): Int
+
+        @Query("DELETE FROM proxy_entities")
+        fun reset()
+
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+}

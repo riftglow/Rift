@@ -1,0 +1,129 @@
+name: Preview Build
+on:
+  workflow_dispatch:
+    inputs:
+jobs:
+  libcore:
+    name: Native Build (LibCore)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Golang Status
+        run: find buildScript libcore/*.sh | sort | xargs cat | sha1sum > golang_status
+      - name: Libcore Status
+        run: git ls-files libcore | xargs cat | sha1sum > libcore_status
+      - name: LibCore Cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            app/libs/libcore.aar
+          # nb4a.properties 含 SINGBOX_VERSION：只改它也必须使缓存失效，
+          # 否则会命中缓存跳过 Native Build、发版静默带旧核心。
+          # libcore 源码变动本身已由 libcore_status 覆盖
+          #（git ls-files libcore 全量内容哈希）。
+          # key 加 libcore- 前缀是为让下面的 restore-keys 能按前缀匹配。
+          key: libcore-${{ hashFiles('golang_status', 'libcore_status', 'nb4a.properties') }}
+          restore-keys: |
+            libcore-
+      - name: Install Golang
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-go@v5
+        with:
+          # 1.25 系最后一个补丁（2026-08-19 发布；1.25 线已 EOL，升 1.26/1.27 另议）
+          go-version: '1.25.14'
+      - name: Native Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: chmod +x run && find buildScript libcore -name "*.sh" -exec chmod +x {} + && ./run lib core
+  build:
+    name: Build OSS APK
+    runs-on: ubuntu-latest
+    needs:
+      - libcore
+    # 2026-11-07：发预发布要写 releases，仓库默认 token 只有读权限，
+    # 不声明会报 HTTP 403 Resource not accessible by integration
+    #（正式版 publish 作业就是这么声明的）。
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Golang Status
+        run: find buildScript libcore/*.sh | sort | xargs cat | sha1sum > golang_status
+      - name: Libcore Status
+        run: git ls-files libcore | xargs cat | sha1sum > libcore_status
+      - name: LibCore Cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            app/libs/libcore.aar
+          key: libcore-${{ hashFiles('golang_status', 'libcore_status', 'nb4a.properties') }}
+          restore-keys: |
+            libcore-
+      - name: Install Golang
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.14'
+      - name: Native Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: chmod +x run && find buildScript libcore -name "*.sh" -exec chmod +x {} + && ./run lib core
+      - name: Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle
+          key: gradle-oss-${{ hashFiles('**/*.gradle.kts') }}
+          restore-keys: |
+            gradle-oss-
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Gradle Build
+        env:
+          BUILD_PLUGIN: none
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "sdk.dir=${ANDROID_HOME}" > local.properties
+          echo "ndk.dir=${ANDROID_HOME}/ndk/25.0.8775105" >> local.properties
+          # 正式签名用 keystore 不进仓：由仓库 secret KEYSTORE_BASE64（base64 后的 release.keystore）
+          # 在构建时恢复到仓库根目录；secret 为空时跳过，构建行为与原来一致。
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
+          fi
+          export LOCAL_PROPERTIES="${{ secrets.LOCAL_PROPERTIES }}"
+          chmod +x run gradlew && find buildScript libcore -name "*.sh" -exec chmod +x {} + && ./run init action gradle
+          ./gradlew app:assemblePreviewRelease
+          APK_FILES=$(find app/build/outputs/apk -name '*arm64-v8a*.apk' -type f)
+          APK_COUNT=$(printf '%s\n' "$APK_FILES" | grep -c .)
+          if [ "$APK_COUNT" -ne 1 ]; then
+            echo "expected exactly 1 arm64-v8a APK, found $APK_COUNT: $APK_FILES" >&2
+            exit 1
+          fi
+          echo "APK_DIR=$(dirname "$APK_FILES")" >> "$GITHUB_ENV"
+      # 2026-11-07：不再用 upload-artifact（artifact 存储计数器卡在满格，
+      # 2026-11-06 清库 20 小时后仍报 quota，编好的包传不上去）。
+      # 预览改发预发布：Release 页的包不占 Actions 500MB 额度，
+      # 同一 PRE 号重复触发时先删旧预发布再重建，保证只有一个滚动预览。
+      - name: Publish preview pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=$(sed -nE 's/^PRE_VERSION_NAME=[[:space:]]*//p' nb4a.properties | head -n 1 | tr -d '\r' | sed -e 's/[[:space:]]*$//')
+          if [ -z "$TAG" ]; then echo "PRE_VERSION_NAME is empty or missing in nb4a.properties" >&2; exit 1; fi
+          # delete 失败要区分：release 不存在可继续，真失败必须停下报错；
+          # --cleanup-tag 保证旧 tag 不留在旧提交上，否则同一 tag 重触发时
+          # 新包会挂在旧 tag 下。
+          if ! DELETE_OUT=$(gh release delete "$TAG" -y --cleanup-tag 2>&1); then
+            if printf '%s\n' "$DELETE_OUT" | grep -qiE 'not found|404'; then
+              echo "No existing release $TAG; continuing."
+            else
+              printf '%s\n' "$DELETE_OUT" >&2
+              echo "Failed to delete existing release $TAG; aborting." >&2
+              exit 1
+            fi
+          fi
+          gh release create "$TAG" --prerelease --title "Preview $TAG" "$APK_DIR"/*.apk || { echo "Failed to create release $TAG" >&2; exit 1; }

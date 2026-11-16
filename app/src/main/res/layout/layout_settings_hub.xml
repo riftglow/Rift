@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 设置分类总表（2026-11-11 -9，2026-11-13 -12）：根视图就是列表，
+     底色跟随主题 windowBackground（白天暖灰 #EDEAE3、夜间 #121212），
+     不再写死 colorPrimary（旧冷灰 #F2F4F3），否则跟 -11 的暖底内页脱节。 -->
+<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/hub_list"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp" />

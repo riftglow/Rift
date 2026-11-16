@@ -467,7 +467,7 @@
     <string name="list_separator">、</string>
     <string name="connection_test_delete_unavailable">清理不可用配置</string>
     <string name="packet_encoding">包编码</string>
-    <string name="action_switch">切换</string>
+    <string name="action_switch">换节点</string>
     <string name="acquire_wake_lock">获取唤醒锁</string>
     <string name="acquire_wake_lock_summary">保持 CPU 开启</string>
     <string name="move">移动</string>
@@ -499,7 +499,7 @@
     <string name="protocol_version">协议版本</string>
     <string name="share_subscription">分享订阅</string>
     <string name="show_group_in_notification">在通知中显示组名</string>
-    <string name="reset_connections">重置连接</string>
+    <string name="reset_connections">重置</string>
     <string name="remove_duplicate">删除重复的服务器</string>
     <string name="tls_camouflage_settings">TLS 伪装设置</string>
     <string name="mtu_help">长按设置项以设置自定义 MTU。</string>
@@ -573,7 +573,7 @@
     <string name="usage_per_node_note">累计流量（自导入起，含 0.2.21 之前的旧数据）</string>
     <string name="usage_no_data">还没有流量记录</string>
     <string name="usage_session_today">本次 %1$s↑ %2$s↓ · 今日 %3$s↑ %4$s↓</string>
-    <string name="route_mode_next">切换分流：%1$s</string>
+    <string name="route_mode_next">→%1$s</string>
     <string name="home_subscription_updated">上次更新：%1$s</string>
     <string name="home_subscription_update">更新</string>
     <string name="home_empty_state">这里还没有节点，先添加一个吧</string>

@@ -505,7 +505,7 @@
     <string name="packet_encoding">Packet Encoding</string>
     <string name="acquire_wake_lock">Acquire WakeLock</string>
     <string name="acquire_wake_lock_summary">Keep the CPU on</string>
-    <string name="action_switch">Switch</string>
+    <string name="action_switch">Switch node</string>
 
     <string name="tuic_udp_relay_mode">UDP Relay Mode</string>
     <string name="tuic_congestion_controller">Congestion Controller</string>
@@ -538,7 +538,7 @@
     <string name="protocol_version">Protocol Version</string>
     <string name="share_subscription">Share Subscription</string>
     <string name="show_group_in_notification">Show group name in notification</string>
-    <string name="reset_connections">Reset Connections</string>
+    <string name="reset_connections">Reset</string>
     <string name="remove_duplicate">Remove duplicate servers</string>
     <string name="mtu_help">Long press the preference to set custom MTU.</string>
     <string name="log_level_help">Long press the preference to set the buffer size.</string>
@@ -615,7 +615,7 @@
     <string name="usage_per_node_note">Cumulative since import, including data recorded before 0.2.21</string>
     <string name="usage_no_data">No traffic recorded yet</string>
     <string name="usage_session_today">Session %1$s↑ %2$s↓ · Today %3$s↑ %4$s↓</string>
-    <string name="route_mode_next">Route: %1$s</string>
+    <string name="route_mode_next">→%1$s</string>
     <string name="home_subscription_updated">Last updated: %1$s</string>
     <string name="home_subscription_update">Update</string>
     <string name="home_empty_state">No nodes here yet — add one to get started.</string>

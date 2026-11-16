@@ -127,7 +127,10 @@ object Socks5Tunnel {
     /** 在已连通的 socket 上做 TLS 握手（SNI 取 host）。 */
     @Throws(IOException::class)
     fun startTls(socket: Socket, host: String, port: Int, timeoutMs: Int = 10000): SSLSocket {
-        val ssl = SSLSocketFactory.getDefault().createSocket(socket, host, port, true) as SSLSocket
+        // getDefault() 的声明返回类型是 SocketFactory（没有 4 参那个重载），
+        // 必须先转成 SSLSocketFactory 才能调 createSocket(Socket, host, port, autoClose)。
+        val factory = SSLSocketFactory.getDefault() as SSLSocketFactory
+        val ssl = factory.createSocket(socket, host, port, true) as SSLSocket
         ssl.soTimeout = timeoutMs
         ssl.startHandshake()
         return ssl

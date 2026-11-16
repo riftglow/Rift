@@ -138,31 +138,38 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         }
     }
 
+    // L-2: 50KB 日志的读文件＋逐行解析放后台线程，建好 Spannable 再回主线程上屏；
+    // 解析期间 Fragment 可能已退出，回主线程先判 isAdded。
     private fun reloadSession() {
-        val raw = String(SendLog.getRiftLog(50 * 1024), Charsets.UTF_8)
-        val text = StringBuilder()
-        val spans = mutableListOf<Triple<Int, Int, ForegroundColorSpan>>()
-        var lastLevel: LogLevel? = null
-        for (rawLine in raw.lines()) {
-            val line = ansiRegex.replace(rawLine, "")
-            val ownLevel = levelOf(line)
-            if (ownLevel != null) lastLevel = ownLevel
-            // 无级别的行继承上一行的级别（多行堆栈跟所属条目走），过滤时才不丢。
-            val effectiveLevel = ownLevel ?: lastLevel
-            if (logFilter != null && effectiveLevel != logFilter) continue
-            val start = text.length
-            text.append(line).append('\n')
-            spans.add(Triple(start, text.length - 1, ForegroundColorSpan(colorFor(ownLevel))))
-        }
-        val span = SpannableString(text.toString())
-        for ((start, end, colorSpan) in spans) {
-            span.setSpan(colorSpan, start, end, SPAN_EXCLUSIVE_EXCLUSIVE)
-        }
-        binding.textview.text = span
-        binding.textview.clearFocus()
-        // 等 textview 完成最终 layout 再滚动到底部
-        binding.textview.doOnLayout {
-            binding.scroolview.scrollTo(0, binding.textview.height)
+        runOnDefaultDispatcher {
+            val raw = String(SendLog.getRiftLog(50 * 1024), Charsets.UTF_8)
+            val text = StringBuilder()
+            val spans = mutableListOf<Triple<Int, Int, ForegroundColorSpan>>()
+            var lastLevel: LogLevel? = null
+            for (rawLine in raw.lines()) {
+                val line = ansiRegex.replace(rawLine, "")
+                val ownLevel = levelOf(line)
+                if (ownLevel != null) lastLevel = ownLevel
+                // 无级别的行继承上一行的级别（多行堆栈跟所属条目走），过滤时才不丢。
+                val effectiveLevel = ownLevel ?: lastLevel
+                if (logFilter != null && effectiveLevel != logFilter) continue
+                val start = text.length
+                text.append(line).append('\n')
+                spans.add(Triple(start, text.length - 1, ForegroundColorSpan(colorFor(ownLevel))))
+            }
+            val span = SpannableString(text.toString())
+            for ((start, end, colorSpan) in spans) {
+                span.setSpan(colorSpan, start, end, SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+            onMainDispatcher {
+                if (!isAdded) return@onMainDispatcher
+                binding.textview.text = span
+                binding.textview.clearFocus()
+                // 等 textview 完成最终 layout 再滚动到底部
+                binding.textview.doOnLayout {
+                    binding.scrollview.scrollTo(0, binding.textview.height)
+                }
+            }
         }
     }
 

@@ -102,9 +102,10 @@ class ConnectionsFragment : ToolbarFragment(R.layout.layout_connections) {
         list.adapter = adapter
         val closeAll = view.findViewById<TextView>(R.id.close_all)
         closeAll.setOnClickListener { onCloseAllClicked() }
+        // L-1: status 只找一次，不要每 2 秒轮询都重新 findViewById。
+        val status = view.findViewById<TextView>(R.id.connection_status)
         runOnLifecycleDispatcher {
             while (isAdded) {
-                val status = view.findViewById<TextView>(R.id.connection_status)
                 try {
                     when {
                         !DataStore.enableClashAPI -> {

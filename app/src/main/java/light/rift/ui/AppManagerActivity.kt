@@ -402,6 +402,9 @@ class AppManagerActivity : ThemedActivity() {
      * every other app is selected instead.
      */
     private fun applyAutoSelection() {
+        // M-9: 应用列表没加载出来（reload 抛错）时不要动已保存的选择，
+        // 否则会把选择清空写回。
+        if (apps.isEmpty()) return
         val needProxyAppsList = getAutoProxyApps("")
         val bypass = DataStore.bypass
         proxiedUids.clear()

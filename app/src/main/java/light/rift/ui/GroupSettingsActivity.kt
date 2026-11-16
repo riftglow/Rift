@@ -48,6 +48,11 @@ class GroupSettingsActivity(
         DataStore.groupType = type
         DataStore.groupOrder = order
         DataStore.groupIsSelector = isSelector
+        // Batch 3 (2026-11-17): group outbound mode lives in the main kv store
+        // (dynamic key, no entity field); load it into the editing cache.
+        DataStore.profileCacheStore.putString(
+            Key.GROUP_OUTBOUND_MODE, DataStore.groupOutboundMode(id)
+        )
 
         // front/landing proxy: value 3 means "a profile picked by hand", anything else means none
         DataStore.frontProxy = frontProxy
@@ -73,6 +78,16 @@ class GroupSettingsActivity(
         type = DataStore.groupType
         order = DataStore.groupOrder
         isSelector = DataStore.groupIsSelector
+        // Batch 3 (2026-11-17): write the mode back to the main kv store.
+        // A brand-new group has id 0 here (assigned by createGroup afterwards);
+        // it keeps the default "selector", the mode can be set once it exists.
+        if (id != 0L) {
+            DataStore.setGroupOutboundMode(
+                id,
+                DataStore.profileCacheStore.getString(Key.GROUP_OUTBOUND_MODE, "selector")
+                    ?: "selector"
+            )
+        }
 
         frontProxy = if (DataStore.frontProxyTmp == 3) DataStore.frontProxy else -1
         landingProxy = if (DataStore.landingProxyTmp == 3) DataStore.landingProxy else -1

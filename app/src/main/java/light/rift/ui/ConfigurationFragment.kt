@@ -17,6 +17,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SearchView
@@ -1962,6 +1963,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             val profileName: TextView = view.findViewById(R.id.profile_name)
             val profileFlag: TextView = view.findViewById(R.id.profile_flag)
             val profileType: TextView = view.findViewById(R.id.profile_type)
+            val profilePrimary: TextView = view.findViewById(R.id.profile_primary)
             val profileStatus: TextView = view.findViewById(R.id.profile_status)
 
             val trafficText: TextView = view.findViewById(R.id.traffic_text)
@@ -2085,6 +2087,9 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                 profileName.text = proxyEntity.displayName()
                 profileType.text = proxyEntity.displayType()
+                // 主备组（2026-11-17，PRE -22）：本组主节点显示“主”标记。
+                profilePrimary.isVisible =
+                    DataStore.groupPrimaryProfile(proxyGroup.id) == proxyEntity.id
                 bindFlag(proxyEntity)
 
                 bindStatusTraffic(proxyEntity, trafficData)
@@ -2144,6 +2149,13 @@ class ConfigurationFragment @JvmOverloads constructor(
                     popup.menu.removeItem(R.id.action_item_share)
                     popup.menu.removeItem(R.id.action_item_qr)
                 }
+                // 主备组（2026-11-17，PRE -22）：组内多于 1 个节点、且不是当前主节点时，
+                // 显示“设为本组主节点”。
+                if (configurationIdList.size <= 1 ||
+                    DataStore.groupPrimaryProfile(proxyGroup.id) == proxyEntity.id
+                ) {
+                    popup.menu.removeItem(R.id.action_item_set_primary)
+                }
                 popup.menu.findItem(R.id.action_item_edit)?.isEnabled = !started
                 popup.menu.findItem(R.id.action_item_delete)?.isEnabled = !started
                 popup.setOnMenuItemClickListener { item ->
@@ -2151,6 +2163,17 @@ class ConfigurationFragment @JvmOverloads constructor(
                         R.id.action_item_connect -> selectProfile(proxyEntity)
                         R.id.action_item_test -> (parentFragment as? ConfigurationFragment)
                             ?.testSingleProfile(proxyEntity)
+                        R.id.action_item_set_primary -> {
+                            runOnDefaultDispatcher {
+                                DataStore.setGroupPrimaryProfile(proxyGroup.id, proxyEntity.id)
+                                onMainDispatcher {
+                                    Toast.makeText(
+                                        view.context, R.string.primary_set, Toast.LENGTH_SHORT
+                                    ).show()
+                                    notifyDataSetChanged()
+                                }
+                            }
+                        }
                         R.id.action_item_edit -> editProfile(proxyEntity)
                         R.id.action_item_share -> showShare(anchor, proxyEntity)
                         R.id.action_item_qr -> showQrCode(proxyEntity)

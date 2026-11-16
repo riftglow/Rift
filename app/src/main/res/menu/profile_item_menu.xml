@@ -9,6 +9,9 @@
         android:id="@+id/action_item_test"
         android:title="@string/connection_test" />
     <item
+        android:id="@+id/action_item_set_primary"
+        android:title="@string/set_primary" />
+    <item
         android:id="@+id/action_item_edit"
         android:title="@string/edit" />
     <item

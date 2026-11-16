@@ -317,6 +317,16 @@
     <string name="group_order_origin">原始</string>
     <string name="group_order_by_name">以名称</string>
     <string name="group_order_by_delay">以延时</string>
+    <string name="group_outbound_mode">分组出站模式</string>
+    <string name="group_outbound_mode_summary">仅对路由规则引用本分组时生效</string>
+    <string name="group_outbound_mode_manual">手动选择</string>
+    <string name="group_outbound_mode_urltest">自动选择最优</string>
+    <string name="group_primary">主</string>
+    <string name="set_primary">设为本组主节点</string>
+    <string name="primary_set">已设为主节点</string>
+    <string name="subscription_reminder_title">订阅提醒</string>
+    <string name="subscription_reminder_expire">订阅 %1$s 将于 %2$s 到期</string>
+    <string name="subscription_reminder_traffic">订阅 %1$s 流量将用完，剩余 %2$s</string>
     <string name="route_for">%s 路由</string>
     <string name="route_need_vpn">路由规则 %s 依赖 VPN 以生效，所以其已被忽略。</string>
     <string name="ssh_private_key_passphrase">私钥密码句</string>

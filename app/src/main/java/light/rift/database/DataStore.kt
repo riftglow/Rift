@@ -78,6 +78,22 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         return group
     }
 
+    // Batch 2+3 (2026-11-17, PRE -22): per-group outbound mode + primary profile,
+    // stored as dynamic keys in the main kv store — no DB migration, no entity change.
+    // Mode: "selector" (manual, default) or "urltest" (core auto-picks fastest member).
+    fun groupOutboundMode(groupId: Long): String =
+        configurationStore.getString("groupOutboundMode_$groupId", "selector") ?: "selector"
+
+    fun setGroupOutboundMode(groupId: Long, mode: String) =
+        configurationStore.putString("groupOutboundMode_$groupId", mode)
+
+    // Primary (主) member of a group, 0 = none (fall back to current main / first member).
+    fun groupPrimaryProfile(groupId: Long): Long =
+        configurationStore.getLong("groupPrimaryProfile_$groupId", 0L)
+
+    fun setGroupPrimaryProfile(groupId: Long, profileId: Long) =
+        configurationStore.putLong("groupPrimaryProfile_$groupId", profileId)
+
     fun selectedGroupForImport(): Long {
         val current = currentGroup()
         if (current.type == GroupType.BASIC) return current.id

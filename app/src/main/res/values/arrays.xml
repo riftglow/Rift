@@ -336,6 +336,16 @@
         <item>@string/group_order_by_delay</item>
     </string-array>
 
+    <string-array name="group_outbound_modes">
+        <item>@string/group_outbound_mode_manual</item>
+        <item>@string/group_outbound_mode_urltest</item>
+    </string-array>
+
+    <string-array name="group_outbound_mode_values">
+        <item>selector</item>
+        <item>urltest</item>
+    </string-array>
+
     <string-array name="ssh_auth_type">
         <item>@string/ssh_auth_type_none</item>
         <item>@string/password</item>

@@ -754,14 +754,15 @@ fun buildConfig(
         extraProxies.forEach { (key, p) ->
             tagMap[key] = buildChain(key, p)
         }
-        // Batch 2 item 5: build one selector outbound per group referenced
-        // by a rule. Members are built exactly like route-item profiles
-        // (guarded by tagMap so a profile is never built twice). The
-        // selector is manual: default is the current main profile when it
-        // is a member, otherwise the first member. There is deliberately
-        // no urltest/fallback here (that is batch 3, item 9) and no
-        // per-group switch UI yet: switching a group selector at runtime
-        // is a follow-up, the rule itself already tracks group membership.
+        // Batch 2 item 5: build one outbound per group referenced by a rule.
+        // Members are built exactly like route-item profiles (guarded by tagMap
+        // so a profile is never built twice). Batch 3 (2026-11-17): the outbound
+        // type follows the group's outbound mode — "selector" (manual, default)
+        // or "urltest" (core auto-picks the lowest-latency member). Manual mode
+        // defaults to the group's designated primary when it is a member, else
+        // the current main profile when it is a member, else the first member.
+        // No per-group switch UI at runtime yet: switching a group selector at
+        // runtime is a follow-up, the rule itself already tracks group membership.
         val groupSelectorTags = HashMap<Long, String>()
         rulesToApply.mapNotNull { outboundGroupId(it.outbound) }.toSet().forEach { groupId ->
             val ruleGroup = RiftDatabase.groupDao.getById(groupId) ?: return@forEach
@@ -775,12 +776,24 @@ fun buildConfig(
             if (memberTags.isEmpty()) return@forEach
             val selectorTag = selectorName("group-" + ruleGroup.displayName())
             groupSelectorTags[groupId] = selectorTag
-            outbounds?.add(Outbound_SelectorOptions().apply {
-                type = "selector"
-                tag = selectorTag
-                default_ = tagMap[proxy.id]?.takeIf { memberTags.contains(it) } ?: memberTags[0]
-                outbounds = memberTags
-            })
+            if (DataStore.groupOutboundMode(groupId) == "urltest") {
+                outbounds?.add(Outbound_URLTestOptions().apply {
+                    type = "urltest"
+                    tag = selectorTag
+                    outbounds = memberTags
+                    url = DataStore.connectionTestURL
+                })
+            } else {
+                outbounds?.add(Outbound_SelectorOptions().apply {
+                    type = "selector"
+                    tag = selectorTag
+                    default_ = tagMap[DataStore.groupPrimaryProfile(groupId)]
+                        ?.takeIf { memberTags.contains(it) }
+                        ?: tagMap[proxy.id]?.takeIf { memberTags.contains(it) }
+                        ?: memberTags[0]
+                    outbounds = memberTags
+                })
+            }
         }
 
         // apply user rules

@@ -344,6 +344,16 @@
     <string name="group_order_origin">Origin</string>
     <string name="group_order_by_name">By Name</string>
     <string name="group_order_by_delay">By Delay</string>
+    <string name="group_outbound_mode">Group outbound mode</string>
+    <string name="group_outbound_mode_summary">Only applies when a routing rule references this group</string>
+    <string name="group_outbound_mode_manual">Manual selection</string>
+    <string name="group_outbound_mode_urltest">Auto pick fastest</string>
+    <string name="group_primary">Primary</string>
+    <string name="set_primary">Set as group primary</string>
+    <string name="primary_set">Set as group primary</string>
+    <string name="subscription_reminder_title">Subscription reminder</string>
+    <string name="subscription_reminder_expire">Subscription %1$s expires on %2$s</string>
+    <string name="subscription_reminder_traffic">Subscription %1$s is almost out of traffic, %2$s left</string>
     <string name="route_for">Rule for %s</string>
 
     <string name="route_need_vpn">Routing rule %s relies on the VPN to be in effect, so it is

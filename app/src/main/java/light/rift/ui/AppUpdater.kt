@@ -249,7 +249,7 @@ object AppUpdater {
             return
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-            !activity.packageManager.canInstallPackages()
+            !activity.packageManager.canRequestPackageInstalls()
         ) {
             // 未授权安装未知来源：先存下待安装的包，去系统设置里开，回来再装。
             pendingInstall = apkFile

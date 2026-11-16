@@ -2150,8 +2150,9 @@ class ConfigurationFragment @JvmOverloads constructor(
                     popup.menu.removeItem(R.id.action_item_qr)
                 }
                 // 主备组（2026-11-17，PRE -22）：组内多于 1 个节点、且不是当前主节点时，
-                // 显示“设为本组主节点”。
-                if (configurationIdList.size <= 1 ||
+                // 显示“设为本组主节点”。holder 与 adapter 是平级（都在 GroupFragment 内），
+                // 列表要走 adapter?.configurationIdList，不能直接用（-22 #9 编译错的教训）。
+                if ((adapter?.configurationIdList?.size ?: 0) <= 1 ||
                     DataStore.groupPrimaryProfile(proxyGroup.id) == proxyEntity.id
                 ) {
                     popup.menu.removeItem(R.id.action_item_set_primary)
@@ -2170,7 +2171,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                                     Toast.makeText(
                                         view.context, R.string.primary_set, Toast.LENGTH_SHORT
                                     ).show()
-                                    notifyDataSetChanged()
+                                    adapter?.notifyDataSetChanged()
                                 }
                             }
                         }

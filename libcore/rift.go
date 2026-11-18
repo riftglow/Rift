@@ -76,11 +76,12 @@ func InitCore(process, cachePath, internalAssets, externalAssets string,
 	externalAssetsPath = externalAssets
 	internalAssetsPath = internalAssets
 
-	// Set up log
-	if maxLogSizeKb < 50 {
-		maxLogSizeKb = 50
+	// Set up log：上限 2MB（2026-11-19 方案 A：50KB 全删会丢隔夜日志，
+	// 改为满了保留后半段、启动不清，见 libcore/log.go）。
+	if maxLogSizeKb < 2048 {
+		maxLogSizeKb = 2048
 	}
-	setupLog(int(maxLogSizeKb)*1024, filepath.Join(cachePath, "rift.log"), isBgProcess, !logEnable)
+	setupLog(int(maxLogSizeKb)*1024, filepath.Join(cachePath, "rift.log"), !logEnable)
 
 	// certs (H14): load synchronously, before any box or TLS use.
 	// A background load raced with concurrent SystemCertPool reads.

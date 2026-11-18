@@ -395,20 +395,28 @@ class AssetsActivity : ThemedActivity() {
     }
 
     // Rule-assets providers, kept from the db era: index 0 is the official
-    // RiftApp source (the default, rulesProvider == 0); the others reuse
-    // the same rule-set branch layout, and a missing file there fails the
-    // update safely with the old file kept.
+    // RiftApp source; the others reuse the same rule-set branch layout, and
+    // a missing file there fails the update safely with the old file kept.
+    // Index 4 is Rift's own compiled table (the default, rulesProvider
+    // == 4); its branch is "srs", the others use "rule-set".
     private val rulesProviders = listOf(
         RuleAssetsProvider("SagerNet/sing-geoip", "SagerNet/sing-geosite"),
         RuleAssetsProvider("soffchen/sing-geoip", "soffchen/sing-geosite"),
         RuleAssetsProvider("Chocolate4U/Iran-sing-box-rules"),
         RuleAssetsProvider("L11R/antizapret-sing-box-geo"),
+        RuleAssetsProvider("riftglow/rift-rules", "riftglow/rift-rules", "srs"),
     )
 
     private fun srsRepoFor(fileName: String): String {
         val provider = rulesProviders.getOrNull(DataStore.rulesProvider)
             ?: rulesProviders[0]
         return if (fileName.startsWith("geoip-")) provider.geoipRepo else provider.geositeRepo
+    }
+
+    private fun srsBranchFor(fileName: String): String {
+        val provider = rulesProviders.getOrNull(DataStore.rulesProvider)
+            ?: rulesProviders[0]
+        return provider.branch
     }
 
     // Version helpers. A version string is "<YYYY-MM-DD> <short-sha>"
@@ -497,12 +505,12 @@ class AssetsActivity : ThemedActivity() {
     // GitHub API. Best effort: if the API fails or rate-limits, the
     // caller still downloads the file with sha "unknown" rather than
     // failing the whole update — the .srs download itself is the hard gate.
-    private suspend fun branchHeadSha(repo: String): String {
+    private suspend fun branchHeadSha(repo: String, branch: String): String {
         return try {
             val client = newHttpClient()
             try {
                 val response = client.newRequest().apply {
-                    setURL("https://api.github.com/repos/$repo/commits?sha=rule-set&per_page=1")
+                    setURL("https://api.github.com/repos/$repo/commits?sha=$branch&per_page=1")
                 }.execute()
                 val commits = JSONArray(Util.getStringBox(response.contentString))
                 if (commits.length() > 0) {
@@ -691,6 +699,7 @@ class AssetsActivity : ThemedActivity() {
     private suspend fun updateSrsFile(file: File, versionFile: File): String? {
         val fileName = file.name
         val repo = srsRepoFor(fileName)
+        val branch = srsBranchFor(fileName)
         val localVersion = if (versionFile.isFile) {
             try { versionFile.readText().trim() } catch (_: Throwable) { "" }
         } else {
@@ -698,7 +707,7 @@ class AssetsActivity : ThemedActivity() {
         }
         val localSha = versionSha(localVersion)
 
-        val branchSha = branchHeadSha(repo)
+        val branchSha = branchHeadSha(repo, branch)
         if (branchSha != "unknown" && localSha != null && branchSha == localSha) {
             val checkedFile = File(file.parentFile, "${file.nameWithoutExtension}.checked.txt")
             try {
@@ -711,7 +720,7 @@ class AssetsActivity : ThemedActivity() {
         val client = newHttpClient()
         try {
             val response = client.newRequest().apply {
-                setURL("https://raw.githubusercontent.com/$repo/rule-set/$fileName")
+                setURL("https://raw.githubusercontent.com/$repo/$branch/$fileName")
             }.execute()
 
             val tmpFile = File(file.parentFile, file.name + ".tmp")
@@ -932,5 +941,6 @@ class AssetsActivity : ThemedActivity() {
     private data class RuleAssetsProvider(
         val geoipRepo: String,
         val geositeRepo: String = geoipRepo,
+        val branch: String = "rule-set",
     )
 }

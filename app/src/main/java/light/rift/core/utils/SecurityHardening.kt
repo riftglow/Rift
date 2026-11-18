@@ -1,6 +1,9 @@
 package light.rift.core.utils
 
 import light.rift.database.DataStore
+import java.io.IOException
+import java.net.InetSocketAddress
+import java.net.ServerSocket
 import java.security.SecureRandom
 
 /**
@@ -20,6 +23,22 @@ object SecurityHardening {
         return bytes.joinToString("") { "%02x".format(it.toInt() and 0xFF) }
     }
 
+    // 随机端口试绑：先试占一下，被占了就换一个，最多试 10 次再兜底。
+    // 试绑只能排除“当时已被占用”的端口，不能保证 sing-box bind 时仍空闲，
+    // 但把“固定下一个已被占用的端口、每次启动都起不来”的死局去掉了。
+    private fun pickFreePort(): Int {
+        repeat(10) {
+            val port = 10000 + random.nextInt(50000)
+            try {
+                ServerSocket().use { it.bind(InetSocketAddress("127.0.0.1", port)) }
+                return port
+            } catch (_: IOException) {
+                // 被占用，换一个再试。
+            }
+        }
+        return 10000 + random.nextInt(50000)
+    }
+
     fun ensureInitialized() {
         if (DataStore.clashApiSecret.isBlank()) {
             DataStore.clashApiSecret = randomHex(32)
@@ -29,7 +48,7 @@ object SecurityHardening {
         }
         // 端口只随机一次：仍是默认 2080 才换；用户手动改过的端口不动。
         if (DataStore.mixedPort == 2080) {
-            DataStore.mixedPort = 10000 + random.nextInt(50000)
+            DataStore.mixedPort = pickFreePort()
         }
     }
 }

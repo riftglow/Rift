@@ -105,10 +105,13 @@
         <item name="android:textStyle">bold</item>
     </style>
 
-    <!-- 分组标签（2026-11-19 -32）：TabLayout 默认文字样式 TextAppearance.Design.Tab 自带
-         textAllCaps=true，会把分组名里的拉丁字母全转大写（中文不受影响）；关掉，只改显示，存的名字不动。 -->
+    <!-- 分组标签（2026-11-19 -32/-33）：TabLayout 默认文字样式 TextAppearance.Design.Tab 自带
+         全大写，只改显示，存的名字不动。-32 只写了 android:textAllCaps 不生效：库里用的
+         是不带 android: 前缀的 textAllCaps（AppCompat 属性），关全大写必须用同名属性；
+         两个都写上，双保险。 -->
     <style name="TextAppearance.Rift.Tab" parent="TextAppearance.Design.Tab">
         <item name="android:textAllCaps">false</item>
+        <item name="textAllCaps">false</item>
     </style>
 
     <style name="ThemeOverlay.MaterialComponents.MaterialAlertDialog.RiftApp">

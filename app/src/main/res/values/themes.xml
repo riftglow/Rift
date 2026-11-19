@@ -105,6 +105,12 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <!-- 分组标签（2026-11-19 -32）：TabLayout 默认文字样式 TextAppearance.Design.Tab 自带
+         textAllCaps=true，会把分组名里的拉丁字母全转大写（中文不受影响）；关掉，只改显示，存的名字不动。 -->
+    <style name="TextAppearance.Rift.Tab" parent="TextAppearance.Design.Tab">
+        <item name="android:textAllCaps">false</item>
+    </style>
+
     <style name="ThemeOverlay.MaterialComponents.MaterialAlertDialog.RiftApp">
         <item name="buttonBarPositiveButtonStyle">
             @style/Widget.MaterialComponents.Button.TextButton.Dialog.Primary

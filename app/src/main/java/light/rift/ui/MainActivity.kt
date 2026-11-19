@@ -70,6 +70,9 @@ import kotlin.math.roundToInt
 // 抽屉景深虚化（2026-11-19 -36）：抽屉全开时主内容区的最大模糊半径（px）。
 private const val DRAWER_DEPTH_BLUR_MAX = 20f
 
+// 抽屉玻璃（2026-11-19 -37）：抽屉底 + 卡片的不透明度（85%）。
+private const val DRAWER_GLASS_ALPHA = 0xD9
+
 class MainActivity : ThemedActivity(),
     RiftConnection.Callback,
     OnPreferenceDataStoreChangeListener {
@@ -177,6 +180,7 @@ class MainActivity : ThemedActivity(),
         setContentView(binding.root)
         applyGlassBottomBar()
         setupDrawerDepthBlur()
+        applyDrawerGlass()
         changeState(BaseService.State.Idle)
         connection.connect(this, this)
         DataStore.configurationStore.registerChangeListener(this)
@@ -489,6 +493,29 @@ class MainActivity : ThemedActivity(),
         }
     }
 
+    // 抽屉玻璃（2026-11-19 -37）：抽屉底 + 三张卡变透（85% 不透明），
+    // 后面 -36 糊好的主界面从抽屉里透出来，轻微磨砂。只在玻璃开关开、
+    // Android 12+、非低内存时生效（糊只在这些条件下才有）；开关关了
+    // 抽屉回实色。卡片描边（stroke）不受影响，仍在；选中行淡底仍实色，
+    // 在磨砂上更显眼。卡片没有 id，沿用 drawerRows() 的遍历方式取卡片。
+    private fun applyDrawerGlass() {
+        val enabled = DataStore.glassEffect &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !isLowRamDevice
+        val alpha = if (enabled) DRAWER_GLASS_ALPHA else 0xFF
+        binding.navView.setBackgroundColor(
+            ColorUtils.setAlphaComponent(
+                ContextCompat.getColor(this, R.color.color_rift_drawer_bg), alpha
+            )
+        )
+        val cardColor = ColorUtils.setAlphaComponent(
+            ContextCompat.getColor(this, R.color.color_rift_card), alpha
+        )
+        for (i in 0 until binding.drawerMenuItems.childCount) {
+            (binding.drawerMenuItems.getChildAt(i) as? MaterialCardView)
+                ?.setCardBackgroundColor(cardColor)
+        }
+    }
+
     @SuppressLint("CommitTransaction")
     fun displayFragment(fragment: ToolbarFragment) {
         applyStatsBarVisibility(fragment)
@@ -628,6 +655,7 @@ class MainActivity : ThemedActivity(),
             Key.ROUTE_MODE -> currentConfigurationFragment()?.refreshRouteMode()
             Key.GLASS_EFFECT -> {
                 applyGlassBottomBar()
+                applyDrawerGlass()
                 if (!DataStore.glassEffect) clearDrawerDepthBlur()
             }
             Key.PROXY_APPS, Key.BYPASS_MODE, Key.INDIVIDUAL -> {

@@ -62,6 +62,13 @@ if [ -f "$PATCH_DIR/reality-mlkem-keep-share.patch" ]; then
   git apply "$PATCH_DIR/reality-mlkem-keep-share.patch"
   echo ">> Patch applied"
 fi
+# reality-client-version-183：REALITY 客户端版本号 1.8.1 → 1.8.3（握手 SessionId）。
+# 设了 minclientver 1.8.3 的服务端会把 1.8.1 客户端静默回落真站 → reality verification failed。
+if [ -f "$PATCH_DIR/reality-client-version-183.patch" ]; then
+  echo ">> Applying Rift patch: reality-client-version-183"
+  git apply "$PATCH_DIR/reality-client-version-183.patch"
+  echo ">> Patch applied"
+fi
 popd
 
 popd

@@ -10,7 +10,6 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import light.rift.R
 import light.rift.database.DataStore
 import light.rift.database.ProfileManager
@@ -123,7 +122,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
                 val input = EditText(activity).apply {
                     hint = getString(R.string.route_add_direct_domain_hint)
                 }
-                MaterialAlertDialogBuilder(activity)
+                RiftAlertDialogBuilder(activity)
                     .setTitle(R.string.route_add_direct_domain)
                     .setView(input)
                     .setPositiveButton(R.string.yes) { _, _ ->
@@ -148,7 +147,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
                     .show()
             }
             R.id.action_reset_route -> {
-                MaterialAlertDialogBuilder(activity).setTitle(R.string.confirm)
+                RiftAlertDialogBuilder(activity).setTitle(R.string.confirm)
                     .setMessage(R.string.clear_profiles_message)
                     .setPositiveButton(R.string.yes) { _, _ ->
                         runOnDefaultDispatcher {

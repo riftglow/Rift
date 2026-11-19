@@ -20,7 +20,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jakewharton.processphoenix.ProcessPhoenix
 import light.rift.BuildConfig
 import light.rift.Key
@@ -152,7 +151,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         }
 
         binding.resetSettings.setOnClickListener {
-            MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
+            RiftAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
                 .setMessage(R.string.reset_settings_message)
                 .setNegativeButton(R.string.no, null)
                 .setPositiveButton(R.string.yes) { _, _ ->
@@ -657,7 +656,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 if (DataStore.restoreStrategy == 1) R.id.restore_strategy_merge
                 else R.id.restore_strategy_overwrite
             )
-            MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.backup_import)
+            RiftAlertDialogBuilder(requireContext()).setTitle(R.string.backup_import)
                 .setView(import.root)
                 .setPositiveButton(R.string.backup_import) { _, _ ->
                     // A9: aborting here is safe — finishImport has not
@@ -679,6 +678,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                         .setView(binding.root)
                         .setCancelable(false)
                         .show()
+                    dialog.applyRiftGlass()
                     runOnLifecycleDispatcher {
                         var webdavKept = false
                         runCatching {
@@ -723,7 +723,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                             // the user as its own notice, before the
                             // restart that would otherwise swallow it.
                             if (webdavKept && isAdded) {
-                                MaterialAlertDialogBuilder(requireContext())
+                                RiftAlertDialogBuilder(requireContext())
                                     .setMessage(R.string.backup_import_webdav_kept)
                                     .setCancelable(false)
                                     .setPositiveButton(android.R.string.ok) { _, _ ->

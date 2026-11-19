@@ -33,7 +33,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import light.rift.ktx.RiftAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import light.rift.GroupOrder
@@ -777,7 +777,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
                     if (toClear.isNotEmpty()) {
                         onMainDispatcher {
-                            MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
+                            RiftAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
                                 .setMessage(R.string.delete_confirm_prompt)
                                 .setPositiveButton(R.string.yes) { _, _ ->
                                     for (profile in toClear) {
@@ -813,7 +813,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                         profiles.filter { it.status == 1 && it.ping > slowPingThresholdMs }
                     if (toClear.isNotEmpty()) {
                         onMainDispatcher {
-                            MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
+                            RiftAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
                                 .setMessage(
                                     getString(R.string.delete_confirm_prompt) + "\n" +
                                             toClear.mapIndexedNotNull { index, proxyEntity ->
@@ -865,7 +865,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
                     if (toClear.isNotEmpty()) {
                         onMainDispatcher {
-                            MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
+                            RiftAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
                                 .setMessage(
                                     getString(R.string.delete_confirm_prompt) + "\n" +
                                             toClear.mapIndexedNotNull { index, proxyEntity ->
@@ -917,7 +917,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
     inner class TestDialog {
         val binding = LayoutProgressListBinding.inflate(layoutInflater)
-        val builder = MaterialAlertDialogBuilder(requireContext()).setView(binding.root)
+        val builder = RiftAlertDialogBuilder(requireContext()).setView(binding.root)
             .setPositiveButton(R.string.minimize) { _, _ ->
                 minimize()
             }

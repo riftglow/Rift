@@ -28,7 +28,6 @@ import androidx.preference.PreferenceDataStore
 import androidx.preference.PreferenceFragmentCompat
 import com.github.shadowsocks.plugin.Empty
 import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import light.rift.*
 import light.rift.database.DataStore
 import light.rift.database.GroupManager
@@ -380,7 +379,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
             val scrollView = ScrollView(context).apply {
                 addView(list)
             }
-            MaterialAlertDialogBuilder(activity).setView(scrollView).show()
+            RiftAlertDialogBuilder(activity).setView(scrollView).show()
         }
 
         override fun onDisplayPreferenceDialog(preference: Preference) {

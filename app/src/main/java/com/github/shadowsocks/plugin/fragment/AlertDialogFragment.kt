@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatDialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import light.rift.ktx.RiftAlertDialogBuilder
 
 /**
  * A dialog fragment that reports which button was pressed back to its
@@ -84,7 +84,7 @@ abstract class AlertDialogFragment<Arg : Parcelable, Ret : Parcelable?> :
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): AlertDialog {
-        val builder = MaterialAlertDialogBuilder(requireContext())
+        val builder = RiftAlertDialogBuilder(requireContext())
         builder.prepare(this)
         return builder.create()
     }

@@ -24,7 +24,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import light.rift.ktx.RiftAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
 import light.rift.BuildConfig
@@ -383,7 +383,7 @@ class AppManagerActivity : ThemedActivity() {
     }
 
     private fun selectProxyApp() {
-        MaterialAlertDialogBuilder(this).setTitle(R.string.confirm)
+        RiftAlertDialogBuilder(this).setTitle(R.string.confirm)
             .setMessage(R.string.auto_select_proxy_apps_message)
             .setPositiveButton(R.string.yes) { _, _ ->
                 try {

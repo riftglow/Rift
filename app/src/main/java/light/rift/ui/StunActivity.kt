@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import light.rift.R
 import light.rift.databinding.LayoutStunBinding
+import light.rift.ktx.applyRiftGlass
 import light.rift.ktx.onMainDispatcher
 import light.rift.ktx.readableMessage
 import light.rift.ktx.runOnDefaultDispatcher
@@ -69,7 +70,7 @@ class StunActivity : ThemedActivity() {
                 .setMessage(error.readableMessage)
                 .setPositiveButton(android.R.string.ok) { _, _ -> finish() }
                 .setOnCancelListener { finish() }
-                .runCatching { show() }
+                .runCatching { show().also { it.applyRiftGlass() } }
         }
     }
 

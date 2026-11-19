@@ -7,7 +7,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import androidx.preference.ListPreference
 import androidx.preference.PreferenceViewHolder
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import light.rift.ktx.RiftAlertDialogBuilder
 import light.rift.R
 
 /**
@@ -50,7 +50,7 @@ constructor(
             inputType = EditorInfo.TYPE_CLASS_NUMBER
             setText(preferenceDataStore?.getString(key, "") ?: "")
         }
-        MaterialAlertDialogBuilder(context)
+        RiftAlertDialogBuilder(context)
             .setTitle("MTU")
             .setView(field)
             .setPositiveButton(android.R.string.ok) { _, _ ->

@@ -122,8 +122,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var pendingUpdateVersion by configurationStore.string(Key.PENDING_UPDATE_VERSION) { "" }
     var lastUpdateCheckTime by configurationStore.long(Key.LAST_UPDATE_CHECK) { 0L }
     var showBottomBar by configurationStore.boolean(Key.SHOW_BOTTOM_BAR)
-    // 底栏玻璃效果（2026-11-19 -34）：默认开，仅 Android 12+ 且非低内存设备生效。
-    var glassBottomBar by configurationStore.boolean(Key.GLASS_BOTTOM_BAR) { true }
+    // 玻璃效果（2026-11-19 -34 底栏，-35 扩展到弹窗）：默认开，仅 Android 12+ 且非低内存设备生效。
+    var glassEffect by configurationStore.boolean(Key.GLASS_EFFECT) { true }
 
     var allowInsecureOnRequest by configurationStore.boolean(Key.ALLOW_INSECURE_ON_REQUEST)
     var networkChangeResetConnections by configurationStore.boolean(Key.NETWORK_CHANGE_RESET_CONNECTIONS) { true }

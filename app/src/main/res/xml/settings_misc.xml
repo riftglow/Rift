@@ -58,8 +58,8 @@
             app:title="@string/show_bottom_bar" />
         <SwitchPreference
             app:defaultValue="true"
-            app:key="glassBottomBar"
-            app:summary="@string/glass_bottom_bar_summary"
-            app:title="@string/glass_bottom_bar" />
+            app:key="glassEffect"
+            app:summary="@string/glass_effect_summary"
+            app:title="@string/glass_effect" />
     </PreferenceCategory>
 </PreferenceScreen>

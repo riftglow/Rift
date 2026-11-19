@@ -16,7 +16,7 @@ import com.blacksquircle.ui.editorkit.insert
 import com.blacksquircle.ui.language.json.JsonLanguage
 import com.github.shadowsocks.plugin.Empty
 import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import light.rift.ktx.RiftAlertDialogBuilder
 import light.rift.Key
 import light.rift.R
 import light.rift.database.DataStore
@@ -163,7 +163,7 @@ class ConfigEditActivity : ThemedActivity() {
             }
             return JSONObject(txt).toStringPretty()
         } catch (e: Exception) {
-            MaterialAlertDialogBuilder(this).setTitle(R.string.error_title)
+            RiftAlertDialogBuilder(this).setTitle(R.string.error_title)
                 .setMessage(e.readableMessage).show()
             return null
         }

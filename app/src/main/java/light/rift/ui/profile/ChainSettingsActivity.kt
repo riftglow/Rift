@@ -17,7 +17,6 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import light.rift.R
 import light.rift.database.DataStore
 import light.rift.database.ProfileManager
@@ -217,7 +216,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
 
                 if (!testProfileAllowed(profile)) {
                     onMainDispatcher {
-                        MaterialAlertDialogBuilder(this@ChainSettingsActivity).setTitle(R.string.circular_reference)
+                        RiftAlertDialogBuilder(this@ChainSettingsActivity).setTitle(R.string.circular_reference)
                             .setMessage(R.string.circular_reference_sum)
                             .setPositiveButton(android.R.string.ok, null).show()
                     }

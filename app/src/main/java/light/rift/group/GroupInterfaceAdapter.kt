@@ -1,6 +1,6 @@
 package light.rift.group
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import light.rift.ktx.RiftAlertDialogBuilder
 import light.rift.R
 import light.rift.database.GroupManager
 import light.rift.database.ProxyGroup
@@ -16,7 +16,7 @@ class GroupInterfaceAdapter(val context: ThemedActivity) : GroupManager.Interfac
     override suspend fun confirm(message: String): Boolean {
         return suspendCoroutine {
             runOnMainDispatcher {
-                MaterialAlertDialogBuilder(context).setTitle(R.string.confirm)
+                RiftAlertDialogBuilder(context).setTitle(R.string.confirm)
                     .setMessage(message)
                     .setPositiveButton(R.string.yes) { _, _ -> it.resume(true) }
                     .setNegativeButton(R.string.no) { _, _ -> it.resume(false) }
@@ -79,7 +79,7 @@ class GroupInterfaceAdapter(val context: ThemedActivity) : GroupManager.Interfac
             onMainDispatcher {
                 delay(1000L)
 
-                MaterialAlertDialogBuilder(context).setTitle(
+                RiftAlertDialogBuilder(context).setTitle(
                         context.getString(
                                 R.string.group_diff, group.displayName()
                         )
@@ -97,7 +97,7 @@ class GroupInterfaceAdapter(val context: ThemedActivity) : GroupManager.Interfac
             // 不是 Rift 的 bug），用大白话；其他失败仍显示原始错误文案。
             val linkExpired = message.contains("403")
                     || message.contains("Forbidden", ignoreCase = true)
-            MaterialAlertDialogBuilder(context).setTitle(group.displayName())
+            RiftAlertDialogBuilder(context).setTitle(group.displayName())
                 .setMessage(
                     if (linkExpired) context.getString(R.string.subscription_link_expired)
                     else message
@@ -110,7 +110,7 @@ class GroupInterfaceAdapter(val context: ThemedActivity) : GroupManager.Interfac
     override suspend fun alert(message: String) {
         return suspendCoroutine {
             runOnMainDispatcher {
-                MaterialAlertDialogBuilder(context).setTitle(R.string.ooc_warning)
+                RiftAlertDialogBuilder(context).setTitle(R.string.ooc_warning)
                     .setMessage(message)
                     .setPositiveButton(android.R.string.ok) { _, _ -> it.resume(Unit) }
                     .setOnCancelListener { _ -> it.resume(Unit) }

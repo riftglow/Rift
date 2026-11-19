@@ -21,7 +21,7 @@ import androidx.preference.PreferenceDataStore
 import androidx.preference.PreferenceFragmentCompat
 import com.github.shadowsocks.plugin.Empty
 import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import light.rift.ktx.RiftAlertDialogBuilder
 import light.rift.Key
 import light.rift.R
 import light.rift.RiftApp
@@ -176,7 +176,7 @@ class RouteSettingsActivity(
                             ).show()
                         } else {
                             val names = groups.map { it.displayName() }.toTypedArray()
-                            MaterialAlertDialogBuilder(this@RouteSettingsActivity)
+                            RiftAlertDialogBuilder(this@RouteSettingsActivity)
                                 .setTitle(R.string.route_group_pick)
                                 .setItems(names) { _, which ->
                                     DataStore.routeOutboundRule =
@@ -288,7 +288,7 @@ class RouteSettingsActivity(
 
         if (!needSave()) {
             onMainDispatcher {
-                MaterialAlertDialogBuilder(this@RouteSettingsActivity).setTitle(R.string.empty_route)
+                RiftAlertDialogBuilder(this@RouteSettingsActivity).setTitle(R.string.empty_route)
                     .setMessage(R.string.empty_route_notice)
                     .setPositiveButton(android.R.string.ok, null)
                     .show()

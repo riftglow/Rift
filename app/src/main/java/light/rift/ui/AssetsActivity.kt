@@ -10,7 +10,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isInvisible
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.delay
 import light.rift.R
@@ -173,7 +172,7 @@ class AssetsActivity : ThemedActivity() {
                 val isBundled = fileName in assetNames
                 if (isBundled && outFile.isFile && currentVersion != "Custom") {
                     onMainDispatcher {
-                        MaterialAlertDialogBuilder(this@AssetsActivity)
+                        RiftAlertDialogBuilder(this@AssetsActivity)
                             .setMessage(getString(R.string.route_import_overwrite, fileName))
                             .setPositiveButton(android.R.string.ok) { _, _ ->
                                 installImported(tmpFile)
@@ -771,7 +770,7 @@ class AssetsActivity : ThemedActivity() {
 
     private fun showRollbackDialog(file: File, versionFile: File, backups: List<File>) {
         val labels = backups.map { backupDisplayName(it, file) }.toTypedArray()
-        MaterialAlertDialogBuilder(this)
+        RiftAlertDialogBuilder(this)
             .setTitle(R.string.route_rollback_title)
             .setItems(labels) { _, which ->
                 val backup = backups[which]
@@ -818,7 +817,7 @@ class AssetsActivity : ThemedActivity() {
     // the new rules to existing connections too; "Later" leaves the
     // current connection alone.
     private fun showTakesEffectDialog() {
-        MaterialAlertDialogBuilder(this)
+        RiftAlertDialogBuilder(this)
             .setMessage(R.string.route_rules_updated)
             .setPositiveButton(R.string.route_reconnect_now) { _, _ ->
                 reconnect()

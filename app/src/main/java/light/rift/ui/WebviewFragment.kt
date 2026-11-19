@@ -8,7 +8,7 @@ import android.view.View
 import android.webkit.*
 import android.widget.EditText
 import androidx.appcompat.widget.Toolbar
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import light.rift.ktx.RiftAlertDialogBuilder
 import light.rift.BuildConfig
 import light.rift.R
 import light.rift.database.DataStore
@@ -93,7 +93,7 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
             setText(DataStore.yacdURL)
         }
-        MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.set_panel_url)
+        RiftAlertDialogBuilder(requireContext()).setTitle(R.string.set_panel_url)
             .setView(input)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 DataStore.yacdURL = input.text.toString()

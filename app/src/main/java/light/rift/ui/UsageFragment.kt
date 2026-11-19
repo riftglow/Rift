@@ -6,7 +6,7 @@ import android.text.format.Formatter
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import light.rift.ktx.RiftAlertDialogBuilder
 import light.rift.R
 import light.rift.database.DataStore
 import light.rift.database.RiftDatabase
@@ -133,7 +133,7 @@ class UsageFragment : ToolbarFragment(R.layout.layout_usage) {
 
     private fun showBillingDayPicker() {
         val days = (1..28).map { getString(R.string.usage_billing_day_n, it) }.toTypedArray()
-        MaterialAlertDialogBuilder(requireContext())
+        RiftAlertDialogBuilder(requireContext())
             .setTitle(R.string.usage_billing_day)
             .setSingleChoiceItems(days, DataStore.trafficBillingDay - 1) { dialog, which ->
                 DataStore.trafficBillingDay = which + 1

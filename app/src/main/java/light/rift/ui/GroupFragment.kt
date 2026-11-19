@@ -14,7 +14,6 @@ import androidx.core.view.*
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import light.rift.GroupType
 import light.rift.R
 import light.rift.RiftApp
@@ -114,7 +113,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             }
 
             R.id.action_update_all -> {
-                MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
+                RiftAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
                     .setMessage(R.string.update_all_subscription)
                     .setPositiveButton(R.string.yes) { _, _ ->
                         RiftDatabase.groupDao.allGroups()
@@ -367,7 +366,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                 }
 
                 R.id.action_clear -> {
-                    MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
+                    RiftAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
                         .setMessage(R.string.clear_profiles_message)
                         .setPositiveButton(R.string.yes) { _, _ ->
                             runOnDefaultDispatcher {

@@ -13,7 +13,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import light.rift.BuildConfig
 import light.rift.R
 import light.rift.RiftApp
@@ -145,7 +144,7 @@ object AppUpdater {
 
     /** 有更新时的对话框：确认后应用内下载安装（以前是打开浏览器到发布页）。 */
     fun showUpdateDialog(activity: Activity, release: Release) {
-        MaterialAlertDialogBuilder(activity)
+        RiftAlertDialogBuilder(activity)
             .setTitle(R.string.update_dialog_title)
             .setMessage(
                 activity.getString(
@@ -208,7 +207,7 @@ object AppUpdater {
             return
         }
         // 下载中对话框（不定进度；19MB 左右，几秒到几十秒）。
-        val dialog = MaterialAlertDialogBuilder(activity)
+        val dialog = RiftAlertDialogBuilder(activity)
             .setTitle(R.string.update_downloading)
             .setMessage(activity.getString(R.string.update_downloading_message, release.name))
             .setCancelable(false)

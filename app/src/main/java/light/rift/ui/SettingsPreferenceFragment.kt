@@ -10,7 +10,6 @@ import androidx.annotation.StringRes
 import androidx.annotation.XmlRes
 import androidx.core.app.ActivityCompat
 import androidx.preference.*
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import light.rift.Key
 import light.rift.R
 import light.rift.BootReceiver
@@ -174,7 +173,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                     setText(size.toString())
                 }
 
-                MaterialAlertDialogBuilder(requireContext()).setTitle("Log buffer size (kb)")
+                RiftAlertDialogBuilder(requireContext()).setTitle("Log buffer size (kb)")
                     .setView(view)
                     .setPositiveButton(android.R.string.ok) { _, _ ->
                         DataStore.logBufSize = view.text.toString().toInt()

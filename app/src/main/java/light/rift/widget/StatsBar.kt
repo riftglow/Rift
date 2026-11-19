@@ -99,6 +99,20 @@ class StatsBar @JvmOverloads constructor(
     private lateinit var rxText: TextView
     private lateinit var behavior: YourBehavior
 
+    // 玻璃底栏（2026-11-19 -34）：玻璃开时栏背景透明，露出后面锚着的 BlurView；
+    // 关时恢复缺口实色背景。缺口只在实色时才有意义（玻璃上画不出凹口），
+    // 玻璃开时圆开关直接浮在玻璃栏上。
+    private var notchedBackground: Drawable? = null
+
+    fun setGlassEnabled(enabled: Boolean) {
+        if (enabled) {
+            if (notchedBackground == null) notchedBackground = background
+            background = null
+        } else if (notchedBackground != null) {
+            background = notchedBackground
+        }
+    }
+
     // 底栏第二行：节点名 + 出口 IP（“节点名 · 🇺🇸 IP”），见 setExitIp。
     private var nodeName: String? = null
     private var exitIpText: String? = null

@@ -2,6 +2,7 @@ package light.rift.ui
 
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
@@ -28,6 +29,7 @@ import androidx.preference.PreferenceDataStore
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import eightbitlab.com.blurview.BlurViewFacade
 import light.rift.BuildConfig
 import light.rift.GroupType
 import light.rift.Key
@@ -70,6 +72,10 @@ class MainActivity : ThemedActivity(),
     // 抽屉当前选中行（2026-11-10 第 19 项手写行）：displayFragmentWithId 与
     // Activity 重建后都经 updateDrawerItemSelection 更新，点已在当前页的行只关抽屉。
     private var selectedDrawerId: Int = R.id.nav_configuration
+
+    // 底栏玻璃效果（2026-11-19 -34）：BlurView 4.0 的 setupWith 只跑一次，
+    // 存 facade 备用；开关切换只改显隐与栏背景。
+    private var glassFacade: BlurViewFacade? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -153,6 +159,7 @@ class MainActivity : ThemedActivity(),
         }
 
         setContentView(binding.root)
+        applyGlassBottomBar()
         changeState(BaseService.State.Idle)
         connection.connect(this, this)
         DataStore.configurationStore.registerChangeListener(this)
@@ -404,6 +411,24 @@ class MainActivity : ThemedActivity(),
         }
     }
 
+    // 底栏玻璃效果（2026-11-19 -34）：BlurView 4.0，模糊目标是包住列表页的
+    // BlurTarget（layout_main）。只在 Android 12+（RenderEffect 硬件路径）
+    // 且非低内存设备上开；以下一律回落实色底栏。开关在设置 → 其他 → 安全与显示，
+    // 改动即时生效（onPreferenceDataStoreChanged）；昼夜切换重建 Activity，
+    // 遮罩色跟着新主题重设。模糊半径 5（× 默认缩放 4 ≈ 效果图的 20）。
+    private fun applyGlassBottomBar() {
+        val lowRam = (getSystemService(ACTIVITY_SERVICE) as ActivityManager).isLowRamDevice
+        val enabled = DataStore.glassBottomBar &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !lowRam
+        binding.stats.setGlassEnabled(enabled)
+        binding.statsBlur.isVisible = enabled
+        if (enabled && glassFacade == null) {
+            glassFacade = binding.statsBlur.setupWith(binding.blurTarget)
+                .setBlurRadius(5f)
+                .setOverlayColor(ContextCompat.getColor(this, R.color.color_rift_glass_overlay))
+        }
+    }
+
     @SuppressLint("CommitTransaction")
     fun displayFragment(fragment: ToolbarFragment) {
         applyStatsBarVisibility(fragment)
@@ -541,6 +566,7 @@ class MainActivity : ThemedActivity(),
             // 通知栏切分流（0.2.21）：routeMode 在后台进程改了，首页控件
             // 不会自动跟上，这里推给当前节点页重刷选中态。
             Key.ROUTE_MODE -> currentConfigurationFragment()?.refreshRouteMode()
+            Key.GLASS_BOTTOM_BAR -> applyGlassBottomBar()
             Key.PROXY_APPS, Key.BYPASS_MODE, Key.INDIVIDUAL -> {
                 if (DataStore.serviceState.canStop) {
                     snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {

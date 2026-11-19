@@ -299,6 +299,7 @@
          底栏才分得清；字色随主文字（白天深、夜间白），琥珀 FAB 不动；夜间 #121212 不动。
          推翻 -7 的暖深灰 #2A2723。 -->
     <color name="color_rift_bottom_bar">#E3DCD4</color>
+    <color name="color_rift_glass_overlay">#73FFFBF0</color>
     <!-- 卡片底色：白天纯白，夜间略亮于页面底（#121212），卡片才分得清。 -->
     <color name="color_rift_card">#FFFFFF</color>
     <!-- 实时连接徽章与图标底（2026-11-15，0.2.29）：规则徽章淡藏青底 + 深青灰字，

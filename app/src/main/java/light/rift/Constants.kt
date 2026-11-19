@@ -102,6 +102,7 @@ object Key {
 
     const val ACQUIRE_WAKE_LOCK = "acquireWakeLock"
     const val SHOW_BOTTOM_BAR = "showBottomBar"
+    const val GLASS_BOTTOM_BAR = "glassBottomBar"
 
     const val ALLOW_INSECURE_ON_REQUEST = "allowInsecureOnRequest"
 

@@ -13,10 +13,29 @@
         android:layout_height="match_parent"
         android:clipChildren="false">
 
-        <androidx.coordinatorlayout.widget.CoordinatorLayout
-            android:id="@+id/fragment_holder"
+        <!-- 玻璃底栏（2026-11-19 -34）：BlurView 的模糊目标，包住节点列表页。
+             BlurTarget 是 FrameLayout，只做快照，不改布局。 -->
+        <eightbitlab.com.blurview.BlurTarget
+            android:id="@+id/blur_target"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent">
+
+            <androidx.coordinatorlayout.widget.CoordinatorLayout
+                android:id="@+id/fragment_holder"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </eightbitlab.com.blurview.BlurTarget>
+
+        <!-- 玻璃底栏（2026-11-19 -34）：底栏的模糊背景，锚在底栏上跟着它一起
+             藏/显。放在 FAB 之前，z 轴在 FAB 和底栏之下。默认 gone，玻璃开才显。 -->
+        <eightbitlab.com.blurview.BlurView
+            android:id="@+id/stats_blur"
+            android:layout_width="match_parent"
+            android:layout_height="68dp"
+            android:visibility="gone"
+            app:layout_anchor="@id/stats"
+            app:layout_anchorGravity="bottom" />
 
         <!-- We double trackThickness as half of it will be invisible -->
         <com.google.android.material.progressindicator.CircularProgressIndicator

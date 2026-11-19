@@ -200,7 +200,10 @@ class GroupSettingsActivity(
             setTitle(R.string.delete_group_prompt)
             setPositiveButton(R.string.yes) { _, _ ->
                 runOnDefaultDispatcher {
-                    GroupManager.deleteGroup(arg.groupId)
+                    // 种子组（未分组）不可删：万一从别处进了删除流程也拦住。
+                    if (RiftDatabase.groupDao.getById(arg.groupId)?.ungrouped != true) {
+                        GroupManager.deleteGroup(arg.groupId)
+                    }
                 }
                 requireActivity().finish()
             }
@@ -211,6 +214,9 @@ class GroupSettingsActivity(
     companion object {
         const val EXTRA_GROUP_ID = "id"
     }
+
+    // -30：未分组允许改名，但它是种子组，设置页里不许删（删组会连组内节点一起删）。
+    private var editingUngrouped = false
 
     @SuppressLint("CommitTransaction")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -226,6 +232,7 @@ class GroupSettingsActivity(
             val editingId = intent.getLongExtra(EXTRA_GROUP_ID, 0L)
             DataStore.editingId = editingId
             runOnDefaultDispatcher {
+                var ungrouped = false
                 if (editingId == 0L) {
                     ProxyGroup().init()
                 } else {
@@ -236,10 +243,13 @@ class GroupSettingsActivity(
                         }
                         return@runOnDefaultDispatcher
                     }
+                    ungrouped = entity.ungrouped
                     entity.init()
                 }
 
                 onMainDispatcher {
+                    editingUngrouped = ungrouped
+                    invalidateOptionsMenu()
                     attachPreferenceFragment()
                 }
             }
@@ -291,6 +301,12 @@ class GroupSettingsActivity(
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.profile_config_menu, menu)
         return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        // 未分组是种子组：可以改名，不可以删除。
+        menu.findItem(R.id.action_delete)?.isVisible = !editingUngrouped
+        return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem) = child.onOptionsItemSelected(item)

@@ -388,7 +388,8 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
 
             itemView.setOnClickListener { }
 
-            editButton.isGone = proxyGroup.ungrouped
+            // -30：未分组也可以改名（名字和未分组身份分开，改名只换显示）。
+            editButton.isGone = false
             updateButton.isInvisible = proxyGroup.type != GroupType.SUBSCRIPTION
             groupName.text = proxyGroup.displayName()
 
@@ -441,7 +442,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
 
                 subscriptionUpdateProgress.isVisible = false
                 updateButton.isInvisible = proxyGroup.type != GroupType.SUBSCRIPTION
-                editButton.isGone = proxyGroup.ungrouped
+                editButton.isGone = false
             }
 
             val subscription = proxyGroup.subscription

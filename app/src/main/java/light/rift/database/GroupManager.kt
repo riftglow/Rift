@@ -104,6 +104,10 @@ object GroupManager {
     }
 
     suspend fun deleteGroup(groupId: Long) {
+        // 未分组是种子组，删了无意义（会被重建）且会连带清空组内全部节点。
+        // UI 层（设置页、左滑）已有拦截，这里再加一道底线防线，防新增调用方
+        // 绕过 UI 直接删掉种子组。
+        if (RiftDatabase.groupDao.getById(groupId)?.ungrouped == true) return
         // 2026-11-14，0.2.24 -19，L-28：删组与删组内节点包进同一事务，
         // 进程在两步之间被杀不再留下孤儿节点。
         RiftDatabase.instance.runInTransaction {
@@ -116,12 +120,15 @@ object GroupManager {
     }
 
     suspend fun deleteGroup(group: List<ProxyGroup>) {
-        // 同上：删组与删组内节点同一事务。
+        // 同上：先滤掉未分组种子组，再删；全是未分组时直接返回。
+        val deletable = group.filter { !it.ungrouped }
+        if (deletable.isEmpty()) return
+        // 删组与删组内节点同一事务。
         RiftDatabase.instance.runInTransaction {
-            RiftDatabase.groupDao.deleteGroup(group)
-            RiftDatabase.proxyDao.deleteByGroup(group.map { it.id }.toLongArray())
+            RiftDatabase.groupDao.deleteGroup(deletable)
+            RiftDatabase.proxyDao.deleteByGroup(deletable.map { it.id }.toLongArray())
         }
-        for (proxyGroup in group) iterator { groupRemoved(proxyGroup.id) }
+        for (proxyGroup in deletable) iterator { groupRemoved(proxyGroup.id) }
         SubscriptionUpdater.reconfigureUpdater()
         AutoBackup.schedule()
     }

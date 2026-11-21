@@ -23,20 +23,24 @@ object SecurityHardening {
         return bytes.joinToString("") { "%02x".format(it.toInt() and 0xFF) }
     }
 
-    // 随机端口试绑：先试占一下，被占了就换一个，最多试 10 次再兜底。
+    // 随机端口试绑：先试占一下，被占了就换一个，最多试 10 次。
+    // 试绑地址要跟 mixed 入站实际监听地址一致（allowAccess 开着时是 0.0.0.0，
+    // 否则只绑 127.0.0.1 测不出非回环网卡上的占用）；10 次都失败返回 -1，
+    // 调用方保留旧端口，不再返回未经试绑的端口。
     // 试绑只能排除“当时已被占用”的端口，不能保证 sing-box bind 时仍空闲，
-    // 但把“固定下一个已被占用的端口、每次启动都起不来”的死局去掉了。
+    // 试绑通过、起服务时被抢占的死局由 BaseService 启动失败时重置端口来破。
     private fun pickFreePort(): Int {
+        val host = if (DataStore.allowAccess) "0.0.0.0" else "127.0.0.1"
         repeat(10) {
             val port = 10000 + random.nextInt(50000)
             try {
-                ServerSocket().use { it.bind(InetSocketAddress("127.0.0.1", port)) }
+                ServerSocket().use { it.bind(InetSocketAddress(host, port)) }
                 return port
             } catch (_: IOException) {
                 // 被占用，换一个再试。
             }
         }
-        return 10000 + random.nextInt(50000)
+        return -1
     }
 
     fun ensureInitialized() {
@@ -46,9 +50,12 @@ object SecurityHardening {
         if (DataStore.mixedInboundPass.isBlank()) {
             DataStore.mixedInboundPass = randomHex(16)
         }
-        // 端口只随机一次：仍是默认 2080 才换；用户手动改过的端口不动。
-        if (DataStore.mixedPort == 2080) {
-            DataStore.mixedPort = pickFreePort()
+        // 端口只随机一次：仍是本 profile 的默认端口才换；用户手动改过的端口不动。
+        // 默认端口是 2080 + userIndex（副 profile 下不是 2080，旧代码用 == 2080
+        // 判断会漏掉副 profile，试绑完全不跑）。
+        if (DataStore.mixedPort == DataStore.defaultMixedPort) {
+            val port = pickFreePort()
+            if (port > 0) DataStore.mixedPort = port
         }
     }
 }

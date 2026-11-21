@@ -271,7 +271,15 @@ class GroupSettingsActivity(
 
         val editingId = DataStore.editingId
         if (editingId == 0L) {
-            GroupManager.createGroup(ProxyGroup().apply { serialize() })
+            // 新建分组：serialize() 里 id 还是 0，出站模式写不回去（id != 0 守卫），
+            // 这里拿到 createGroup 返回的带 id 分组后补写一次，否则新建时选的
+            // urltest 会静默丢掉、落盘仍是默认 selector。
+            val created = GroupManager.createGroup(ProxyGroup().apply { serialize() })
+            DataStore.setGroupOutboundMode(
+                created.id,
+                DataStore.profileCacheStore.getString(Key.GROUP_OUTBOUND_MODE, "selector")
+                    ?: "selector"
+            )
         } else if (needSave()) {
             val entity = RiftDatabase.groupDao.getById(DataStore.editingId)
             if (entity == null) {

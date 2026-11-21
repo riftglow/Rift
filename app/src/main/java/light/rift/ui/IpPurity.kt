@@ -52,6 +52,12 @@ object IpPurity {
         val privacy = json.optJSONObject("privacy")
         val company = json.optJSONObject("company")
         val asn = json.optJSONObject("asn")
+        // iplocate 限流/报错时回 JSON 错误体（无 privacy/company/country），
+        // 不能当成一次成功查询：否则会返回空白 ISP 的“优（10）”，还拦住了
+        // 向 ip-api/ipquery 兜底。要求至少其一非空且 country 非空，否则返回
+        // null 让调用方落到下一个源。
+        if (privacy == null && company == null) return null
+        if (json.optString("country").isBlank()) return null
         // iplocate 的 privacy 字段是 is_hosting / is_tor（不是 hosting / tor）；
         // company.type 是 ASN 注册类型——BAGE CLOUD 这种机房 ASN 也注册成 isp，
         // 不能单独当住宅依据。机房判定以 privacy.is_hosting 为准，它优先于 type。

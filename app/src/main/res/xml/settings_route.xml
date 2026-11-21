@@ -41,7 +41,7 @@
             app:title="@string/ipv6"
             app:useSimpleSummaryProvider="true" />
         <light.rift.core.ui.SimpleMenuPreference
-            app:defaultValue="0"
+            app:defaultValue="4"
             app:entries="@array/rules_dat_provider"
             app:entryValues="@array/int_array_5"
             app:icon="@drawable/ic_baseline_rule_folder_24"

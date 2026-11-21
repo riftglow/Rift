@@ -199,9 +199,18 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     // hopefully hashCode = mHandle doesn't change, currently this is true from KitKat to Nougat
     private val userIndex by lazy { Binder.getCallingUserHandle().hashCode() }
+
+    /** 本 profile 的默认 mixed 端口（2080 + userIndex）。副 profile 下它不是 2080， */
+    val defaultMixedPort: Int get() = 2080 + userIndex
+
     var mixedPort: Int
         get() = getLocalPort(Key.MIXED_PORT, 2080)
         set(value) = saveLocalPort(Key.MIXED_PORT, value)
+
+    /** 端口被别的进程抢占致服务起不来时，把 mixedPort 打回默认，下次启动重新随机。 */
+    fun resetMixedPort() {
+        mixedPort = defaultMixedPort
+    }
 
     fun initGlobal() {
         if (configurationStore.getString(Key.MIXED_PORT) == null) {

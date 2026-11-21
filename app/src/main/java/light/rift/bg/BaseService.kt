@@ -460,6 +460,13 @@ class BaseService {
                         Logs.w(exc)
                     }
                     val rawMsg = exc.readableMessage
+                    // 端口死局：随机端口持久化后、起服务时被别的进程抢占，服务起不来，
+                    // 而 mixedPort 已不是默认值、ensureInitialized 不再重选，下次启动
+                    // 还是同一个坏端口。检测到 bind 冲突就把端口打回默认，下次启动
+                    // 重新随机，破掉这个死局。
+                    if (rawMsg.contains("address already in use", ignoreCase = true)) {
+                        DataStore.resetMixedPort()
+                    }
                     val friendlyMsg = Protocols.genFriendlyMsg(rawMsg)
                     stopRunner(
                         false,

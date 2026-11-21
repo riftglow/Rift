@@ -110,6 +110,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
         val mixedPort = findPreference<EditTextPreference>(Key.MIXED_PORT)
+        val localProxyAuth = findPreference<SwitchPreference>(Key.LOCAL_PROXY_AUTH)
+        val mixedInboundPass = findPreference<EditTextPreference>(Key.MIXED_INBOUND_PASS)
         val serviceMode = findPreference<Preference>(Key.SERVICE_MODE)
         val allowAccess = findPreference<Preference>(Key.ALLOW_ACCESS)
         val appendHttpProxy = findPreference<SwitchPreference>(Key.APPEND_HTTP_PROXY)
@@ -227,6 +229,10 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
 
         mixedPort?.onPreferenceChangeListener = reloadListener
+        // 本地代理认证开关/密码改动也要重载服务：运行中的核心仍用旧 users 配置，
+        // 而诊断侧每次读最新 DataStore，错配会导致 URL 检查/流媒体报认证失败。
+        localProxyAuth?.onPreferenceChangeListener = reloadListener
+        mixedInboundPass?.onPreferenceChangeListener = reloadListener
         appendHttpProxy?.onPreferenceChangeListener = reloadListener
         showDirectSpeed?.onPreferenceChangeListener = reloadListener
         trafficSniffing?.onPreferenceChangeListener = reloadListener

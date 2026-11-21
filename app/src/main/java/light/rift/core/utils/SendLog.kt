@@ -110,19 +110,30 @@ object SendLog {
             out.write(("Export logcat error: " + CrashHandler.formatThrowable(e)).toByteArray())
         }
         out.write("\n".toByteArray())
-        // -46：导出 rift.log 改与日志页相同的有界读（读最近 1MB）。日志页
-        // getRiftLog(50KB) 能读出内容，导出 getRiftLog(0) 三次都空，改成有界读
-        // 走同一条被验证过的路；1MB 足够覆盖过夜诊断，又不超过文件 2MB 上限。
-        // 读空时写一行诊断（磁盘上的文件大小），区分“文件本来就空”和“读失败”。
-        val riftBytes = getRiftLog(1024 * 1024)
-        val riftText = if (riftBytes.isEmpty()) {
-            val f = File(RiftApp.application.cacheDir, "rift.log")
-            val size = if (f.exists()) f.length() else -1L
-            "[rift.log read empty; file size=${size} bytes]\n"
-        } else {
-            redactLog(riftBytes.toString(Charsets.UTF_8))
+        // -47：rift.log 导出加兜底。-46 的有界读已进包但导出仍无 rift.log 且无诊断行，
+        // 说明读/脱敏/写某一步抛了异常并被外层 catch 吃掉。整段包进 try-catch(Throwable)，
+        // 任何失败都写一行诊断（含异常名与磁盘文件大小），不再静默丢失。
+        try {
+            val riftBytes = getRiftLog(1024 * 1024)
+            val riftText = if (riftBytes.isEmpty()) {
+                val size = try {
+                    val f = File(RiftApp.application.cacheDir, "rift.log")
+                    if (f.exists()) f.length() else -1L
+                } catch (_: Throwable) {
+                    -2L
+                }
+                "[rift.log read empty; file size=${size} bytes]\n"
+            } else {
+                redactLog(riftBytes.toString(Charsets.UTF_8))
+            }
+            out.write(riftText.toByteArray())
+        } catch (t: Throwable) {
+            Logs.w(t)
+            try {
+                out.write(("[rift.log failed: ${t.javaClass.simpleName}: ${t.message}]\n").toByteArray())
+            } catch (_: Throwable) {
+            }
         }
-        out.write(riftText.toByteArray())
     }
 
     // Create full log and send

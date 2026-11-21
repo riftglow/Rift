@@ -110,7 +110,19 @@ object SendLog {
             out.write(("Export logcat error: " + CrashHandler.formatThrowable(e)).toByteArray())
         }
         out.write("\n".toByteArray())
-        out.write(redactLog(getRiftLog(0).toString(Charsets.UTF_8)).toByteArray())
+        // -46：导出 rift.log 改与日志页相同的有界读（读最近 1MB）。日志页
+        // getRiftLog(50KB) 能读出内容，导出 getRiftLog(0) 三次都空，改成有界读
+        // 走同一条被验证过的路；1MB 足够覆盖过夜诊断，又不超过文件 2MB 上限。
+        // 读空时写一行诊断（磁盘上的文件大小），区分“文件本来就空”和“读失败”。
+        val riftBytes = getRiftLog(1024 * 1024)
+        val riftText = if (riftBytes.isEmpty()) {
+            val f = File(RiftApp.application.cacheDir, "rift.log")
+            val size = if (f.exists()) f.length() else -1L
+            "[rift.log read empty; file size=${size} bytes]\n"
+        } else {
+            redactLog(riftBytes.toString(Charsets.UTF_8))
+        }
+        out.write(riftText.toByteArray())
     }
 
     // Create full log and send
@@ -145,7 +157,9 @@ object SendLog {
             )
             val len = file.length()
             FileInputStream(file).use { stream ->
-                if (max in 1 until len) {
+                // max <= 0 = 读整个文件；0 < max < len = 只读末尾 max 字节。
+                // 用显式比较，不用 `max in 1 until len` 的区间写法，避免歧义。
+                if (max > 0 && max < len) {
                     var toSkip = len - max
                     while (toSkip > 0) {
                         val skipped = stream.skip(toSkip)

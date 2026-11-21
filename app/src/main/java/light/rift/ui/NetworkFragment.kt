@@ -2,11 +2,13 @@ package light.rift.ui
 
 import android.content.Intent
 import android.graphics.Paint
+import android.graphics.Rect
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.View
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import light.rift.R
 import light.rift.core.utils.Socks5Tunnel
@@ -56,6 +58,18 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
     }
 
     private var speedTesting = false
+
+    // 诊断结果填进去、卡片变高后，把结果滚到可见区（2026-11-21 -44）：
+    // 测试跑完文字变长，卡片底部会滑出屏幕，之前得用户手动追着滑。
+    // doOnLayout 等 TextView 按新文字量完高再滚；requestRectangleOnScreen
+    // 只在结果被挡住时才滚，已经在屏里的不动，不会乱跳。
+    private fun scrollResultIntoView(resultView: View) {
+        resultView.doOnLayout {
+            resultView.requestRectangleOnScreen(
+                Rect(0, 0, resultView.width, resultView.height), false
+            )
+        }
+    }
 
     // “开始”已改成 TextView 药丸（2026-11-15，0.2.29）：TextView 禁用时字色不会自动变灰，
     // 这里手动换色（启用琥珀、禁用灰），不然检测中按钮看着还能点。
@@ -113,10 +127,12 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                     // 点 IP 测速的提示（0.2.29 -26）：测速结果复用这行。
                     binding.egressSpeed.isVisible = true
                     binding.egressSpeed.text = getString(R.string.egress_speed_tap_hint)
+                    scrollResultIntoView(binding.egressOverview)
                 } else {
                     binding.egressOverview.isVisible = false
                     binding.egressResult.isVisible = true
                     binding.egressResult.text = error
+                    scrollResultIntoView(binding.egressResult)
                 }
             }
         }
@@ -174,6 +190,7 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                 if (!isAdded) return@onMainDispatcher
                 setStartEnabled(binding.dnsLeakTest, true)
                 binding.dnsLeakResult.text = result
+                scrollResultIntoView(binding.dnsLeakResult)
             }
         }
     }
@@ -257,6 +274,7 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                 if (!isAdded) return@onMainDispatcher
                 setStartEnabled(binding.urlCheckTest, true)
                 binding.urlCheckResult.text = result
+                scrollResultIntoView(binding.urlCheckResult)
             }
         }
     }
@@ -387,6 +405,7 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                 val (results, error) = result
                 if (results == null) {
                     binding.streamingResult.text = error
+                    scrollResultIntoView(binding.streamingResult)
                     return@onMainDispatcher
                 }
                 val available = results.count { it.state == StreamingUnlock.State.AVAILABLE }
@@ -422,6 +441,7 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                     }
                     binding.streamingResultList.addView(row)
                 }
+                scrollResultIntoView(binding.streamingResultList)
             }
         }
     }
@@ -470,6 +490,7 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                 } else {
                     error ?: getString(R.string.ip_purity_quality_unavailable)
                 }
+                scrollResultIntoView(binding.ipPurityResult)
             }
         }
     }
@@ -514,6 +535,7 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                 if (!isAdded) return@onMainDispatcher
                 speedTesting = false
                 binding.egressSpeed.text = result
+                scrollResultIntoView(binding.egressSpeed)
             }
         }
     }

@@ -47,9 +47,6 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
         binding.streamingTest.setOnClickListener {
             doStreamingCheck(binding)
         }
-        binding.ipPurityTest.setOnClickListener {
-            doIpPurityCheck(binding)
-        }
         // 点出口 IP 测速（0.2.29 -26）：IP 下划线表示可点。
         binding.egressIp.paintFlags = binding.egressIp.paintFlags or Paint.UNDERLINE_TEXT_FLAG
         binding.egressIp.setOnClickListener {
@@ -456,70 +453,6 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
         )
     }
 
-    // IP 纯净度（0.2.29 -26）：先拿出口 IP（复用出口自检的查询），再查质量。
-    private fun doIpPurityCheck(binding: LayoutNetworkBinding) {
-        setStartEnabled(binding.ipPurityTest, false)
-        binding.ipPurityResult.isVisible = true
-        binding.ipPurityResult.text = getString(R.string.egress_check_testing)
-        runOnLifecycleDispatcher {
-            val result: Pair<IpPurity.Result?, String?> = try {
-                val ip = EgressIp.queryJson().optString("query")
-                if (ip.isBlank()) {
-                    null to getString(R.string.ip_purity_no_ip)
-                } else {
-                    IpPurity.check(ip) to null
-                }
-            } catch (e: Exception) {
-                null to getString(R.string.egress_check_error, e.readableMessage)
-            }
-            onMainDispatcher {
-                if (!isAdded) return@onMainDispatcher
-                setStartEnabled(binding.ipPurityTest, true)
-                val (info, error) = result
-                binding.ipPurityResult.text = if (info != null) {
-                    getString(
-                        R.string.ip_purity_result,
-                        info.ip,
-                        listOf(info.country, info.city).filter { it.isNotBlank() }.joinToString(" · "),
-                        info.isp,
-                        typeText(info.type),
-                        gradeText(info.grade),
-                        info.riskScore,
-                        info.source,
-                    )
-                } else {
-                    error ?: getString(R.string.ip_purity_quality_unavailable)
-                }
-                scrollResultIntoView(binding.ipPurityResult)
-            }
-        }
-    }
-
-    private fun typeText(type: IpPurity.Type): String {
-        return getString(
-            when (type) {
-                IpPurity.Type.RESIDENTIAL -> R.string.ip_purity_type_residential
-                IpPurity.Type.DATACENTER -> R.string.ip_purity_type_datacenter
-                IpPurity.Type.MOBILE -> R.string.ip_purity_type_mobile
-                IpPurity.Type.BUSINESS -> R.string.ip_purity_type_business
-                IpPurity.Type.UNKNOWN -> R.string.ip_purity_type_unknown
-            }
-        )
-    }
-
-    private fun gradeText(grade: IpPurity.Grade): String {
-        return getString(
-            when (grade) {
-                IpPurity.Grade.GOOD -> R.string.ip_purity_grade_good
-                IpPurity.Grade.NORMAL -> R.string.ip_purity_grade_normal
-                IpPurity.Grade.RISK -> R.string.ip_purity_grade_risk
-            }
-        )
-    }
-
-    // 点出口 IP 测速（0.2.29 -26）：下 5MB 测下行，Cloudflare 测速端点。
-    // 走 Socks5Tunnel（连着 VPN 时）或直连，与 URL 检查同一做法。
-    // -27：旧的 OkHttp + java.net.socks.* 系统属性在安卓上不工作，改手动握手。
     private fun doSpeedTest(binding: LayoutNetworkBinding) {
         if (speedTesting) return
         speedTesting = true

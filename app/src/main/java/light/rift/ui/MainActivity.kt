@@ -415,8 +415,16 @@ class MainActivity : ThemedActivity(),
     }
 
 
+    // 底栏玻璃是否生效：开关 + Android 12+ + 非低内存。
+    private fun isGlassBottomBarEnabled(): Boolean {
+        return DataStore.glassEffect &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !isLowRamDevice
+    }
+
     // 底栏/FAB 显隐：节点页显示，其余页按 showBottomBar 设置决定。
     // displayFragment() 与 onCreate()（Activity 重建时）共用。
+    // 磨砂（statsBlur）跟底栏走：回配置页时恢复，离页藏底栏时一起关掉，
+    // 否则 BlurView 还糊在底栏位置、挡住其他页最下面一行（2026-11-21 发现）。
     private fun applyStatsBarVisibility(fragment: ToolbarFragment) {
         if (fragment is ConfigurationFragment) {
             binding.stats.allowShow = true
@@ -425,10 +433,12 @@ class MainActivity : ThemedActivity(),
             // the next scroll.
             binding.stats.performShow()
             binding.fab.show()
+            binding.statsBlur.isVisible = isGlassBottomBarEnabled()
         } else if (!DataStore.showBottomBar) {
             binding.stats.allowShow = false
             binding.stats.performHide()
             binding.fab.hide()
+            binding.statsBlur.isVisible = false
         }
     }
 
@@ -438,8 +448,7 @@ class MainActivity : ThemedActivity(),
     // 改动即时生效（onPreferenceDataStoreChanged）；昼夜切换重建 Activity，
     // 遮罩色跟着新主题重设。模糊半径 5（× 默认缩放 4 ≈ 效果图的 20）。
     private fun applyGlassBottomBar() {
-        val enabled = DataStore.glassEffect &&
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !isLowRamDevice
+        val enabled = isGlassBottomBarEnabled()
         binding.stats.setGlassEnabled(enabled)
         binding.statsBlur.isVisible = enabled
         if (enabled && glassFacade == null) {

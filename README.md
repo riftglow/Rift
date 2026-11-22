@@ -4,7 +4,9 @@
 
 # 🌌 Rift
 
-**只做自己喜欢的代理软件：紧跟上游 sing-box 1.15 做兼容修复。**
+**这是一款按照自己心意的代理软件！**
+
+Rift 是从 NekoBoxForAndroid 分叉出来的，留了它干净的样子，核心换成官方 sing-box 1.15，补上了 NekoBox 没有的 XHTTP。
 
 [![Platform](https://img.shields.io/badge/Platform-Android%2010%2B-blue.svg)](https://developer.android.com)
 [![sing-box](https://img.shields.io/badge/sing--box-1.15-orange.svg)](https://github.com/SagerNet/sing-box)
@@ -17,8 +19,6 @@
 ## 💡 项目初衷
 
 我想要一款合心意的代理软件，找来找去没找到，索性自己做了一个。
-
-Rift 是从 NekoBoxForAndroid 分叉出来的，留了它干净的样子，核心换成官方 sing-box 1.15，补上了 XHTTP。
 
 **够用、干净、自己用得顺手**，是 Rift 唯一的取舍标准。
 

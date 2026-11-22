@@ -40,9 +40,9 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
      * 注意：secret 只能放 query——yacd 只从 query（或它自己的 cookie）读 secret，
      * shouldInterceptRequest 拿不到 POST/PUT 的请求体，改 header 注入会断掉切节点；
      * localStorage/cookie 的键又是 yacd 版本私有的。所以加载时仍带 secret，
-     * 加载完立刻用 replaceState 把 query 从地址栏抹掉：后续 API 请求的 Referer
-     * 与历史记录里不再带 secret。首次加载瞬间 URL 里仍带 secret，这是 yacd
-     * 的既定机制，改不掉。 */
+     * 加载完延后 3 秒用 replaceState 把 query 从地址栏抹掉（见 onPageFinished）：
+     * 后续 API 请求的 Referer 与历史记录里不再带 secret。首次加载瞬间 URL 里仍带
+     * secret，这是 yacd 的既定机制，改不掉。 */
     private fun loadDashboard() {
         val url = DataStore.yacdURL
         val secret = DataStore.clashApiSecret
@@ -80,14 +80,25 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                // secret 已由 yacd 读走（存进它自己的 cookie/内存），把 query
+                // secret 由 yacd 在启动时从 query 读走（存进它自己的配置里），把 query
                 // 从地址栏抹掉：后续 API 请求的 Referer 与历史记录里不再带 secret。
                 // 只在 URL 真带 secret 时才动，避免多余地改写地址。
+                // 延后 3 秒再抹：yacd 是 module 脚本（约 600KB 两包），初始化读 query
+                // 可能晚于 onPageFinished；立刻抹会抢在它读之前，仪表板就读不到
+                // secret、停在连接表单上（-53 实机验）。3 秒足够它读完并连上。
                 if (url != null && "secret=" in url) {
-                    view?.evaluateJavascript(
-                        "history.replaceState(null,'',location.pathname+location.hash);",
-                        null
-                    )
+                    val webView = view
+                    webView?.postDelayed({
+                        // 3 秒内已退出仪表板就不抹，避免对已销毁的 WebView 调方法。
+                        if (webViewDestroyed) return@postDelayed
+                        try {
+                            webView.evaluateJavascript(
+                                "history.replaceState(null,'',location.pathname+location.hash);",
+                                null
+                            )
+                        } catch (_: Exception) {
+                        }
+                    }, 3000)
                 }
             }
         }

@@ -56,14 +56,17 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
 
     private var speedTesting = false
 
-    // 诊断结果填进去、卡片变高后，把结果滚到可见区（2026-11-21 -44）：
+    // 诊断结果填进去、卡片变高后，把卡片底部滚到可见区（2026-11-21 -44，2026-11-22 -49）：
     // 测试跑完文字变长，卡片底部会滑出屏幕，之前得用户手动追着滑。
-    // doOnLayout 等 TextView 按新文字量完高再滚；requestRectangleOnScreen
-    // 只在结果被挡住时才滚，已经在屏里的不动，不会乱跳。
-    private fun scrollResultIntoView(resultView: View) {
-        resultView.doOnLayout {
-            resultView.requestRectangleOnScreen(
-                Rect(0, 0, resultView.width, resultView.height), false
+    // -49 改动：只滚结果文字不够，卡片最底下的"开始"按钮还在屏外，
+    // 所以滚的目标改成卡片底部的"开始"按钮（卡片里最低的元素），
+    // 滚它进来，整张卡片（结果＋按钮）就都可见了。
+    // doOnLayout 等目标按新文字量完高再滚；requestRectangleOnScreen
+    // 只在目标被挡住时才滚，已经在屏里的不动，不会乱跳。
+    private fun scrollCardBottomIntoView(buttonView: View) {
+        buttonView.doOnLayout {
+            buttonView.requestRectangleOnScreen(
+                Rect(0, 0, buttonView.width, buttonView.height), false
             )
         }
     }
@@ -124,12 +127,12 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                     // 点 IP 测速的提示（0.2.29 -26）：测速结果复用这行。
                     binding.egressSpeed.isVisible = true
                     binding.egressSpeed.text = getString(R.string.egress_speed_tap_hint)
-                    scrollResultIntoView(binding.egressOverview)
+                    scrollCardBottomIntoView(binding.egressCheck)
                 } else {
                     binding.egressOverview.isVisible = false
                     binding.egressResult.isVisible = true
                     binding.egressResult.text = error
-                    scrollResultIntoView(binding.egressResult)
+                    scrollCardBottomIntoView(binding.egressCheck)
                 }
             }
         }
@@ -187,7 +190,7 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                 if (!isAdded) return@onMainDispatcher
                 setStartEnabled(binding.dnsLeakTest, true)
                 binding.dnsLeakResult.text = result
-                scrollResultIntoView(binding.dnsLeakResult)
+                scrollCardBottomIntoView(binding.dnsLeakTest)
             }
         }
     }
@@ -271,7 +274,7 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                 if (!isAdded) return@onMainDispatcher
                 setStartEnabled(binding.urlCheckTest, true)
                 binding.urlCheckResult.text = result
-                scrollResultIntoView(binding.urlCheckResult)
+                scrollCardBottomIntoView(binding.urlCheckTest)
             }
         }
     }
@@ -402,7 +405,7 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                 val (results, error) = result
                 if (results == null) {
                     binding.streamingResult.text = error
-                    scrollResultIntoView(binding.streamingResult)
+                    scrollCardBottomIntoView(binding.streamingTest)
                     return@onMainDispatcher
                 }
                 val available = results.count { it.state == StreamingUnlock.State.AVAILABLE }
@@ -438,7 +441,7 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                     }
                     binding.streamingResultList.addView(row)
                 }
-                scrollResultIntoView(binding.streamingResultList)
+                scrollCardBottomIntoView(binding.streamingTest)
             }
         }
     }
@@ -468,12 +471,13 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                 if (!isAdded) return@onMainDispatcher
                 speedTesting = false
                 binding.egressSpeed.text = result
-                // 测速结果滚进可见区（2026-11-22 -48）：egressSpeed 从"测速中…"到结果
+                // 测速结果滚进可见区（2026-11-22 -48/-49）：egressSpeed 从"测速中…"到结果
                 // 高度基本不变，doOnLayout 不触发新布局，平滑滚动又常被触摸打断，
-                // 所以 post 到下一帧、直接瞬时滚，不走 scrollResultIntoView。
-                binding.egressSpeed.post {
-                    binding.egressSpeed.requestRectangleOnScreen(
-                        Rect(0, 0, binding.egressSpeed.width, binding.egressSpeed.height), true
+                // 所以 post 到下一帧、直接瞬时滚。-49：滚的目标改成出口卡片底部的
+                // "开始"按钮（卡片里最低的元素），测速结果在它上面，滚它进来整张卡都可见。
+                binding.egressCheck.post {
+                    binding.egressCheck.requestRectangleOnScreen(
+                        Rect(0, 0, binding.egressCheck.width, binding.egressCheck.height), true
                     )
                 }
             }

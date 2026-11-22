@@ -77,7 +77,6 @@ object Key {
     const val RESTORE_STRATEGY = "restoreStrategy"
     // Routing mode: 0 = rule (default), 1 = global (all via proxy), 2 = direct.
     const val ROUTE_MODE = "routeMode"
-    const val RULES_PROVIDER = "rulesProvider"
     const val LOG_LEVEL = "logLevel"
     const val LOG_BUF_SIZE = "logBufSize"
     const val MTU = "mtu"

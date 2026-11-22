@@ -180,8 +180,11 @@ class NativeInterface : BoxPlatformInterface, RiftInterface {
 
     // core interface
 
+    // Rift only uses its own compiled rule table now (no provider
+    // choice): never the official assets, so downloaded rule files
+    // always win over the bundled ones.
     override fun useOfficialAssets(): Boolean {
-        return DataStore.rulesProvider == 0
+        return false
     }
 
     override fun selector_OnProxySelected(selectorTag: String, tag: String) {

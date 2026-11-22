@@ -311,14 +311,6 @@
         <item>@string/only</item>
     </string-array>
 
-    <string-array name="rules_dat_provider">
-        <item>@string/route_rules_official</item>
-        <item>soffchen</item>
-        <item>Chocolate4U/Iran-sing-box-rules</item>
-        <item>L11R/Antizapret-sing-box-geo</item>
-        <item>Rift 自编译</item>
-    </string-array>
-
 
     <string-array name="group_types">
         <item>@string/group_basic</item>

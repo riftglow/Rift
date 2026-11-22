@@ -393,29 +393,20 @@ class AssetsActivity : ThemedActivity() {
 
     }
 
-    // Rule-assets providers, kept from the db era: index 0 is the official
-    // RiftApp source; the others reuse the same rule-set branch layout, and
-    // a missing file there fails the update safely with the old file kept.
-    // Index 4 is Rift's own compiled table (the default, rulesProvider
-    // == 4); its branch is "srs", the others use "rule-set".
-    private val rulesProviders = listOf(
-        RuleAssetsProvider("SagerNet/sing-geoip", "SagerNet/sing-geosite"),
-        RuleAssetsProvider("soffchen/sing-geoip", "soffchen/sing-geosite"),
-        RuleAssetsProvider("Chocolate4U/Iran-sing-box-rules"),
-        RuleAssetsProvider("L11R/antizapret-sing-box-geo"),
-        RuleAssetsProvider("riftglow/rift-rules", "riftglow/rift-rules", "srs"),
-    )
+    // Rule assets come only from Rift's own compiled table
+    // (riftglow/rift-rules, branch "srs"): it merges MetaCubeX +
+    // SagerNet + Rift's own supplement, so the old third-party
+    // providers (official/soffchen/Iran/Antizapret) are gone.
+    // A missing file fails the update safely with the old file kept.
+    private val riftRulesProvider =
+        RuleAssetsProvider("riftglow/rift-rules", "riftglow/rift-rules", "srs")
 
     private fun srsRepoFor(fileName: String): String {
-        val provider = rulesProviders.getOrNull(DataStore.rulesProvider)
-            ?: rulesProviders[0]
-        return if (fileName.startsWith("geoip-")) provider.geoipRepo else provider.geositeRepo
+        return if (fileName.startsWith("geoip-")) riftRulesProvider.geoipRepo else riftRulesProvider.geositeRepo
     }
 
     private fun srsBranchFor(fileName: String): String {
-        val provider = rulesProviders.getOrNull(DataStore.rulesProvider)
-            ?: rulesProviders[0]
-        return provider.branch
+        return riftRulesProvider.branch
     }
 
     // Version helpers. A version string is "<YYYY-MM-DD> <short-sha>"

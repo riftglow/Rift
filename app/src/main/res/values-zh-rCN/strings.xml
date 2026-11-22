@@ -237,7 +237,6 @@
     <string name="route_update_partial">部分规则集更新失败：%s</string>
     <string name="route_asset_no_update">已为最新</string>
     <string name="route_asset_status">本地版本: %s</string>
-    <string name="route_rules_provider">路由资源更新源</string>
     <string name="route_assets">资源</string>
     <string name="route_manage_assets">管理路由资源</string>
     <string name="standard">标准</string>
@@ -584,7 +583,6 @@
     <string name="route_group_pick">选择一个分组</string>
     <string name="route_group_none">还没有分组，请先创建一个分组。</string>
     <string name="group_skipped">已跳过（不支持，未导入）：\n%1$s</string>
-<string name="route_rules_official">官方</string>
 <string name="service_mode_proxy">仅代理</string>
 <string name="sniff_override">探测结果用于目标地址</string>
 <string name="sniff_routing">探测结果用于路由判断</string>

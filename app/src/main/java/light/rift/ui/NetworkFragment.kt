@@ -56,15 +56,18 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
 
     private var speedTesting = false
 
-    // 诊断结果填进去、卡片变高后，把卡片底部滚到可见区（2026-11-21 -44，2026-11-22 -49）：
+    // 诊断结果填进去、卡片变高后，把卡片底部滚到可见区（2026-11-21 -44，2026-11-22 -49/-50）：
     // 测试跑完文字变长，卡片底部会滑出屏幕，之前得用户手动追着滑。
     // -49 改动：只滚结果文字不够，卡片最底下的"开始"按钮还在屏外，
     // 所以滚的目标改成卡片底部的"开始"按钮（卡片里最低的元素），
     // 滚它进来，整张卡片（结果＋按钮）就都可见了。
-    // doOnLayout 等目标按新文字量完高再滚；requestRectangleOnScreen
-    // 只在目标被挡住时才滚，已经在屏里的不动，不会乱跳。
+    // -50 教训：-49 用 doOnLayout 滚按钮是错的——按钮本身没变高，
+    // doOnLayout 在它已布局好时立刻执行，拿的是结果还没长出来之前
+    // 的旧位置，滚得不够，反而比 -44 露得更少。改成 post，等这一帧
+    // 布局量完（按钮落到最终位置）再滚。
+    // requestRectangleOnScreen 只在目标被挡住时才滚，已经在屏里的不动，不会乱跳。
     private fun scrollCardBottomIntoView(buttonView: View) {
-        buttonView.doOnLayout {
+        buttonView.post {
             buttonView.requestRectangleOnScreen(
                 Rect(0, 0, buttonView.width, buttonView.height), false
             )

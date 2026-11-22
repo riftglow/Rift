@@ -68,8 +68,11 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
     // requestRectangleOnScreen 只在目标被挡住时才滚，已经在屏里的不动，不会乱跳。
     private fun scrollCardBottomIntoView(buttonView: View) {
         buttonView.post {
+            // 按钮下方再多留 24dp，让按钮不贴着屏幕底边（2026-11-22 -51）：
+            // -50 只把按钮滚到刚好可见，按钮底边贴着屏边，看着还差一点点。
+            val extra = (24 * buttonView.resources.displayMetrics.density).toInt()
             buttonView.requestRectangleOnScreen(
-                Rect(0, 0, buttonView.width, buttonView.height), false
+                Rect(0, 0, buttonView.width, buttonView.height + extra), false
             )
         }
     }
@@ -474,13 +477,15 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                 if (!isAdded) return@onMainDispatcher
                 speedTesting = false
                 binding.egressSpeed.text = result
-                // 测速结果滚进可见区（2026-11-22 -48/-49）：egressSpeed 从"测速中…"到结果
+                // 测速结果滚进可见区（2026-11-22 -48/-49/-51）：egressSpeed 从"测速中…"到结果
                 // 高度基本不变，doOnLayout 不触发新布局，平滑滚动又常被触摸打断，
                 // 所以 post 到下一帧、直接瞬时滚。-49：滚的目标改成出口卡片底部的
                 // "开始"按钮（卡片里最低的元素），测速结果在它上面，滚它进来整张卡都可见。
+                // -51：按钮下方再多留 24dp，不贴着屏边。
                 binding.egressCheck.post {
+                    val extra = (24 * binding.egressCheck.resources.displayMetrics.density).toInt()
                     binding.egressCheck.requestRectangleOnScreen(
-                        Rect(0, 0, binding.egressCheck.width, binding.egressCheck.height), true
+                        Rect(0, 0, binding.egressCheck.width, binding.egressCheck.height + extra), true
                     )
                 }
             }

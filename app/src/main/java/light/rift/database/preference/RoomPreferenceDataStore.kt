@@ -1,25 +1,17 @@
 package light.rift.database.preference
 
 import androidx.preference.PreferenceDataStore
-import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 open class RoomPreferenceDataStore(private val kvPairDao: KeyValuePair.Dao) :
     PreferenceDataStore() {
 
-    // 读缓存：列表每行绑定要读 2–3 个 kv（主节点、记住的出口国家），
-    // 之前每次都是主线程 Room 查库，滚动时逐行查库。缓存后只在首次读
-    // 库，之后走内存。写路径（write/remove/reset）同步维护缓存，
-    // 保证不脏；绕开本类直接写 DAO 的只有备份导入，导入后调
-    // invalidateCache() 清掉。
-    private val cache = ConcurrentHashMap<String, KeyValuePair>()
-    private val absent = ConcurrentHashMap.newKeySet<String>()
-
-    /** 备份导入等直接写 DAO 的路径之后调用，清掉可能脏掉的读缓存。 */
-    fun invalidateCache() {
-        cache.clear()
-        absent.clear()
-    }
+    // 2026-11-22 -59: 读缓存已删。缓存是按进程的，UI 进程和 :bg 服务进程
+    // 各有一份；UI 写了新节点，:bg 进程还读着自己缓存里的旧值，切换
+    // 永远切不到新节点（出口冻住、只有重开应用才变）。回到正式版
+    // 0.2.29 的做法：每次读都直接查库（Room 读的是两进程共享的
+    // SQLite 文件），:bg 永远拿到 UI 刚写的值。代价是列表滚动时
+    // 每行要查 2–3 次库——正确优先，正式版就是这么跑的。
 
     // 不带默认值的读取：键不存在时返回 null，缺省值由调用方决定。
     fun getBoolean(key: String) = read(key)?.boolean
@@ -31,8 +23,6 @@ open class RoomPreferenceDataStore(private val kvPairDao: KeyValuePair.Dao) :
 
     fun reset() {
         kvPairDao.reset()
-        cache.clear()
-        absent.clear()
     }
 
     override fun getBoolean(key: String, defValue: Boolean) = getBoolean(key) ?: defValue
@@ -76,8 +66,6 @@ open class RoomPreferenceDataStore(private val kvPairDao: KeyValuePair.Dao) :
 
     fun remove(key: String) {
         kvPairDao.delete(key)
-        cache.remove(key)
-        absent.add(key)
         fireChangeListener(key)
     }
 
@@ -93,18 +81,10 @@ open class RoomPreferenceDataStore(private val kvPairDao: KeyValuePair.Dao) :
         }
     }
 
-    private fun read(key: String): KeyValuePair? {
-        cache[key]?.let { return it }
-        if (absent.contains(key)) return null
-        val pair = kvPairDao[key]
-        if (pair == null) absent.add(key) else cache[key] = pair
-        return pair
-    }
+    private fun read(key: String): KeyValuePair? = kvPairDao[key]
 
     private fun write(key: String, pair: KeyValuePair) {
         kvPairDao.put(pair)
-        cache[key] = pair
-        absent.remove(key)
         fireChangeListener(key)
     }
 

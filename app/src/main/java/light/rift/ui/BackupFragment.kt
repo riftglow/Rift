@@ -1038,9 +1038,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     PublicDatabase.kvPairDao.insert(settingsToInsert)
                 }
             }
-            // 设置是绕开 RoomPreferenceDataStore 直接写 DAO 的，读缓存要清掉，
-            // 否则之后读到的还是导入前的旧值。
-            DataStore.configurationStore.invalidateCache()
+            // 2026-11-22 -59: 读缓存已删，直接读库，不用再清缓存。
         }
         return webdavKept
     }

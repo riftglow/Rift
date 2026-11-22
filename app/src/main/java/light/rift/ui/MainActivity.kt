@@ -578,12 +578,17 @@ class MainActivity : ThemedActivity(),
             // 查不到就只显示节点名，不打扰用户。
             // 底栏第一行右端显示当前节点延时 + 重测（设计图）。
             runOnDefaultDispatcher {
+                val nodeIdAtStart = DataStore.selectedProxy
                 val info = EgressIp.fetch()
                 val ping = runCatching {
                     RiftDatabase.proxyDao.getById(DataStore.selectedProxy)?.ping ?: 0
                 }.getOrDefault(0)
                 onMainDispatcher {
                     if (!isFinishing && !isDestroyed) {
+                        // 2026-11-22 -57: 只认发起查询时那个节点的结果；
+                        // 切节点后才回来的旧查询直接丢掉，不让它把旧 IP 写回界面。
+                        // 快速连点时旧查询会比新查询晚到，没有这道关就一直顶旧 IP。
+                        if (DataStore.selectedProxy != nodeIdAtStart) return@onMainDispatcher
                         binding.stats.setExitIp(info?.ip, info?.countryCode)
                         binding.stats.setConnectedDelay(ping)
                         // 批三第 16 项：同一份出口 IP 顺手给主页状态卡，不再多查一次。

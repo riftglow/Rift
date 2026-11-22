@@ -508,9 +508,13 @@ class ConfigurationFragment @JvmOverloads constructor(
         lastExitIpAttemptAt = now
         fetchingExitIp = true
         runOnDefaultDispatcher {
+            val nodeIdAtStart = DataStore.selectedProxy
             val info = EgressIp.fetch()
             onMainDispatcher {
                 fetchingExitIp = false
+                // 2026-11-22 -57: 节点已换就丢掉这次结果，不写缓存；
+                // 快速连点时旧查询会比新查询晚到，没有这道关就一直顶旧 IP。
+                if (DataStore.selectedProxy != nodeIdAtStart) return@onMainDispatcher
                 if (info != null) {
                     cachedExitIp = info.ip
                     cachedExitCountry = info.countryCode

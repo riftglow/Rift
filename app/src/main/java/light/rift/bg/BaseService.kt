@@ -224,8 +224,11 @@ class BaseService {
                         proxy.box.selectOutbound(tag)
                         // or select from webui
                         // => selector_OnProxySelected
+                        return@withLock
                     }
-                    return@withLock
+                    // 2026-11-22 -58: tag 查不到就不能静默返回——否则核心还跑
+                    // 旧节点、界面却显示新节点名，出口永远顶着旧 IP；掉到
+                    // 下面走全量重建，让切换真正发生。
                 }
                 val s = data.state
                 when {

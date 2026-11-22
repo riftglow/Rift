@@ -354,6 +354,9 @@ class ConfigurationFragment @JvmOverloads constructor(
             cachedExitIp = null
             cachedExitCountry = null
             cachedExitCity = null
+            // 2026-11-22 -58: 节点换了就必须立刻重查出口，不能等 30 秒节流——
+            // 旧 IP 对新节点一定是错的；节流只防重复刷新，不防换节点。
+            lastExitIpAttemptAt = 0L
         }
         refreshStatusCard()
     }

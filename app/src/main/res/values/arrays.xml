@@ -27,6 +27,11 @@
         <item>4</item>
     </string-array>
 
+    <!-- 规则源只剩 Rift 自编译（值 4，与旧的 0–4 编号一致）。 -->
+    <string-array name="int_array_rift_provider">
+        <item>4</item>
+    </string-array>
+
     <string-array name="bypass_private_route">
         <item>1.0.0.0/8</item>
         <item>2.0.0.0/7</item>
@@ -309,6 +314,11 @@
         <item>@string/enable</item>
         <item>@string/prefer</item>
         <item>@string/only</item>
+    </string-array>
+
+    <!-- 规则源只剩 Rift 自编译，其它第三方源已删。 -->
+    <string-array name="rules_dat_provider">
+        <item>Rift 自编译</item>
     </string-array>
 
 

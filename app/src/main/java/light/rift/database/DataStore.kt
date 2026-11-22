@@ -212,6 +212,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var enableDnsRouting by configurationStore.boolean(Key.ENABLE_DNS_ROUTING) { true }
     var enableFakeDns by configurationStore.boolean(Key.ENABLE_FAKEDNS) { true }
 
+    var rulesProvider by configurationStore.stringToInt(Key.RULES_PROVIDER) { 4 }
     var logLevel by configurationStore.stringToInt(Key.LOG_LEVEL)
     var logBufSize by configurationStore.int(Key.LOG_BUF_SIZE) { 0 }
     var acquireWakeLock by configurationStore.boolean(Key.ACQUIRE_WAKE_LOCK)

@@ -468,7 +468,14 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                 if (!isAdded) return@onMainDispatcher
                 speedTesting = false
                 binding.egressSpeed.text = result
-                scrollResultIntoView(binding.egressSpeed)
+                // 测速结果滚进可见区（2026-11-22 -48）：egressSpeed 从"测速中…"到结果
+                // 高度基本不变，doOnLayout 不触发新布局，平滑滚动又常被触摸打断，
+                // 所以 post 到下一帧、直接瞬时滚，不走 scrollResultIntoView。
+                binding.egressSpeed.post {
+                    binding.egressSpeed.requestRectangleOnScreen(
+                        Rect(0, 0, binding.egressSpeed.width, binding.egressSpeed.height), true
+                    )
+                }
             }
         }
     }

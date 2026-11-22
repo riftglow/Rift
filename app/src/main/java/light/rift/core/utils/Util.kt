@@ -124,11 +124,16 @@ object Util {
 
     // Format Time
 
-    @SuppressLint("SimpleDateFormat")
-    val sdf1 = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    // SimpleDateFormat 不是线程安全的：ReminderTask 在后台线程调
+    // timeStamp2Text，共享同一个 sdf1 会并发错乱。用 ThreadLocal，
+    // 每线程一份。
+    private val sdf1Local = ThreadLocal.withInitial {
+        @SuppressLint("SimpleDateFormat")
+        SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    }
 
     fun timeStamp2Text(t: Long): String {
-        return sdf1.format(Date(t))
+        return sdf1Local.get()!!.format(Date(t))
     }
 
     @SuppressLint("WrongConstant")

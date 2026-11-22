@@ -8,7 +8,6 @@ import android.os.SystemClock
 import android.view.View
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import light.rift.R
 import light.rift.core.utils.Socks5Tunnel

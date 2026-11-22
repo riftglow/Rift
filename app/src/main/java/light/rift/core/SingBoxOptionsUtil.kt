@@ -27,7 +27,10 @@ object SingBoxOptionsUtil {
 
     fun domainStrategy(tag: String): String {
         fun auto2(key: String, newS: String): String {
-            return (DataStore.configurationStore.getString(key) ?: "").replace("auto", newS)
+            // 键缺失时按 "auto" 算：之前缺失读出来是 ""，一旦用户打开过
+            // 设置页框架就把 XML 默认值 "auto" 持久化，同一台机行为取决
+            // 于是否点开过该页（server 一支缺失得 ""、打开过得 "prefer_ipv4"）。
+            return (DataStore.configurationStore.getString(key) ?: "auto").replace("auto", newS)
         }
         return when (tag) {
             "dns-remote" -> {

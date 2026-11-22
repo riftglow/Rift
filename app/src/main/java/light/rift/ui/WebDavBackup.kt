@@ -52,6 +52,11 @@ object WebDavBackup {
     fun folderUrl(server: String): String {
         val base = server.trim().trimEnd('/')
         require(base.isNotEmpty()) { "WebDAV server is empty" }
+        // 只接受 https：http:// 会把 Basic 认证账号密码与完整备份（含全部
+        // 节点凭据与订阅链接）明文传出去。本地 NAS 也请用 https。
+        require(base.startsWith("https://", ignoreCase = true)) {
+            "WebDAV server must use https://"
+        }
         return if (base.endsWith("/$SUBFOLDER")) base else "$base/$SUBFOLDER"
     }
 

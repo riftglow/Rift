@@ -57,18 +57,24 @@ echo ">> Verified official sing-box $SINGBOX_VERSION at $ACTUAL_COMMIT"
 # reality-mlkem-keep-share：REALITY 保留 X25519MLKEM768（sing-box #4520）。
 # Xray ≥26.9.8 的服务端强制要求该混合 share，否则 reality verification failed。
 PATCH_DIR="$REPO_ROOT/buildScript/lib/core/patches"
-if [ -f "$PATCH_DIR/reality-mlkem-keep-share.patch" ]; then
-  echo ">> Applying Rift patch: reality-mlkem-keep-share"
-  git apply "$PATCH_DIR/reality-mlkem-keep-share.patch"
-  echo ">> Patch applied"
+# 补丁文件缺失必须让构建失败：之前是 if [ -f ] 静默跳过，补丁被误删时
+# 构建照常成功、发出去的包却没打补丁（REALITY 握手直接失败）。
+if [ ! -f "$PATCH_DIR/reality-mlkem-keep-share.patch" ]; then
+  echo "!! Missing required patch: $PATCH_DIR/reality-mlkem-keep-share.patch" >&2
+  exit 1
 fi
+echo ">> Applying Rift patch: reality-mlkem-keep-share"
+git apply "$PATCH_DIR/reality-mlkem-keep-share.patch"
+echo ">> Patch applied"
 # reality-client-version-183：REALITY 客户端版本号 1.8.1 → 1.8.3（握手 SessionId）。
 # 设了 minclientver 1.8.3 的服务端会把 1.8.1 客户端静默回落真站 → reality verification failed。
-if [ -f "$PATCH_DIR/reality-client-version-183.patch" ]; then
-  echo ">> Applying Rift patch: reality-client-version-183"
-  git apply "$PATCH_DIR/reality-client-version-183.patch"
-  echo ">> Patch applied"
+if [ ! -f "$PATCH_DIR/reality-client-version-183.patch" ]; then
+  echo "!! Missing required patch: $PATCH_DIR/reality-client-version-183.patch" >&2
+  exit 1
 fi
+echo ">> Applying Rift patch: reality-client-version-183"
+git apply "$PATCH_DIR/reality-client-version-183.patch"
+echo ">> Patch applied"
 popd
 
 popd

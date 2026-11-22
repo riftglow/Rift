@@ -216,6 +216,13 @@ class MainActivity : ThemedActivity(),
         AppUpdater.checkDaily(this)
     }
 
+    override fun onResume() {
+        super.onResume()
+        // 从安装授权设置回来时再认一次：用户开了权限按返回键时 launcher
+        // 回调是 RESULT_CANCELED，待安装的包靠这里补装。
+        AppUpdater.retryPendingInstall(this)
+    }
+
     fun refreshNavMenu(clashApi: Boolean) {
         // 实时连接入口只在 Clash API 开时出现（行隐藏，不切页）。
         binding.navConnections.isVisible = clashApi

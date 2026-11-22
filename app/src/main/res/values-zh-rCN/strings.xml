@@ -166,6 +166,8 @@
     <string name="http_host">HTTP 主机</string>
     <string name="http_path">HTTP 路径</string>
     <string name="show_bottom_bar">显示底栏</string>
+    <string name="glass_effect">玻璃效果</string>
+    <string name="glass_effect_summary">底栏、弹窗半透明磨砂；仅 Android 12 及以上机型生效</string>
     <string name="utls_fingerprint">uTLS 指纹</string>
     <string name="grpc_service_name">gRPC 服务名称</string>
     <string name="alpn">应用层协议协商</string>
@@ -185,6 +187,8 @@
     <string name="route_add">新建路由规则</string>
     <string name="route_add_direct_domain">添加直连域名</string>
     <string name="route_add_direct_domain_hint">域名，一行一个，如 example.com</string>
+    <string name="route_invalid_domain">域名不合法：%1$s（只填域名，如 example.com）</string>
+    <string name="route_domain_exists">这个域名已在直连规则里了。</string>
     <string name="delete_route_prompt">您确定要移除此路由吗\?</string>
     <string name="route_name">路由名称</string>
     <string name="empty_route">空路由</string>
@@ -331,6 +335,7 @@
     <string name="primary_set">已设为主节点</string>
     <string name="subscription_reminder_title">订阅提醒</string>
     <string name="subscription_reminder_expire">订阅 %1$s 将于 %2$s 到期</string>
+    <string name="subscription_reminder_expired">订阅 %1$s 已于 %2$s 到期</string>
     <string name="subscription_reminder_traffic">订阅 %1$s 流量将用完，剩余 %2$s</string>
     <string name="route_for">%s 路由</string>
     <string name="route_need_vpn">路由规则 %s 依赖 VPN 以生效，所以其已被忽略。</string>
@@ -381,19 +386,6 @@
     <string name="streaming_available">可用</string>
     <string name="streaming_restricted">受限</string>
     <string name="streaming_unavailable">不可用</string>
-    <string name="ip_purity_test">IP 纯净度</string>
-    <string name="ip_purity_test_summary">查出口 IP 的类型与风险（住宅/机房/移动/商业），数据来自 iplocate.io、ip-api.com、ipquery.io。</string>
-    <string name="ip_purity_result">IP：%1$s\n%2$s\nISP：%3$s\n类型：%4$s\n纯净度：%5$s（%6$d）\n来源：%7$s</string>
-    <string name="ip_purity_grade_good">优</string>
-    <string name="ip_purity_grade_normal">普通</string>
-    <string name="ip_purity_grade_risk">风险</string>
-    <string name="ip_purity_type_residential">住宅</string>
-    <string name="ip_purity_type_datacenter">机房</string>
-    <string name="ip_purity_type_mobile">移动</string>
-    <string name="ip_purity_type_business">商业</string>
-    <string name="ip_purity_type_unknown">未知</string>
-    <string name="ip_purity_no_ip">先做一次出口自检拿到 IP</string>
-    <string name="ip_purity_quality_unavailable">质量数据查不到，只显示 IP</string>
     <string name="egress_speed_tap_hint">点 IP 测速</string>
     <string name="egress_speed_testing">测速中…</string>
     <string name="egress_speed_result">下行约 %1$s（%2$s，%3$s）</string>
@@ -425,6 +417,7 @@
     <string name="backup_summary">如果路由规则与配置一起备份，则自定义出站将丢失。</string>
     <string name="backup_not_file">不是一个备份文件，预期 .json，但 %s</string>
     <string name="backup_rules">路由规则</string>
+    <string name="share_full_backup_message">完整备份包含全部节点密钥（密码/UUID/私钥）、订阅链接与设置，只发给信得过的人。</string>
     <string name="nat_result_hint">NAT 测试结果</string>
     <string name="nat_stun_server_hint">Stun 服务器</string>
     <string name="invalid_backup_file">无效的备份文件</string>

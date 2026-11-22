@@ -32,6 +32,7 @@ import light.rift.database.preference.PublicDatabase
 import light.rift.databinding.LayoutBackupBinding
 import light.rift.databinding.LayoutImportBinding
 import light.rift.databinding.LayoutProgressBinding
+import light.rift.fmt.GROUP_OUTBOUND_BASE
 import light.rift.ktx.*
 import kotlinx.coroutines.delay
 import light.rift.core.utils.Util
@@ -190,36 +191,28 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         }
 
         binding.actionShare.setOnClickListener {
-            runOnDefaultDispatcher {
-                content = doBackup(
+            // 完整档含全部节点密钥与订阅链接，分享即外发：先弹一次确认，
+            // 写明内容。匿名档已去掉隐私值，直接分享。
+            if (!exportAnonymous) {
+                RiftAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
+                    .setMessage(R.string.share_full_backup_message)
+                    .setNegativeButton(R.string.no, null)
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        shareBackup(
+                            binding.backupConfigurations.isChecked,
+                            binding.backupRules.isChecked,
+                            binding.backupSettings.isChecked,
+                            exportAnonymous
+                        )
+                    }
+                    .show()
+            } else {
+                shareBackup(
                     binding.backupConfigurations.isChecked,
                     binding.backupRules.isChecked,
                     binding.backupSettings.isChecked,
                     exportAnonymous
                 )
-                app.cacheDir.mkdirs()
-                val cacheFile = File(
-                    app.cacheDir, if (exportAnonymous) {
-                        "rift_backup_anonymous_${Date().toLocaleString()}.json"
-                    } else {
-                        "rift_backup_${Date().toLocaleString()}.json"
-                    }
-                )
-                cacheFile.writeText(content)
-                onMainDispatcher {
-                    startActivity(
-                        Intent.createChooser(
-                            Intent(Intent.ACTION_SEND).setType("application/json")
-                                .setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                .putExtra(
-                                    Intent.EXTRA_STREAM, FileProvider.getUriForFile(
-                                        app, BuildConfig.APPLICATION_ID + ".cache", cacheFile
-                                    )
-                                ), app.getString(R.string.abc_shareactionprovider_share_with)
-                        )
-                    )
-                }
-
             }
         }
 
@@ -516,6 +509,43 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         return BackupContent.build(profile, rule, setting, anonymous)
     }
 
+    // 生成备份文件并调系统分享。由 actionShare 与完整档确认框共用。
+    private fun shareBackup(
+        backupConfigurations: Boolean, backupRules: Boolean, backupSettings: Boolean,
+        exportAnonymous: Boolean
+    ) {
+        runOnDefaultDispatcher {
+            content = doBackup(
+                backupConfigurations,
+                backupRules,
+                backupSettings,
+                exportAnonymous
+            )
+            app.cacheDir.mkdirs()
+            val cacheFile = File(
+                app.cacheDir, if (exportAnonymous) {
+                    "rift_backup_anonymous_${Date().toLocaleString()}.json"
+                } else {
+                    "rift_backup_${Date().toLocaleString()}.json"
+                }
+            )
+            cacheFile.writeText(content)
+            onMainDispatcher {
+                startActivity(
+                    Intent.createChooser(
+                        Intent(Intent.ACTION_SEND).setType("application/json")
+                            .setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            .putExtra(
+                                Intent.EXTRA_STREAM, FileProvider.getUriForFile(
+                                    app, BuildConfig.APPLICATION_ID + ".cache", cacheFile
+                                )
+                            ), app.getString(R.string.abc_shareactionprovider_share_with)
+                    )
+                )
+            }
+        }
+    }
+
     val importFile = registerForActivityResult(ActivityResultContracts.GetContent()) { file ->
         if (file != null) {
             // A9: import callbacks run in the fragment's lifecycle
@@ -766,20 +796,31 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 }
             }
             profiles = list
-            val glist = mutableListOf<ProxyGroup>()
-            val jsonGroups = content.getJSONArray("groups")
-            for (i in 0 until jsonGroups.length()) {
-                val data = Util.b64Decode(jsonGroups[i] as String)
-                val parcel = Parcel.obtain()
-                try {
-                    parcel.unmarshall(data, 0, data.size)
-                    parcel.setDataPosition(0)
-                    glist.add(ProxyGroup.CREATOR.createFromParcel(parcel))
-                } finally {
-                    parcel.recycle()
+            if (content.has("groups")) {
+                val glist = mutableListOf<ProxyGroup>()
+                val jsonGroups = content.getJSONArray("groups")
+                for (i in 0 until jsonGroups.length()) {
+                    val data = Util.b64Decode(jsonGroups[i] as String)
+                    val parcel = Parcel.obtain()
+                    try {
+                        parcel.unmarshall(data, 0, data.size)
+                        parcel.setDataPosition(0)
+                        glist.add(ProxyGroup.CREATOR.createFromParcel(parcel))
+                    } finally {
+                        parcel.recycle()
+                    }
                 }
+                groups = glist
+            } else {
+                // 备份里只有节点、没有分组（旧备份/只导节点的备份）：节点改到
+                // 未分组种子组，不让整个导入失败；groups 留 null，写库时不
+                // 动现有分组表。
+                val ungroupedId = RiftDatabase.groupDao.allGroups()
+                    .firstOrNull { it.ungrouped }?.id
+                    ?: RiftDatabase.groupDao.createGroup(ProxyGroup(ungrouped = true))
+                for (p in list) p.groupId = ungroupedId
+                groups = null
             }
-            groups = glist
         }
         if (rule && content.has("rules")) {
             val list = mutableListOf<RuleEntity>()
@@ -834,6 +875,36 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         // table before inserting; merge skips the reset and inserts with
         // conflict-ignore/replace instead.
         val merge = DataStore.restoreStrategy == 1
+        // 校验规则的出站引用：正数是节点 id，<= -10000 是分组 id（编码为
+        // GROUP_OUTBOUND_BASE - groupId），0/-1/-2 是内置出站（代理/直连/拦截）。
+        // 引用不存在的分组/节点时，规则会静默失效或配出坏配置；改回 0（走主代理），
+        // 规则本身保留。合并模式下本机已有的分组/节点也算有效。
+        if (rules != null) {
+            val validGroupIds = (groups?.map { it.id } ?: emptyList()) +
+                if (merge) RiftDatabase.groupDao.allGroups().map { it.id } else emptyList()
+            val validProfileIds = (profiles?.map { it.id } ?: emptyList()) +
+                if (merge) RiftDatabase.proxyDao.getAll().map { it.id } else emptyList()
+            var resetCount = 0
+            for (rule in rules) {
+                val out = rule.outbound
+                val valid = when {
+                    out == 0L || out == -1L || out == -2L -> true
+                    out > 0L -> out in validProfileIds
+                    out <= GROUP_OUTBOUND_BASE -> {
+                        val gid = GROUP_OUTBOUND_BASE - out
+                        gid in validGroupIds
+                    }
+                    else -> false
+                }
+                if (!valid) {
+                    rule.outbound = 0L
+                    resetCount++
+                }
+            }
+            if (resetCount > 0) {
+                Logs.w("Backup import: $resetCount rule outbound(s) reset to proxy (missing group/profile)")
+            }
+        }
         // S-B7: validate-before-write, per library. A profile whose
         // groupId is not among the imported groups would be an
         // orphan no UI ever shows; fail the whole import before
@@ -863,16 +934,22 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         // importPartiallyApplied, and the failure dialog tells the
         // user the import was only partially applied.
 
-        if (profiles != null && groups != null) {
+        if (profiles != null || groups != null) {
             RiftDatabase.instance.runInTransaction {
                 if (merge) {
-                    RiftDatabase.proxyDao.insertIgnore(profiles)
-                    RiftDatabase.groupDao.insertIgnore(groups)
+                    profiles?.let { RiftDatabase.proxyDao.insertIgnore(it) }
+                    groups?.let { RiftDatabase.groupDao.insertIgnore(it) }
                 } else {
-                    RiftDatabase.proxyDao.reset()
-                    RiftDatabase.proxyDao.insert(profiles)
-                    RiftDatabase.groupDao.reset()
-                    RiftDatabase.groupDao.insert(groups)
+                    // 覆盖模式：只重置实际导入的表。groups 缺失时不重置分组表，
+                    // 否则会把现有分组全清掉、只剩被改到未分组的节点。
+                    profiles?.let {
+                        RiftDatabase.proxyDao.reset()
+                        RiftDatabase.proxyDao.insert(it)
+                    }
+                    groups?.let {
+                        RiftDatabase.groupDao.reset()
+                        RiftDatabase.groupDao.insert(it)
+                    }
                 }
             }
             importPartiallyApplied = true
@@ -961,6 +1038,9 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     PublicDatabase.kvPairDao.insert(settingsToInsert)
                 }
             }
+            // 设置是绕开 RoomPreferenceDataStore 直接写 DAO 的，读缓存要清掉，
+            // 否则之后读到的还是导入前的旧值。
+            DataStore.configurationStore.invalidateCache()
         }
         return webdavKept
     }

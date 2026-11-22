@@ -109,9 +109,9 @@ func ruleSetTagLabel(rs *option.RuleSet) string {
 
 // ruleSetFormat resolves the format to validate against. An explicit
 // format wins; otherwise the extension decides (.srs -> binary,
-// .json -> source), matching the kernel's ruleSetDefaultFormat. An
-// unknown/empty format on a .srs path defaults to binary, preserving
-// the previous behaviour for the Kotlin-generated definitions.
+// .json -> source). An unknown extension returns "" (matching upstream
+// option/rule_set.go: the kernel then reports "missing format" at parse
+// time), it is NOT silently treated as binary.
 func ruleSetFormat(rs *option.RuleSet) string {
 	if rs.Format != "" {
 		return rs.Format
@@ -122,7 +122,7 @@ func ruleSetFormat(rs *option.RuleSet) string {
 	case ".srs":
 		return C.RuleSetFormatBinary
 	default:
-		return C.RuleSetFormatBinary
+		return ""
 	}
 }
 
@@ -144,7 +144,9 @@ func usableSRS(path string, format string) bool {
 		if err := json.Unmarshal(data, &obj); err != nil {
 			return false
 		}
-		return len(obj) > 0
+		// 任何能解析成 JSON 对象的规则集都有效，包括空对象 {}（内核
+		// 接受它为空规则集）；不要用 len(obj) > 0 拒绝它。
+		return true
 	}
 	f, err := os.Open(path)
 	if err != nil {
@@ -171,6 +173,13 @@ func uniqueTmpName(dst string) string {
 	return fmt.Sprintf("%s.tmp-%d-%d", dst, os.Getpid(), time.Now().UnixNano())
 }
 
+// recordFallbackStatus writes one fallback record into the status file.
+// NOTE: read-modify-write without a cross-process lock. The main process
+// and the :bg process both write this file; two concurrent writes race
+// and the last rename wins, dropping the other process's record. Only
+// one status line is lost (the fallback itself is unaffected — the path
+// rewrite lives in each instance's memory), so this is accepted as a
+// known limitation, not fixed with a lock.
 func recordFallbackStatus(tag, primary, backup string) {
 	if tag == "" {
 		return

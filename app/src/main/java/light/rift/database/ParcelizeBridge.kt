@@ -16,14 +16,43 @@ import android.os.Parcelable
  * parcel 里没有 readParcelable 要读的类名头，读到的全是垃圾字节，
  * 带规则的备份必崩（ClassNotFoundException: Invalid name）。
  * 节点/分组/设置三处用的是手写 CREATOR，所以能直接写 X.CREATOR。
+ *
+ * 载荷版本头：规则备份现在先写 magic + 版本号，再写 @Parcelize 字段。
+ * 以后 RuleEntity 加字段时，读侧按版本号分流，不至于把旧备份静默读错。
+ * 旧备份（没有版本头）继续认：第一个 int 是 id（Long）的低 32 位，
+ * 几乎不可能恰好等于 magic，读到不是 magic 就倒回开头按旧格式读。
  */
 object ParcelizeBridge {
 
+    const val RULE_PAYLOAD_MAGIC = 0x52554C45 // "RULE"
+    const val RULE_PAYLOAD_VERSION = 1
+
+    // CREATOR 反射只做一次：之前每次导规则都反射一次，慢。
+    private val ruleCreator: Parcelable.Creator<RuleEntity> by lazy {
+        @Suppress("UNCHECKED_CAST")
+        RuleEntity::class.java.getField("CREATOR").get(null)
+            as Parcelable.Creator<RuleEntity>
+    }
+
+    /** 写一条规则：先写 magic + 版本头，再写 @Parcelize 字段。 */
+    fun writeRule(parcel: Parcel, rule: RuleEntity) {
+        parcel.writeInt(RULE_PAYLOAD_MAGIC)
+        parcel.writeInt(RULE_PAYLOAD_VERSION)
+        rule.writeToParcel(parcel, 0)
+    }
+
     @JvmStatic
     fun createRule(parcel: Parcel): RuleEntity {
-        @Suppress("UNCHECKED_CAST")
-        val creator = RuleEntity::class.java.getField("CREATOR").get(null)
-            as Parcelable.Creator<RuleEntity>
-        return creator.createFromParcel(parcel)
+        val first = parcel.readInt()
+        if (first == RULE_PAYLOAD_MAGIC) {
+            val version = parcel.readInt()
+            if (version != RULE_PAYLOAD_VERSION) {
+                error("Unsupported rule payload version: $version")
+            }
+        } else {
+            // 旧格式：倒回开头，按 @Parcelize 字段直接读。
+            parcel.setDataPosition(0)
+        }
+        return ruleCreator.createFromParcel(parcel)
     }
 }

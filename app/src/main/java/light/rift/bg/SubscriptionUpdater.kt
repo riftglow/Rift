@@ -10,6 +10,7 @@ import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkerParameters
 import androidx.work.multiprocess.RemoteWorkManager
 import light.rift.R
+import light.rift.RiftApp
 import light.rift.core.utils.Util
 import light.rift.database.DataStore
 import light.rift.database.ProxyGroup
@@ -17,6 +18,7 @@ import light.rift.database.RiftDatabase
 import light.rift.group.GroupUpdater
 import light.rift.ktx.Logs
 import light.rift.ktx.app
+import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 
 object SubscriptionUpdater {
@@ -86,6 +88,7 @@ object SubscriptionUpdater {
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
 
         override suspend fun doWork(): Result {
+            var anyFailed = false
             var subscriptions =
                 RiftDatabase.groupDao.subscriptions().filter { it.subscription!!.autoUpdate }
             if (!DataStore.serviceState.connected) {
@@ -109,12 +112,14 @@ object SubscriptionUpdater {
                 )
                 nm.notify(2, notification.build())
 
-                GroupUpdater.executeUpdate(profile, false)
+                // 更新失败要重试，不能恒返回成功：失败只靠界面回调，用户不在线
+                // 时无任何重试。失败不更新 lastUpdated，节流不会拦住重试。
+                if (!GroupUpdater.executeUpdate(profile, false)) anyFailed = true
             }
 
             nm.cancel(2)
 
-            return Result.success()
+            return if (anyFailed) Result.retry() else Result.success()
         }
     }
 
@@ -137,6 +142,8 @@ object SubscriptionUpdater {
                 .setSmallIcon(R.drawable.ic_service_active)
                 .setCategory(NotificationCompat.CATEGORY_SERVICE)
                 .setAutoCancel(true)
+                // 点通知打开主界面（之前无点击动作，点一下只消失）。
+                .setContentIntent(RiftApp.configureIntent(applicationContext))
                 .build()
             nm.notify(REMINDER_NOTIFICATION_ID_BASE + group.id.toInt(), notification)
         }
@@ -151,7 +158,9 @@ object SubscriptionUpdater {
 
         override suspend fun doWork(): Result {
             val nowSec = System.currentTimeMillis() / 1000L
-            val todayDay = System.currentTimeMillis() / 86400000L
+            // 本地日界（之前用 UTC 日界去重，提醒会在本地午夜前/后多算或少算一天）。
+            val nowMs = System.currentTimeMillis()
+            val localTodayDay = (nowMs + TimeZone.getDefault().getOffset(nowMs)) / 86400000L
             for (group in RiftDatabase.groupDao.subscriptions()) {
                 val subscription = group.subscription ?: continue
                 var used: Long
@@ -163,7 +172,11 @@ object SubscriptionUpdater {
                     total = if (subscription.bytesRemaining > 0L) {
                         subscription.bytesUsed + subscription.bytesRemaining
                     } else 0L
-                    expire = 0L
+                    // expire 不写死 0：userinfo 里有 expire 时照常用它，否则这个分支
+                    // 一旦 bytesUsed 被赋值，到期提醒会被静默丢掉。
+                    expire = if (!subscription.subscriptionUserinfo.isNullOrBlank()) {
+                        parseUserinfo(subscription.subscriptionUserinfo!!).third
+                    } else 0L
                 } else if (!subscription.subscriptionUserinfo.isNullOrBlank()) {
                     val parsed = parseUserinfo(subscription.subscriptionUserinfo!!)
                     used = parsed.first
@@ -172,17 +185,34 @@ object SubscriptionUpdater {
                 } else continue
 
                 if (expire > 0L && expire - nowSec <= 3 * 86400L) {
-                    val key = "subReminderExpireDay_${group.id}"
-                    if (DataStore.configurationStore.getLong(key, -1L) != todayDay) {
-                        notify(
-                            group,
-                            applicationContext.getString(
-                                R.string.subscription_reminder_expire,
-                                group.displayName(),
-                                Util.timeStamp2Text(expire * 1000)
+                    if (expire <= nowSec) {
+                        // 已过期：只提醒一次（按 expire 值去重，续费后 expire 变了
+                        // 会再提醒），不再每天重复；文案用“已于…到期”。
+                        val key = "subReminderExpired_${group.id}"
+                        if (DataStore.configurationStore.getLong(key, -1L) != expire) {
+                            notify(
+                                group,
+                                applicationContext.getString(
+                                    R.string.subscription_reminder_expired,
+                                    group.displayName(),
+                                    Util.timeStamp2Text(expire * 1000)
+                                )
                             )
-                        )
-                        DataStore.configurationStore.putLong(key, todayDay)
+                            DataStore.configurationStore.putLong(key, expire)
+                        }
+                    } else {
+                        val key = "subReminderExpireDay_${group.id}"
+                        if (DataStore.configurationStore.getLong(key, -1L) != localTodayDay) {
+                            notify(
+                                group,
+                                applicationContext.getString(
+                                    R.string.subscription_reminder_expire,
+                                    group.displayName(),
+                                    Util.timeStamp2Text(expire * 1000)
+                                )
+                            )
+                            DataStore.configurationStore.putLong(key, localTodayDay)
+                        }
                     }
                 }
                 if (total > 0L) {

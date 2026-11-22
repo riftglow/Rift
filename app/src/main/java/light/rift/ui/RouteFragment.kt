@@ -6,6 +6,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -126,17 +127,48 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
                     .setTitle(R.string.route_add_direct_domain)
                     .setView(input)
                     .setPositiveButton(R.string.yes) { _, _ ->
-                        val domains = input.text.toString()
+                        // 校验 + 去重：之前什么都往里塞（带 scheme、带路径、带空格、
+                        // 连续点都进了规则表），重复域名也会反复建规则。
+                        val raw = input.text.toString()
                             .lineSequence()
-                            .map { it.trim() }
+                            .map { it.trim().trimEnd('.') }
                             .filter { it.isNotBlank() }
-                            .joinToString("\n")
-                        if (domains.isBlank()) return@setPositiveButton
+                            .toList()
+                        val invalid = raw.filter { !isValidDomain(it) }
+                        if (invalid.isNotEmpty()) {
+                            Toast.makeText(
+                                activity,
+                                getString(R.string.route_invalid_domain, invalid.first()),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            return@setPositiveButton
+                        }
+                        val existing = HashSet<String>()
+                        if (::ruleAdapter.isInitialized) {
+                            for (rule in ruleAdapter.ruleList) {
+                                rule.domains.lineSequence()
+                                    .map { it.trim().lowercase() }
+                                    .filter { it.isNotBlank() }
+                                    .forEach { existing.add(it) }
+                            }
+                        }
+                        val domains = raw
+                            .distinctBy { it.lowercase() }
+                            .filter { it.lowercase() !in existing }
+                        if (domains.isEmpty()) {
+                            Toast.makeText(
+                                activity,
+                                getString(R.string.route_domain_exists),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            return@setPositiveButton
+                        }
+                        val joined = domains.joinToString("\n")
                         runOnDefaultDispatcher {
                             ProfileManager.createRule(
                                 RuleEntity(
-                                    name = domains.lineSequence().first(),
-                                    domains = domains,
+                                    name = domains.first(),
+                                    domains = joined,
                                     outbound = -1L,
                                     enabled = true,
                                 )
@@ -346,6 +378,19 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
             }
         }
 
+    }
+
+    // 域名校验：至少两段（label.label），每段 1-63 个 ASCII 字母/数字/连字符，
+    // 首尾不能是连字符。带 scheme、带路径、带空格、连续点的一律不合法。
+    private fun isValidDomain(s: String): Boolean {
+        if (s.contains("://") || s.contains('/') || s.contains(' ') || s.contains("..")) return false
+        val labels = s.split(".")
+        if (labels.size < 2) return false
+        return labels.all { label ->
+            label.isNotEmpty() && label.length <= 63 &&
+                label.all { it in 'a'..'z' || it in 'A'..'Z' || it in '0'..'9' || it == '-' } &&
+                !label.startsWith('-') && !label.endsWith('-')
+        }
     }
 
 }

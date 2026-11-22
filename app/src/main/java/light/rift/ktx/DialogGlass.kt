@@ -77,3 +77,23 @@ class RiftAlertDialogBuilder : MaterialAlertDialogBuilder {
         dialog.setOnShowListener { dialog.applyRiftGlass() }
     }
 }
+
+/**
+ * 框架 Preference 弹窗（EditTextPreference 等）走框架自己的
+ * DialogFragment，不是 RiftAlertDialogBuilder 建的，不会自己上玻璃。
+ * 弹窗显示后，找到它的 DialogFragment，手动上玻璃。
+ * dialog 还没显示时，OnShowListener 会在显示时再上一次，兜底。
+ */
+fun androidx.fragment.app.FragmentManager.applyGlassToPreferenceDialog() {
+    try {
+        executePendingTransactions()
+    } catch (_: Exception) {
+        return
+    }
+    val frag = findFragmentByTag(
+        "androidx.preference.PreferenceFragment.DIALOG"
+    ) as? androidx.fragment.app.DialogFragment ?: return
+    val dialog = frag.dialog ?: return
+    dialog.setOnShowListener { dialog.applyRiftGlass() }
+    dialog.applyRiftGlass()
+}

@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <base-config cleartextTrafficPermitted="true"/>
+    <!-- 只放行本机与连通性探测的明文，其余默认禁明文。之前是全局放行，
+         任意 http:// 请求（订阅、测速）都被默认放行。ip-api.com 已改走
+         ipwho.is 的 HTTPS，不再需要明文。注意：http:// 的订阅链接与测速
+         地址改走此配置后会失败，请用 https。 -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">cp.cloudflare.com</domain>
+    </domain-config>
 </network-security-config>

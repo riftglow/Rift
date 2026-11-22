@@ -46,81 +46,94 @@ object Socks5Tunnel {
     @Throws(IOException::class)
     fun connect(host: String, port: Int, timeoutMs: Int = 10000): Socket {
         if (!DataStore.serviceState.connected) {
-            return Socket().apply {
-                connect(InetSocketAddress(host, port), timeoutMs)
-                soTimeout = timeoutMs
+            val direct = Socket()
+            try {
+                direct.connect(InetSocketAddress(host, port), timeoutMs)
+                direct.soTimeout = timeoutMs
+            } catch (e: IOException) {
+                // connect 失败也要关 socket，否则每次失败都漏一个。
+                try { direct.close() } catch (_: IOException) { }
+                throw e
             }
+            return direct
         }
+        // 握手任一步失败都要关 socket：socks5 握手 throw 的地方有 6 处，
+        // 之前只在成功时返回，失败路径全漏 socket。
         val socket = Socket()
-        socket.connect(InetSocketAddress("127.0.0.1", DataStore.mixedPort), timeoutMs)
-        socket.soTimeout = timeoutMs
-        val input = socket.getInputStream()
-        val output = socket.getOutputStream()
-        val auth = DataStore.localProxyAuthEnabled
-        // greeting：有认证就同时报无认证和账号密码两种方式，没认证只报无认证。
-        if (auth) {
-            output.write(byteArrayOf(0x05, 0x02, 0x00, 0x02))
-        } else {
-            output.write(byteArrayOf(0x05, 0x01, 0x00))
-        }
-        output.flush()
-        val version = input.read()
-        val method = input.read()
-        if (version != 0x05) throw IOException("SOCKS bad version: $version")
-        when (method) {
-            0x00 -> Unit // 无认证，直接发 CONNECT
-            0x02 -> {
-                if (!auth) throw IOException("SOCKS server requires auth")
-                val user = DataStore.mixedInboundUser.toByteArray(Charsets.UTF_8)
-                val pass = DataStore.mixedInboundPass.toByteArray(Charsets.UTF_8)
-                val authReq = ByteArrayOutputStream().apply {
-                    write(0x01)
-                    write(user.size)
-                    write(user)
-                    write(pass.size)
-                    write(pass)
-                }
-                output.write(authReq.toByteArray())
-                output.flush()
-                val authVersion = input.read()
-                val status = input.read()
-                if (authVersion != 0x01 || status != 0x00) {
-                    throw IOException("SOCKS authentication failed")
-                }
+        try {
+            socket.connect(InetSocketAddress("127.0.0.1", DataStore.mixedPort), timeoutMs)
+            socket.soTimeout = timeoutMs
+            val input = socket.getInputStream()
+            val output = socket.getOutputStream()
+            val auth = DataStore.localProxyAuthEnabled
+            // greeting：有认证就同时报无认证和账号密码两种方式，没认证只报无认证。
+            if (auth) {
+                output.write(byteArrayOf(0x05, 0x02, 0x00, 0x02))
+            } else {
+                output.write(byteArrayOf(0x05, 0x01, 0x00))
             }
-            else -> throw IOException("SOCKS no acceptable methods: $method")
-        }
-        // CONNECT：域名形式（ATYP 0x03），让节点侧解析域名。
-        val hostBytes = host.toByteArray(Charsets.UTF_8)
-        val connectReq = ByteArrayOutputStream().apply {
-            write(0x05)
-            write(0x01)
-            write(0x00)
-            write(0x03)
-            write(hostBytes.size)
-            write(hostBytes)
-            write(port shr 8)
-            write(port and 0xFF)
-        }
-        output.write(connectReq.toByteArray())
-        output.flush()
-        val replyVersion = input.read()
-        val reply = input.read()
-        if (replyVersion != 0x05 || reply != 0x00) {
-            throw IOException("SOCKS connect failed: $reply")
-        }
-        input.read() // RSV
-        when (val addressType = input.read()) {
-            0x01 -> repeat(4) { input.read() }
-            0x03 -> {
-                val length = input.read()
-                repeat(length) { input.read() }
+            output.flush()
+            val version = input.read()
+            val method = input.read()
+            if (version != 0x05) throw IOException("SOCKS bad version: $version")
+            when (method) {
+                0x00 -> Unit // 无认证，直接发 CONNECT
+                0x02 -> {
+                    if (!auth) throw IOException("SOCKS server requires auth")
+                    val user = DataStore.mixedInboundUser.toByteArray(Charsets.UTF_8)
+                    val pass = DataStore.mixedInboundPass.toByteArray(Charsets.UTF_8)
+                    val authReq = ByteArrayOutputStream().apply {
+                        write(0x01)
+                        write(user.size)
+                        write(user)
+                        write(pass.size)
+                        write(pass)
+                    }
+                    output.write(authReq.toByteArray())
+                    output.flush()
+                    val authVersion = input.read()
+                    val status = input.read()
+                    if (authVersion != 0x01 || status != 0x00) {
+                        throw IOException("SOCKS authentication failed")
+                    }
+                }
+                else -> throw IOException("SOCKS no acceptable methods: $method")
             }
-            0x04 -> repeat(16) { input.read() }
-            else -> throw IOException("SOCKS bad address type: $addressType")
+            // CONNECT：域名形式（ATYP 0x03），让节点侧解析域名。
+            val hostBytes = host.toByteArray(Charsets.UTF_8)
+            val connectReq = ByteArrayOutputStream().apply {
+                write(0x05)
+                write(0x01)
+                write(0x00)
+                write(0x03)
+                write(hostBytes.size)
+                write(hostBytes)
+                write(port shr 8)
+                write(port and 0xFF)
+            }
+            output.write(connectReq.toByteArray())
+            output.flush()
+            val replyVersion = input.read()
+            val reply = input.read()
+            if (replyVersion != 0x05 || reply != 0x00) {
+                throw IOException("SOCKS connect failed: $reply")
+            }
+            input.read() // RSV
+            when (val addressType = input.read()) {
+                0x01 -> repeat(4) { input.read() }
+                0x03 -> {
+                    val length = input.read()
+                    repeat(length) { input.read() }
+                }
+                0x04 -> repeat(16) { input.read() }
+                else -> throw IOException("SOCKS bad address type: $addressType")
+            }
+            input.read()
+            input.read() // BND.PORT
+        } catch (e: IOException) {
+            try { socket.close() } catch (_: IOException) { }
+            throw e
         }
-        input.read()
-        input.read() // BND.PORT
         return socket
     }
 

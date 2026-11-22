@@ -3,9 +3,11 @@ package light.rift.ui
 import android.os.Parcel
 import android.os.Parcelable
 import light.rift.Key
+import light.rift.database.ParcelizeBridge
 import light.rift.database.ProxyEntity
 import light.rift.database.ProxyGroup
 import light.rift.database.RiftDatabase
+import light.rift.database.RuleEntity
 import light.rift.database.SubscriptionBean
 import light.rift.database.preference.PublicDatabase
 import light.rift.fmt.AbstractBean
@@ -62,6 +64,17 @@ object BackupContent {
         }
     }
 
+    /** 规则用带版本头的写：ParcelizeBridge.writeRule 先写 magic + 版本号。 */
+    fun RuleEntity.toBase64StrVersioned(): String {
+        val parcel = Parcel.obtain()
+        ParcelizeBridge.writeRule(parcel, this)
+        try {
+            return Util.b64EncodeUrlSafe(parcel.marshall())
+        } finally {
+            parcel.recycle()
+        }
+    }
+
     fun build(
         profile: Boolean, rule: Boolean, setting: Boolean,
         anonymous: Boolean = false
@@ -85,7 +98,7 @@ object BackupContent {
             if (rule) {
                 put("rules", JSONArray().apply {
                     RiftDatabase.rulesDao.allRules().forEach {
-                        put(it.toBase64Str())
+                        put(it.toBase64StrVersioned())
                     }
                 })
             }

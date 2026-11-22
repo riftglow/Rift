@@ -36,7 +36,13 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
         loadDashboard()
     }
 
-    /** 加载仪表盘。Clash API secret（0.2.29 -26）放 URL 参数里带过去；不改存着的 yacdURL。 */
+    /** 加载仪表盘。Clash API secret（0.2.29 -26）放 URL 参数里带过去；不改存着的 yacdURL。
+     * 注意：secret 只能放 query——yacd 只从 query（或它自己的 cookie）读 secret，
+     * shouldInterceptRequest 拿不到 POST/PUT 的请求体，改 header 注入会断掉切节点；
+     * localStorage/cookie 的键又是 yacd 版本私有的。所以加载时仍带 secret，
+     * 加载完立刻用 replaceState 把 query 从地址栏抹掉：后续 API 请求的 Referer
+     * 与历史记录里不再带 secret。首次加载瞬间 URL 里仍带 secret，这是 yacd
+     * 的既定机制，改不掉。 */
     private fun loadDashboard() {
         val url = DataStore.yacdURL
         val secret = DataStore.clashApiSecret
@@ -74,6 +80,15 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
+                // secret 已由 yacd 读走（存进它自己的 cookie/内存），把 query
+                // 从地址栏抹掉：后续 API 请求的 Referer 与历史记录里不再带 secret。
+                // 只在 URL 真带 secret 时才动，避免多余地改写地址。
+                if (url != null && "secret=" in url) {
+                    view?.evaluateJavascript(
+                        "history.replaceState(null,'',location.pathname+location.hash);",
+                        null
+                    )
+                }
             }
         }
         return webView

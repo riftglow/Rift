@@ -552,12 +552,11 @@ func UrlTest(i *BoxInstance, link string, timeout int32) (latency int32, err err
 	// Cloudflare generate_204) and reporting it as this link's
 	// latency fakes the result. A failed test reports failure.
 	if i == nil {
-		// 无实例：直连测试（单 GET，计时含拨号）
-		client := &http.Client{Timeout: time.Duration(timeout) * time.Millisecond}
-		latency, err = urlTestDirect(client, link)
-	} else {
-		latency, err = urlTest(i, link, timeout)
+		// 无实例不再静默直连测速：直连会暴露真实 IP。调用方必须传一个
+		// 已建好的 box（BaseService 与 TestInstance 都保证这一点）。
+		return 0, errors.New("box not running")
 	}
+	latency, err = urlTest(i, link, timeout)
 	boxPlatformLogWriter.WriteMessage(sblog.LevelDebug, fmt.Sprintf("box.UrlTest result latency=%dms err=%v", latency, err))
 	return
 }
@@ -654,73 +653,6 @@ func urlTest(instance *BoxInstance, link string, timeout int32) (int32, error) {
 	}
 
 	// 备选回退：若远端不支持 Keep-Alive，则使用第一阶段耗时
-	latency := int32(pass1.Milliseconds())
-	if latency <= 0 {
-		latency = 1
-	}
-	return latency, nil
-}
-
-// urlTestDirect 为直连测速：同样采用两阶段 Keep-Alive 探测纯 RTT。
-func urlTestDirect(client *http.Client, link string) (int32, error) {
-	methodUsed := http.MethodHead
-	req1, err := http.NewRequest(http.MethodHead, link, nil)
-	if err != nil {
-		return 0, err
-	}
-	req1.Header.Set("User-Agent", browserUserAgent)
-	start1 := time.Now()
-	resp1, err := client.Do(req1)
-	if err == nil {
-		_, _ = io.Copy(io.Discard, resp1.Body)
-		_ = resp1.Body.Close()
-		if resp1.StatusCode >= 500 {
-			err = fmt.Errorf("HTTP error %d", resp1.StatusCode)
-		}
-	}
-
-	if err != nil {
-		req1Get, errGet := http.NewRequest(http.MethodGet, link, nil)
-		if errGet == nil {
-			req1Get.Header.Set("User-Agent", browserUserAgent)
-			start1 = time.Now()
-			resp1Get, errGetDo := client.Do(req1Get)
-			if errGetDo == nil {
-				_, _ = io.Copy(io.Discard, resp1Get.Body)
-				_ = resp1Get.Body.Close()
-				if resp1Get.StatusCode < 500 {
-					err = nil
-					methodUsed = http.MethodGet
-				} else {
-					err = fmt.Errorf("HTTP error %d", resp1Get.StatusCode)
-				}
-			}
-		}
-	}
-
-	if err != nil {
-		return 0, err
-	}
-	pass1 := time.Since(start1)
-
-	req2, err := http.NewRequest(methodUsed, link, nil)
-	if err == nil {
-		req2.Header.Set("User-Agent", browserUserAgent)
-		start2 := time.Now()
-		resp2, err2 := client.Do(req2)
-		if err2 == nil {
-			_, _ = io.Copy(io.Discard, resp2.Body)
-			_ = resp2.Body.Close()
-			if resp2.StatusCode < 500 {
-				latency := int32(time.Since(start2).Milliseconds())
-				if latency <= 0 {
-					latency = 1
-				}
-				return latency, nil
-			}
-		}
-	}
-
 	latency := int32(pass1.Milliseconds())
 	if latency <= 0 {
 		latency = 1

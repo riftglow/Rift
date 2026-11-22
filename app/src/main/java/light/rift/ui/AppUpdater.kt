@@ -61,6 +61,18 @@ object AppUpdater {
         return launcher
     }
 
+    /** 从系统设置回来时再认一次安装授权：用户在设置里开了权限后按返回键，
+     * launcher 回调拿到的是 RESULT_CANCELED（不是 RESULT_OK），之前只认
+     * RESULT_OK 会丢掉这次待安装的包。MainActivity.onResume 里调。 */
+    fun retryPendingInstall(activity: Activity) {
+        val file = pendingInstall ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            !activity.packageManager.canRequestPackageInstalls()
+        ) return
+        pendingInstall = null
+        installApk(activity, file)
+    }
+
     private fun newHttpClient() = Libcore.newHttpClient().apply {
         modernTLS()
         if (DataStore.serviceState.connected) {
@@ -94,12 +106,27 @@ object AppUpdater {
         }
     }
 
+    /** 语义版本比较：去掉 v 前缀，按数字段逐段比；长度不同时短的补 0。
+     * 返回 >0 表示 a 比 b 新，=0 相同，<0 表示 a 比 b 旧。 */
+    private fun compareVersion(a: String, b: String): Int {
+        val pa = a.trim().removePrefix("v").split(".")
+        val pb = b.trim().removePrefix("v").split(".")
+        val n = maxOf(pa.size, pb.size)
+        for (i in 0 until n) {
+            val x = pa.getOrNull(i)?.toIntOrNull() ?: 0
+            val y = pb.getOrNull(i)?.toIntOrNull() ?: 0
+            if (x != y) return x - y
+        }
+        return 0
+    }
+
     fun hasUpdate(releaseName: String): Boolean {
         if (releaseName.isBlank()) return false
-        // 正式版名就是 tag 名（0.2.29）；预览版的 VERSION_NAME 也是 0.2.29，
-        // 所以预览版上最新正式版 0.2.29 不算更新（releaseName == VERSION_NAME）。
-        return if (isPreview) releaseName != BuildConfig.VERSION_NAME
-        else !releaseName.contains(BuildConfig.VERSION_NAME)
+        // 正式版名就是 tag 名（v0.2.29）；预览版的 VERSION_NAME 也是 0.2.29，
+        // 所以预览版上最新正式版 0.2.29 不算更新（版本号相等）。
+        // 子串比较会误判（0.2.29 的 contains("0.2.2") 是真、0.2.2 的
+        // contains("0.2.29") 是假），改按数字段逐段比。
+        return compareVersion(releaseName, BuildConfig.VERSION_NAME) > 0
     }
 
     /** 选安装包：按本机 ABI 顺序找 -$abi-（如 -arm64-v8a-release.apk）；没有就找通用包；再没有取第一个 APK。 */
@@ -181,10 +208,12 @@ object AppUpdater {
     fun checkDaily(activity: Activity) {
         val now = System.currentTimeMillis()
         if (now - DataStore.lastUpdateCheckTime < DAY_MS) return
-        DataStore.lastUpdateCheckTime = now
         val activityRef = WeakReference(activity)
         runOnIoDispatcher {
             val release = fetchLatestRelease() ?: return@runOnIoDispatcher
+            // 请求成功才盖时间戳：之前先盖再请求，请求失败（断网）会白白
+            // 消耗掉当天的检查机会，第二天之前不再查。
+            DataStore.lastUpdateCheckTime = System.currentTimeMillis()
             if (!hasUpdate(release.name)) return@runOnIoDispatcher
             runOnMainDispatcher {
                 val act = activityRef.get() ?: return@runOnMainDispatcher
@@ -218,7 +247,20 @@ object AppUpdater {
                 val client = newHttpClient()
                 try {
                     val response = client.newRequest().apply { setURL(asset.downloadUrl) }.execute()
+                    // gomobile 里 Go 的 error 返回会变成 Kotlin 异常，所以 writeTo
+                    // 失败（磁盘满、断网）会直接抛到外层 catch；这里再补一道
+                    // Content-Length 对照：服务器给了长度而实际写少了，说明静默截断。
                     response.writeTo(tmpFile.absolutePath)
+                    val expected = try {
+                        Util.getStringBox(response.getHeader("Content-Length"))?.toLongOrNull()
+                    } catch (_: Throwable) {
+                        null
+                    }
+                    if (expected != null && expected >= 0 && tmpFile.length() != expected) {
+                        throw IllegalStateException(
+                            "download size mismatch: expected $expected bytes, got ${tmpFile.length()}"
+                        )
+                    }
                 } finally {
                     client.close()
                 }

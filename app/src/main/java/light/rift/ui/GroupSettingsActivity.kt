@@ -213,6 +213,7 @@ class GroupSettingsActivity(
 
     companion object {
         const val EXTRA_GROUP_ID = "id"
+        private const val KEY_EDITING_UNGROUPED = "editingUngrouped"
     }
 
     // -30：未分组允许改名，但它是种子组，设置页里不许删（删组会连组内节点一起删）。
@@ -254,8 +255,17 @@ class GroupSettingsActivity(
                 }
             }
 
+        } else {
+            // 旋转重建：editingUngrouped 不再走加载分支，从 bundle 恢复，
+            // 否则未分组的删除菜单会复现（库层有底线防线删不掉，但菜单不该出现）。
+            editingUngrouped = savedInstanceState.getBoolean(KEY_EDITING_UNGROUPED, false)
         }
 
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_EDITING_UNGROUPED, editingUngrouped)
     }
 
     private fun attachPreferenceFragment() {

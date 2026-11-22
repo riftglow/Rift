@@ -61,17 +61,16 @@ object SendLog {
     }
 
     private fun redactHttpUrl(url: String): String {
+        // 查询串一律掩盖；路径段一律掩盖，只留 host。短路径 token（如订阅
+        // 链接 https://host/sub/AbC123）只看“单段、无点、够长”会漏网，
+        // 路径本身又不是排障必需的（host 已够定位），索性全掩。
         val beforeQuery = url.substringBefore('?')
         val masked = if (beforeQuery != url) "$beforeQuery?***" else url
         val schemeEnd = masked.indexOf("://")
         if (schemeEnd < 0) return masked
         val hostEnd = masked.indexOf('/', schemeEnd + 3)
         if (hostEnd < 0) return masked
-        val path = masked.substring(hostEnd + 1)
-        if (!path.contains('/') && !path.contains('.') && path.length >= 20) {
-            return masked.substring(0, hostEnd + 1) + "***"
-        }
-        return masked
+        return masked.substring(0, hostEnd + 1) + "***"
     }
 
     private fun isPrivateOrReservedIpv4(ip: String): Boolean {
@@ -109,7 +108,7 @@ object SendLog {
             out.write("\n".toByteArray())
         } catch (e: IOException) {
             Logs.w(e)
-            out.write(("Export logcat error: " + CrashHandler.formatThrowable(e)).toByteArray())
+            out.write(redactLog("Export logcat error: " + CrashHandler.formatThrowable(e)).toByteArray())
         }
         out.write("\n".toByteArray())
         // -47：rift.log 导出加兜底。-46 的有界读已进包但导出仍无 rift.log 且无诊断行，
@@ -124,7 +123,7 @@ object SendLog {
                 } catch (_: Throwable) {
                     -2L
                 }
-                "[rift.log read empty; file size=${size} bytes]\n"
+                redactLog("[rift.log read empty; file size=${size} bytes]\n")
             } else {
                 redactLog(riftBytes.toString(Charsets.UTF_8))
             }
@@ -132,7 +131,7 @@ object SendLog {
         } catch (t: Throwable) {
             Logs.w(t)
             try {
-                out.write(("[rift.log failed: ${t.javaClass.simpleName}: ${t.message}]\n").toByteArray())
+                out.write(redactLog("[rift.log failed: ${t.javaClass.simpleName}: ${t.message}]\n").toByteArray())
             } catch (_: Throwable) {
             }
         }
@@ -162,6 +161,9 @@ object SendLog {
 
     // Get log bytes from rift.log. Missing/unreadable log is an empty
     // result, never a stack trace disguised as log content.
+    // 已知局限：导出读文件时 Go 侧可能正在截断（满 2MB 时保留后半段），
+    // 读到的可能是截断前后的混合内容（缺几行或多几行），不影响排障；
+    // 截断窗口极小，不上跨进程锁。
     fun getRiftLog(max: Long): ByteArray {
         return try {
             val file = File(
@@ -170,7 +172,8 @@ object SendLog {
             )
             val len = file.length()
             FileInputStream(file).use { stream ->
-                // max <= 0 = 读整个文件；0 < max < len = 只读末尾 max 字节。
+                // max <= 0 = 读整个文件（保留全读兼容，当前调用方只传正数）；
+                // 0 < max < len = 只读末尾 max 字节。
                 // 用显式比较，不用 `max in 1 until len` 的区间写法，避免歧义。
                 if (max > 0 && max < len) {
                     var toSkip = len - max

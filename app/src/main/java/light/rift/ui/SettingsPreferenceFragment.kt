@@ -165,27 +165,10 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 needRestart()
                 true
             }
-            it.setOnLongClickListener {
-                if (context == null) return@setOnLongClickListener true
-
-                val view = EditText(context).apply {
-                    inputType = EditorInfo.TYPE_CLASS_NUMBER
-                    var size = DataStore.logBufSize
-                    if (size == 0) size = 50
-                    setText(size.toString())
-                }
-
-                RiftAlertDialogBuilder(requireContext()).setTitle("Log buffer size (kb)")
-                    .setView(view)
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        DataStore.logBufSize = view.text.toString().toInt()
-                        if (DataStore.logBufSize <= 0) DataStore.logBufSize = 50
-                        needRestart()
-                    }
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show()
-                true
-            }
+            // 日志上限长按入口已删：-29 方案 A 把上限定死 2MB（保留后半段），
+            // 再小的设置值都会被 rift.go 钳回 2048KB，入口留着只会误导
+            // 人以为能调小。DataStore.logBufSize 与 rift.go 的钳制保留，
+            // 上限实际恒为 2MB。
         }
 
         mixedPort?.setOnBindEditTextListener(EditTextPreferenceModifiers.Port)

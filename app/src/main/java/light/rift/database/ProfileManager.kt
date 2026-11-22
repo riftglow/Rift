@@ -106,6 +106,11 @@ object ProfileManager {
         if (DataStore.selectedProxy == profileId) {
             DataStore.selectedProxy = 0L
         }
+        // 清掉这个节点的动态 key；它是本组主节点时，主节点 key 也清掉。
+        DataStore.removeNodeKeys(profileId)
+        if (DataStore.groupPrimaryProfile(groupId) == profileId) {
+            DataStore.clearGroupPrimaryProfile(groupId)
+        }
         AutoBackup.schedule()
     }
 
@@ -125,6 +130,11 @@ object ProfileManager {
         if (!deleted) return
         if (DataStore.selectedProxy == profileId) {
             DataStore.selectedProxy = 0L
+        }
+        // 清掉这个节点的动态 key；它是本组主节点时，主节点 key 也清掉。
+        DataStore.removeNodeKeys(profileId)
+        if (DataStore.groupPrimaryProfile(groupId) == profileId) {
+            DataStore.clearGroupPrimaryProfile(groupId)
         }
         iterator { onRemoved(groupId, profileId) }
         AutoBackup.schedule()

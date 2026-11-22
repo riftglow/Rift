@@ -22,6 +22,7 @@ import androidx.preference.PreferenceFragmentCompat
 import com.github.shadowsocks.plugin.Empty
 import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
 import light.rift.ktx.RiftAlertDialogBuilder
+import light.rift.ktx.applyGlassToPreferenceDialog
 import light.rift.Key
 import light.rift.R
 import light.rift.RiftApp
@@ -404,6 +405,8 @@ class RouteSettingsActivity(
                 if (displayPreferenceDialog(preference)) return
             }
             super.onDisplayPreferenceDialog(preference)
+            // 框架弹窗（EditTextPreference 等）不会自己上玻璃，手动上。
+            childFragmentManager.applyGlassToPreferenceDialog()
         }
 
     }

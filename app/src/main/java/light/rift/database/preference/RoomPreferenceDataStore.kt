@@ -1,10 +1,25 @@
 package light.rift.database.preference
 
 import androidx.preference.PreferenceDataStore
+import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 open class RoomPreferenceDataStore(private val kvPairDao: KeyValuePair.Dao) :
     PreferenceDataStore() {
+
+    // 读缓存：列表每行绑定要读 2–3 个 kv（主节点、记住的出口国家），
+    // 之前每次都是主线程 Room 查库，滚动时逐行查库。缓存后只在首次读
+    // 库，之后走内存。写路径（write/remove/reset）同步维护缓存，
+    // 保证不脏；绕开本类直接写 DAO 的只有备份导入，导入后调
+    // invalidateCache() 清掉。
+    private val cache = ConcurrentHashMap<String, KeyValuePair>()
+    private val absent = ConcurrentHashMap.newKeySet<String>()
+
+    /** 备份导入等直接写 DAO 的路径之后调用，清掉可能脏掉的读缓存。 */
+    fun invalidateCache() {
+        cache.clear()
+        absent.clear()
+    }
 
     // 不带默认值的读取：键不存在时返回 null，缺省值由调用方决定。
     fun getBoolean(key: String) = read(key)?.boolean
@@ -14,7 +29,11 @@ open class RoomPreferenceDataStore(private val kvPairDao: KeyValuePair.Dao) :
     fun getString(key: String) = read(key)?.string
     fun getStringSet(key: String) = read(key)?.stringSet
 
-    fun reset() = kvPairDao.reset()
+    fun reset() {
+        kvPairDao.reset()
+        cache.clear()
+        absent.clear()
+    }
 
     override fun getBoolean(key: String, defValue: Boolean) = getBoolean(key) ?: defValue
     override fun getFloat(key: String, defValue: Float) = getFloat(key) ?: defValue
@@ -57,6 +76,8 @@ open class RoomPreferenceDataStore(private val kvPairDao: KeyValuePair.Dao) :
 
     fun remove(key: String) {
         kvPairDao.delete(key)
+        cache.remove(key)
+        absent.add(key)
         fireChangeListener(key)
     }
 
@@ -72,10 +93,18 @@ open class RoomPreferenceDataStore(private val kvPairDao: KeyValuePair.Dao) :
         }
     }
 
-    private fun read(key: String) = kvPairDao[key]
+    private fun read(key: String): KeyValuePair? {
+        cache[key]?.let { return it }
+        if (absent.contains(key)) return null
+        val pair = kvPairDao[key]
+        if (pair == null) absent.add(key) else cache[key] = pair
+        return pair
+    }
 
     private fun write(key: String, pair: KeyValuePair) {
         kvPairDao.put(pair)
+        cache[key] = pair
+        absent.remove(key)
         fireChangeListener(key)
     }
 

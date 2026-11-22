@@ -119,6 +119,13 @@ jobs:
         run: |
           TAG="${{ github.event.inputs.tag }}"
           if [ -z "$TAG" ]; then echo "release tag is empty" >&2; exit 1; fi
+          # tag 必须与 nb4a.properties 的 VERSION_NAME 一致（v 前缀 + 版号），
+          # 否则 Release 名与 APK 版号脱节，应用内更新（子串比较）会反复提示同一构建。
+          VERSION_NAME=$(grep '^VERSION_NAME=' nb4a.properties | cut -d= -f2)
+          if [ "$TAG" != "v$VERSION_NAME" ]; then
+            echo "tag $TAG does not match VERSION_NAME $VERSION_NAME (expected v$VERSION_NAME)" >&2
+            exit 1
+          fi
           # delete 失败要区分：release 不存在可继续，真失败必须停下报错；
           # --cleanup-tag 保证旧 tag 不留在旧提交上，否则同一 tag 重触发时
           # 新包会挂在旧 tag 下。

@@ -102,6 +102,26 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     fun setNodeEgressCountry(nodeId: Long, countryCode: String) =
         configurationStore.putString("nodeEgressCountry_$nodeId", countryCode)
 
+    // 删组/删节点时清掉对应的动态 key，不留孤 key 在 kv 表里。
+    // 组 key：出站模式、主节点、订阅提醒的三处去重标记。
+    fun removeGroupKeys(groupId: Long) {
+        configurationStore.remove("groupOutboundMode_$groupId")
+        configurationStore.remove("groupPrimaryProfile_$groupId")
+        configurationStore.remove("subReminderExpireDay_$groupId")
+        configurationStore.remove("subReminderTraffic_$groupId")
+        configurationStore.remove("subReminderExpired_$groupId")
+    }
+
+    // 节点 key：记住的出口国家。
+    fun removeNodeKeys(nodeId: Long) {
+        configurationStore.remove("nodeEgressCountry_$nodeId")
+    }
+
+    // 主节点被删时清掉指向它的主节点 key（缺省即 0 = 无主节点）。
+    fun clearGroupPrimaryProfile(groupId: Long) {
+        configurationStore.remove("groupPrimaryProfile_$groupId")
+    }
+
     fun selectedGroupForImport(): Long {
         val current = currentGroup()
         if (current.type == GroupType.BASIC) return current.id

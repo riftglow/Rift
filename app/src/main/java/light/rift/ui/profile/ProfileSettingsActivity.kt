@@ -387,6 +387,8 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                 if (displayPreferenceDialog(preference)) return
             }
             super.onDisplayPreferenceDialog(preference)
+            // 框架弹窗（EditTextPreference 等）不会自己上玻璃，手动上。
+            childFragmentManager.applyGlassToPreferenceDialog()
         }
 
     }

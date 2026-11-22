@@ -85,7 +85,9 @@ abstract class GroupUpdater {
                         } catch (e: CancellationException) {
                             throw e
                         } catch (e: Exception) {
-                            Logs.d("Lookup ${profile.serverAddress} failed: ${e.readableMessage}", e)
+                            // 只记节点名，不记服务器地址：这里 serverAddress 一定是
+                            // 域名（IP 在上面就跳过了），域名进日志脱敏拦不住。
+                            Logs.d("Lookup ${profile.displayName()} failed: ${e.readableMessage}", e)
                         }
                         if (groupId != null) {
                             progress.progress++

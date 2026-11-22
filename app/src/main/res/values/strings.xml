@@ -114,6 +114,8 @@
     <string name="route_add">Create Route</string>
     <string name="route_add_direct_domain">Add Direct Domain</string>
     <string name="route_add_direct_domain_hint">Domains, one per line, e.g. example.com</string>
+    <string name="route_invalid_domain">Invalid domain: %1$s (enter the domain only, e.g. example.com)</string>
+    <string name="route_domain_exists">That domain is already in a direct rule.</string>
     <string name="delete_route_prompt">Are you sure you want to remove this route?</string>
     <string name="route_name">Route Name</string>
     <string name="route_proxy">Proxy</string>
@@ -358,6 +360,7 @@
     <string name="primary_set">Set as group primary</string>
     <string name="subscription_reminder_title">Subscription reminder</string>
     <string name="subscription_reminder_expire">Subscription %1$s expires on %2$s</string>
+    <string name="subscription_reminder_expired">Subscription %1$s expired on %2$s</string>
     <string name="subscription_reminder_traffic">Subscription %1$s is almost out of traffic, %2$s left</string>
     <string name="route_for">Rule for %s</string>
 
@@ -413,19 +416,6 @@
     <string name="streaming_available">Available</string>
     <string name="streaming_restricted">Restricted</string>
     <string name="streaming_unavailable">Unavailable</string>
-    <string name="ip_purity_test">IP Purity</string>
-    <string name="ip_purity_test_summary">Check the exit IP type and risk (residential/datacenter/mobile/business). Data from iplocate.io, ip-api.com and ipquery.io.</string>
-    <string name="ip_purity_result">IP: %1$s\n%2$s\nISP: %3$s\nType: %4$s\nPurity: %5$s (%6$d)\nSource: %7$s</string>
-    <string name="ip_purity_grade_good">Good</string>
-    <string name="ip_purity_grade_normal">Normal</string>
-    <string name="ip_purity_grade_risk">Risk</string>
-    <string name="ip_purity_type_residential">Residential</string>
-    <string name="ip_purity_type_datacenter">Datacenter</string>
-    <string name="ip_purity_type_mobile">Mobile</string>
-    <string name="ip_purity_type_business">Business</string>
-    <string name="ip_purity_type_unknown">Unknown</string>
-    <string name="ip_purity_no_ip">Run the egress check first to get the IP</string>
-    <string name="ip_purity_quality_unavailable">Quality data unavailable, showing IP only</string>
     <string name="egress_speed_tap_hint">Tap the IP to test speed</string>
     <string name="egress_speed_testing">Testing speed…</string>
     <string name="egress_speed_result">Downlink about %1$s (%2$s, %3$s)</string>
@@ -459,6 +449,7 @@
     <string name="backup">Backup</string>
     <string name="backup_groups_and_configurations">Groups and configurations</string>
     <string name="backup_rules">Routing rules</string>
+    <string name="share_full_backup_message">The full backup contains all node credentials (passwords/UUIDs/private keys), subscription links and settings. Only share it with people you trust.</string>
     <string name="backup_summary">If the routing settings are not backed up with configurations,
         then custom outbounds will be lost.</string>
     <string name="backup_not_file">Not a backup file: expected .json, but %s</string>
@@ -558,8 +549,8 @@
     <string name="domain_strategy_for_direct">Domain strategy for Direct</string>
     <string name="domain_strategy_for_server">Domain strategy for Server address</string>
     <string name="show_bottom_bar">Show bottom bar</string>
-    <string name="glass_effect">玻璃效果</string>
-    <string name="glass_effect_summary">底栏、弹窗半透明磨砂；仅 Android 12 及以上机型生效</string>
+    <string name="glass_effect">Glass effect</string>
+    <string name="glass_effect_summary">Translucent frosted bottom bar and dialogs; Android 12+ only</string>
     <string name="utls_fingerprint">uTLS fingerprint</string>
     <string name="custom_outbound_json">Custom outbound JSON</string>
     <string name="custom_config_json">Custom config JSON</string>

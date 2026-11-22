@@ -18,6 +18,7 @@ import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import light.rift.R
 import light.rift.ktx.Logs
+import light.rift.ktx.applyRiftGlass
 import light.rift.ktx.readableMessage
 import light.rift.ui.MainActivity
 import java.nio.charset.StandardCharsets
@@ -61,6 +62,13 @@ class QRCodeDialog() : DialogFragment() {
                 setPixel(x, y, if (qrBits.get(x, y)) Color.BLACK else Color.WHITE)
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // 二维码弹窗是 DialogFragment，不走 RiftAlertDialogBuilder，
+        // 不会自己上玻璃；显示时手动上。
+        dialog?.applyRiftGlass()
     }
 
     /**

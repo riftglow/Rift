@@ -30,7 +30,6 @@ type XmuxManager struct {
 	newConnFunc func() XmuxConn
 	xmuxClients []*XmuxClient
 	mtx         sync.Mutex
-	closed      bool
 }
 
 func NewXmuxManager(options V2RayXHTTPXmuxOptions, newConnFunc func() XmuxConn) *XmuxManager {
@@ -89,9 +88,6 @@ func (m *XmuxManager) GetXmuxClientNoReserve(ctx context.Context) *XmuxClient {
 func (m *XmuxManager) pickXmuxClient() *XmuxClient {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
-	if m.closed {
-		return m.newXmuxClient()
-	}
 	for i := 0; i < len(m.xmuxClients); {
 		xmuxClient := m.xmuxClients[i]
 		if xmuxClient.XmuxConn.IsClosed() ||
@@ -123,40 +119,27 @@ func (m *XmuxManager) pickXmuxClient() *XmuxClient {
 	if len(xmuxClients) == 0 {
 		return m.newXmuxClient()
 	}
-	i, _ := rand.Int(rand.Reader, big.NewInt(int64(len(xmuxClients))))
-	xmuxClient := xmuxClients[i.Int64()]
+	// crypto/rand 失败极罕见（getrandom 在应用进程运行时基本不会失败），
+	// 但一旦失败 i 为 nil，直接取 i.Int64() 会 panic。失败时回落到第 0 个。
+	idx := int64(0)
+	if i, err := rand.Int(rand.Reader, big.NewInt(int64(len(xmuxClients)))); err == nil && i != nil {
+		idx = i.Int64()
+	}
+	xmuxClient := xmuxClients[idx]
 	if xmuxClient.leftUsage > 0 {
 		xmuxClient.leftUsage -= 1
 	}
 	return xmuxClient
 }
 
-func (m *XmuxManager) Close() error {
-	m.mtx.Lock()
-	defer m.mtx.Unlock()
-	m.closed = true
-	for _, client := range m.xmuxClients {
-		if client != nil && client.XmuxConn != nil {
-			_ = client.XmuxConn.Close()
-		}
-	}
-	m.xmuxClients = nil
-	return nil
-}
-
 // Reset is the upstream-style reset used by Client.Close on interface
 // updates: it closes only idle (unused) connections and drops them
 // from the pool, keeping the manager usable. In-flight sessions keep
 // working on their existing connections, and the next dial creates
-// fresh connections on the new network. Unlike Close, it never marks
-// the manager closed, so GetXmuxClient keeps reusing pooled clients
-// instead of allocating a new never-reused one per dial.
+// fresh connections on the new network.
 func (m *XmuxManager) Reset() {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
-	if m.closed {
-		return
-	}
 	kept := make([]*XmuxClient, 0, len(m.xmuxClients))
 	for _, client := range m.xmuxClients {
 		if client != nil && client.XmuxConn != nil && client.OpenUsage.Load() == 0 {

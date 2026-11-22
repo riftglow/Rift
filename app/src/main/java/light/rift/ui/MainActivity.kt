@@ -666,6 +666,11 @@ class MainActivity : ThemedActivity(),
                 applyGlassBottomBar()
                 applyDrawerGlass()
                 if (!DataStore.glassEffect) clearDrawerDepthBlur()
+                // 玻璃开关在设置页（非首页）：applyGlassBottomBar 只看开关
+                // 不看当前页，会把磨砂重新糊回非首页（-43 刚修掉的 bug 在
+                // 这里复现）。按当前页重套一次显隐，非首页就把磨砂藏回去。
+                val current = supportFragmentManager.findFragmentById(R.id.fragment_holder)
+                if (current is ToolbarFragment) applyStatsBarVisibility(current)
             }
             Key.PROXY_APPS, Key.BYPASS_MODE, Key.INDIVIDUAL -> {
                 if (DataStore.serviceState.canStop) {

@@ -4,6 +4,7 @@ import light.rift.database.DataStore
 import light.rift.core.utils.Util
 import libcore.Libcore
 import org.json.JSONObject
+import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -12,10 +13,10 @@ import java.util.concurrent.ConcurrentHashMap
  * 1. 节点名解析（同步、离线）：名字里带国家/城市关键词（美国/香港/圣何塞……）
  *    直接出国家码，零网络、最快；
  * 2. 查服务器 IP 归属（异步、带缓存）：名字里没地名时（比如主节点
- *    “Vmiss转 Cloudcone-XHTTP”），拿 serverAddress 问 ip-api，拿到国家码后
+ *    “Vmiss转 Cloudcone-XHTTP”），拿 serverAddress 问 ipwho.is，拿到国家码后
  *    按 serverAddress 存 DataStore.nodeFlagJson，下次直接读缓存，不再联网。
- * 查不到（离线、解析失败、ip-api 失败）就不显示旗，不瞎猜。
- * ip-api 免费版限速 45 次/分钟；只有名字解析失败的节点才查，且同一
+ * 查不到（离线、解析失败、ipwho.is 失败）就不显示旗，不瞎猜。
+ * ipwho.is 免费版每月 1 万次；只有名字解析失败的节点才查，且同一
  * server 只在途查一次，日常就一两个请求，不会撞限速。
  */
 object NodeFlag {
@@ -108,25 +109,32 @@ object NodeFlag {
 
     /**
      * 查 serverAddress 的归属国家码。Blocking：必须在后台线程调。
-     * ip-api 支持直接传域名（服务端自己解析），不用本地先 DNS。
+     * ipwho.is 只接受 IP，不接受域名，所以域名先在本地解析成 IP 再查
+     * （解析走系统 DNS，只为拿到 IP，归属问的仍是节点 IP 本身）。
      * 问的是这个 IP/域名的归属，不是本机出口，所以直连、不走 VPN。
-     * Null = 查不到（离线、域名解析不了、ip-api 失败/限速）。
+     * Null = 查不到（离线、域名解析不了、ipwho.is 失败/限速）。
      */
     fun fetchCountryCode(serverAddress: String): String? {
         val host = serverAddress.trim()
         if (host.isBlank()) return null
+        // 域名先解析成 IP；已经是 IP 的直接返回原值。
+        val ip = try {
+            InetAddress.getByName(host).hostAddress ?: return null
+        } catch (_: Exception) {
+            return null
+        }
         val client = Libcore.newHttpClient().apply {
             modernTLS()
             keepAlive()
         }
         return try {
             val response = client.newRequest().apply {
-                setURL("http://ip-api.com/json/$host")
+                setURL("https://ipwho.is/$ip")
             }.execute()
             val body = Util.getStringBox(response.contentString)
             val json = JSONObject(body)
-            if (json.optString("status") != "success") return null
-            json.optString("countryCode").ifBlank { null }
+            if (!json.optBoolean("success", false)) return null
+            json.optString("country_code").ifBlank { null }
         } catch (_: Exception) {
             null
         } finally {

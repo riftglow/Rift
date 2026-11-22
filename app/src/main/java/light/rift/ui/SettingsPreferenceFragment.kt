@@ -228,7 +228,13 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
 
-        mixedPort?.onPreferenceChangeListener = reloadListener
+        // 用户手动改端口：记为非自动分配，之后端口冲突时 BaseService 不会
+        // 静默把它打回默认（随机端口才自动重置）。
+        mixedPort?.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, _ ->
+            DataStore.mixedPortAuto = false
+            needReload()
+            true
+        }
         // 本地代理认证开关/密码改动也要重载服务：运行中的核心仍用旧 users 配置，
         // 而诊断侧每次读最新 DataStore，错配会导致 URL 检查/流媒体报认证失败。
         localProxyAuth?.onPreferenceChangeListener = reloadListener

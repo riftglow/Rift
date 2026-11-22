@@ -37,6 +37,7 @@ object Key {
     const val BYPASS_LAN_IN_CORE = "bypassLanInCore"
 
     const val MIXED_PORT = "mixedPort"
+    const val MIXED_PORT_AUTO = "mixedPortAuto"
     const val ALLOW_ACCESS = "allowAccess"
 
     // 安全加固（0.2.29 -26）

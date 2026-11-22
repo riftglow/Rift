@@ -122,7 +122,10 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
             parse: (String) -> AbstractBean,
             onFailure: (Throwable) -> Unit = { Logs.w(it) }
         ) {
-            Logs.d("Try parse $label link: $link")
+            // 只记协议名与链接长度，不记整条链接：链接里含 base64 用户名密码与
+            // 服务器地址，整条打进日志等于把节点凭据写进 rift.log（导出时脱敏
+            // 也要靠正则兜，源头不记最稳）。
+            Logs.d("Try parse $label link (len=${link.length})")
             runCatching { entities.add(parse(link)) }.onFailure(onFailure)
         }
 

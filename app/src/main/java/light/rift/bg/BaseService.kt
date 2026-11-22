@@ -22,6 +22,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
 import light.rift.core.Protocols
+import light.rift.core.utils.SecurityHardening
 import light.rift.core.utils.Util
 import java.net.UnknownHostException
 
@@ -463,9 +464,17 @@ class BaseService {
                     // 端口死局：随机端口持久化后、起服务时被别的进程抢占，服务起不来，
                     // 而 mixedPort 已不是默认值、ensureInitialized 不再重选，下次启动
                     // 还是同一个坏端口。检测到 bind 冲突就把端口打回默认，下次启动
-                    // 重新随机，破掉这个死局。
+                    // 重新随机，破掉这个死局。但只对随机分配的端口自动重置：
+                    // 用户手动改的端口绝不静默改掉（改了用户下次进设置才发现端口
+                    // 变了）；且先确认冲突的确实是 mixed 端口——Clash API 的固定
+                    // 9090 冲突时也报这句，重置 mixed 端口治不了它，还白改一个端口。
                     if (rawMsg.contains("address already in use", ignoreCase = true)) {
-                        DataStore.resetMixedPort()
+                        if (DataStore.mixedPortAuto && !SecurityHardening.isPortFree(DataStore.mixedPort)) {
+                            Logs.i("mixed port ${DataStore.mixedPort} in use, reset to default ${DataStore.defaultMixedPort}")
+                            DataStore.resetMixedPort()
+                        } else {
+                            Logs.i("bind conflict, mixed port ${DataStore.mixedPort} kept (auto=${DataStore.mixedPortAuto})")
+                        }
                     }
                     val friendlyMsg = Protocols.genFriendlyMsg(rawMsg)
                     stopRunner(

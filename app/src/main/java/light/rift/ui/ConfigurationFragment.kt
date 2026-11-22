@@ -479,7 +479,7 @@ class ConfigurationFragment @JvmOverloads constructor(
     }
 
     /** 国家名（中文）· 英文城市，如“美国 · Los Angeles”。国家名用系统 Locale 由
-     * countryCode 翻；城市名 ip-api 只给英文，系统翻不了中文，直接显示英文。 */
+     * countryCode 翻；城市名 ipwho.is 只给英文，系统翻不了中文，直接显示英文。 */
     private fun exitLocationText(): String {
         val country = countryName(cachedExitCountry)
         val city = cachedExitCity?.trim().orEmpty()

@@ -161,7 +161,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     // 下行速率（bytes/s）写成 JSON 数组，供首页波形图读出来当初始样本。
     var sparklineHistoryJson by configurationStore.string("sparklineHistoryJson") { "" }
     // 节点国旗缓存（2026-11-13，0.2.23 -10）：serverAddress -> 国家码 JSON，见 NodeFlag。
-    // 名字里没地名的节点靠它记 ip-api 查到的归属，下次直接读缓存，不再联网。
+    // 名字里没地名的节点靠它记 ipwho.is 查到的归属，下次直接读缓存，不再联网。
     var nodeFlagJson by configurationStore.string("nodeFlagJson") { "" }
 
     //
@@ -206,6 +206,11 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var mixedPort: Int
         get() = getLocalPort(Key.MIXED_PORT, 2080)
         set(value) = saveLocalPort(Key.MIXED_PORT, value)
+
+    /** mixedPort 是不是随机分配的。true = ensureInitialized 随机出的（可自动重置）；
+     * false = 用户在设置里手动改的（端口冲突时绝不静默改掉）。默认 true：老用户
+     * 的随机端口本来就是自动分配的；手动改过端口的用户下次再改时会置 false。 */
+    var mixedPortAuto by configurationStore.boolean(Key.MIXED_PORT_AUTO) { true }
 
     /** 端口被别的进程抢占致服务起不来时，把 mixedPort 打回默认，下次启动重新随机。 */
     fun resetMixedPort() {

@@ -45,7 +45,11 @@ object BackupContent {
 
     /** Settings keys dropped from an anonymous export. */
     private val SENSITIVE_SETTING_KEYS = setOf(
-        Key.WEBDAV_SERVER, Key.WEBDAV_USERNAME, Key.WEBDAV_PASSWORD
+        Key.WEBDAV_SERVER, Key.WEBDAV_USERNAME, Key.WEBDAV_PASSWORD,
+        // 匿名档也必须去掉的密钥与手写配置：Clash API secret（32 位 hex）、
+        // 本地代理密码（16 位 hex）、全局自定义配置（用户手写 JSON，理论上
+        // 可含敏感内容）。只列 WebDAV 三键会把这三个原样留在匿名档里。
+        Key.CLASH_API_SECRET, Key.MIXED_INBOUND_PASS, Key.GLOBAL_CUSTOM_CONFIG
     )
 
     fun Parcelable.toBase64Str(): String {

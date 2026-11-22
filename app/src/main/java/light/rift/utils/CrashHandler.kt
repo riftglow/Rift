@@ -6,6 +6,7 @@ import android.os.Build
 import android.util.Log
 import com.jakewharton.processphoenix.ProcessPhoenix
 import light.rift.BuildConfig
+import light.rift.Key
 import light.rift.RiftApp
 import light.rift.database.preference.PublicDatabase
 import light.rift.ktx.Logs
@@ -19,6 +20,11 @@ import java.util.*
 import java.util.regex.Pattern
 
 object CrashHandler : Thread.UncaughtExceptionHandler {
+
+    /** 报告头里绝不能出现的设置键（点名拦，不靠子串匹配）。 */
+    private val SENSITIVE_HEADER_KEYS = setOf(
+        Key.MIXED_INBOUND_PASS, Key.CLASH_API_SECRET, Key.GLOBAL_CUSTOM_CONFIG
+    )
 
     @Suppress("UNNECESSARY_SAFE_CALL")
     override fun uncaughtException(thread: Thread, throwable: Throwable) {
@@ -108,7 +114,13 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
             var redacted = 0
             for (pair in PublicDatabase.kvPairDao.all()) {
                 val key = pair.key.lowercase()
-                if ("webdav" in key || "password" in key ||
+                // 显式敏感键：子串过滤漏网的必须点名拦。mixedInboundPass
+                // 小写后是 mixedinboundpass，只含 "pass" 不含 "password"，
+                // 只靠子串会把本地代理密码明文打进导出日志。clashApiSecret
+                // 与 globalCustomConfig 目前靠 "secret"/"customconfig"
+                // 兜住，也一并点名，免得将来改名改漏。
+                if (pair.key in SENSITIVE_HEADER_KEYS ||
+                    "webdav" in key || "password" in key ||
                     "token" in key || "secret" in key ||
                     // N8：globalCustomConfig 是用户手写 JSON，理论上
                     // 可含敏感内容，原样打进日志等于漏凭据。

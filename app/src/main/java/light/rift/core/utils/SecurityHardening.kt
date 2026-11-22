@@ -43,6 +43,19 @@ object SecurityHardening {
         return -1
     }
 
+    /** 指定端口现在能不能绑。供启动失败时判断冲突的到底是不是 mixed 端口：
+     * 若 mixed 端口能绑上，说明冲突的是别的 listen（比如 Clash API 的固定
+     * 9090），这时绝不能去重置 mixed 端口。 */
+    fun isPortFree(port: Int): Boolean {
+        val host = if (DataStore.allowAccess) "0.0.0.0" else "127.0.0.1"
+        return try {
+            ServerSocket().use { it.bind(InetSocketAddress(host, port)) }
+            true
+        } catch (_: IOException) {
+            false
+        }
+    }
+
     fun ensureInitialized() {
         if (DataStore.clashApiSecret.isBlank()) {
             DataStore.clashApiSecret = randomHex(32)
@@ -55,7 +68,10 @@ object SecurityHardening {
         // 判断会漏掉副 profile，试绑完全不跑）。
         if (DataStore.mixedPort == DataStore.defaultMixedPort) {
             val port = pickFreePort()
-            if (port > 0) DataStore.mixedPort = port
+            if (port > 0) {
+                DataStore.mixedPort = port
+                DataStore.mixedPortAuto = true
+            }
         }
     }
 }

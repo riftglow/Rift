@@ -22,7 +22,7 @@ object SendLog {
     private val uuidRegex =
         Regex("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
     private val proxyLinkRegex =
-        Regex("(vmess|vless|trojan|ss|trojan-go|naive|mieru|hysteria2?|tuic|anytls|shadowtls)://\\S+")
+        Regex("(vmess|vless|trojan|ssr|ss|trojan-go|naive|mieru|hysteria2?|hy2|tuic|anytls|shadowtls|socks5?|socks4a?|sn|clash)://\\S+")
     private val httpUrlRegex = Regex("https?://[^\\s\"'<>]+")
     private val ipv4Regex = Regex("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b")
     private val ipv6Regex = Regex("\\b(?:[0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}\\b")
@@ -86,10 +86,12 @@ object SendLog {
 
     // Write the same full log that sendLog shares: report header + logcat + rift.log.
     // Used by both the share path and the local-export path so they never diverge.
-    // 出口脱敏（0.2.29 -13）：分享与本地导出都走这里；报告头是版本与设备信息，不用脱敏。
+    // 出口脱敏（0.2.29 -13）：分享与本地导出都走这里；报告头里含设置转储
+    // （CrashHandler.buildReportHeader），一样要过 redactLog 做第二道防线，
+    // 不能只靠报告头自己的过滤。
     fun writeFullLog(out: OutputStream) {
         out.write(REDACT_NOTICE.toByteArray())
-        out.write(CrashHandler.buildReportHeader().toByteArray())
+        out.write(redactLog(CrashHandler.buildReportHeader()).toByteArray())
         out.write("Logcat: \n\n".toByteArray())
         try {
             val proc = Runtime.getRuntime().exec(arrayOf("logcat", "-d"))

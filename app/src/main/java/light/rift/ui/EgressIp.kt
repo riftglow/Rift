@@ -10,11 +10,12 @@ import java.net.InetSocketAddress
 import java.net.Socket
 
 /**
- * 出口 IP 查询（ip-api.com 免费接口）。NetworkFragment 的出口自检和
+ * 出口 IP 查询（ipwho.is 免费接口，HTTPS）。NetworkFragment 的出口自检和
  * 主页底栏的出口 IP 常驻显示共用这里。
  *
- * 注意：ip-api 免费接口只支持 HTTP，HTTPS 会报 403（SSL 需付费版），
- * 所以这里必须用 http://，查的只是本机出口 IP 本身，无敏感内容。
+ * 之前用 ip-api.com 免费接口，只支持 HTTP（HTTPS 报 403，SSL 需付费版），
+ * 出口 IP 与节点域名都走明文。ipwho.is 免费版支持 HTTPS，字段在这里转成
+ * ip-api 的字段名，下游（状态卡、出口自检）不用改。
  * 入站走当前节点；未连接时就是直连。连接状态下先探一下 mixed 端口，
  * 探不通直接报错，绝不把直连 IP 误标为出口 IP。
  */
@@ -38,7 +39,7 @@ object EgressIp {
             val json = queryJson()
             val ip = json.optString("query")
             if (ip.isBlank()) return null
-            // city 是 ip-api 返回的英文城市名（如 Los Angeles），系统没有现成的
+            // city 是 ipwho.is 返回的英文城市名（如 Los Angeles），系统没有现成的
             // 城市名中译办法，所以状态卡里直接显示英文（用户 2026-11-12 定：英文也行）。
             EgressInfo(ip, json.optString("countryCode"), json.optString("city"))
         } catch (_: Exception) {
@@ -47,7 +48,7 @@ object EgressIp {
     }
 
     /**
-     * Raw ip-api query. Throws on failure (mixed port not ready, bad
+     * Raw ipwho.is query. Throws on failure (mixed port not ready, bad
      * status, empty IP). The caller decides the message.
      */
     fun queryJson(): JSONObject {
@@ -75,14 +76,29 @@ object EgressIp {
         }
         try {
             val response = client.newRequest().apply {
-                setURL("http://ip-api.com/json")
+                setURL("https://ipwho.is/")
             }.execute()
             val body = Util.getStringBox(response.contentString)
-            val json = JSONObject(body)
-            if (json.optString("status") != "success") {
-                error(json.optString("message").ifBlank { "ip-api returned no IP" })
+            val raw = JSONObject(body)
+            if (!raw.optBoolean("success", false)) {
+                error(raw.optString("message").ifBlank { "ipwho.is returned no IP" })
             }
-            if (json.optString("query").isBlank()) error("ip-api returned no IP")
+            // ipwho.is 的字段名与 ip-api 不同，这里转成 ip-api 的字段名，
+            // 下游（状态卡、出口自检）不用改。
+            val json = JSONObject().apply {
+                put("status", "success")
+                put("query", raw.optString("ip"))
+                put("country", raw.optString("country"))
+                put("countryCode", raw.optString("country_code"))
+                put("regionName", raw.optString("region"))
+                put("city", raw.optString("city"))
+                put("isp", raw.optJSONObject("connection")?.optString("isp") ?: "")
+                put("org", raw.optJSONObject("connection")?.optString("org") ?: "")
+                put("lat", raw.optDouble("latitude"))
+                put("lon", raw.optDouble("longitude"))
+                put("timezone", raw.optJSONObject("timezone")?.optString("id") ?: "")
+            }
+            if (json.optString("query").isBlank()) error("ipwho.is returned no IP")
             return json
         } finally {
             client.close()

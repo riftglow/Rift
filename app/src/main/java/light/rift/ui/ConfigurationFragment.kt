@@ -520,6 +520,15 @@ class ConfigurationFragment @JvmOverloads constructor(
                         DataStore.setNodeEgressCountry(currentId, info.countryCode)
                     }
                     onExitCacheChanged()
+                } else {
+                    // 2026-11-22 -56: 查不到就清掉缓存，不留旧 IP 冒充当前出口——
+                    // 旧 IP 顶着不走就是“切节点没反应”的错觉来源。
+                    if (cachedExitIp != null || cachedExitCountry != null || cachedExitCity != null) {
+                        cachedExitIp = null
+                        cachedExitCountry = null
+                        cachedExitCity = null
+                        onExitCacheChanged()
+                    }
                 }
             }
         }

@@ -33,18 +33,23 @@ object EgressIp {
         return String(first + second)
     }
 
-    /** Blocking: call off the main thread. Null on any failure. */
+    /** Blocking: call off the main thread. Null on any failure.
+     * 2026-11-22 -56: 失败重试一次——慢链子第一次常因 mixed 入站刚起、
+     * 首包抖动而失败；两次都失败才返回 null。 */
     fun fetch(): EgressInfo? {
-        return try {
-            val json = queryJson()
-            val ip = json.optString("query")
-            if (ip.isBlank()) return null
-            // city 是 ipwho.is 返回的英文城市名（如 Los Angeles），系统没有现成的
-            // 城市名中译办法，所以状态卡里直接显示英文（用户 2026-11-12 定：英文也行）。
-            EgressInfo(ip, json.optString("countryCode"), json.optString("city"))
-        } catch (_: Exception) {
-            null
+        repeat(2) { attempt ->
+            try {
+                val json = queryJson()
+                val ip = json.optString("query")
+                if (ip.isBlank()) return null
+                // city 是 ipwho.is 返回的英文城市名（如 Los Angeles），系统没有现成的
+                // 城市名中译办法，所以状态卡里直接显示英文（用户 2026-11-12 定：英文也行）。
+                return EgressInfo(ip, json.optString("countryCode"), json.optString("city"))
+            } catch (_: Exception) {
+                if (attempt == 1) return null
+            }
         }
+        return null
     }
 
     /**
@@ -65,6 +70,9 @@ object EgressIp {
         val client = Libcore.newHttpClient().apply {
             modernTLS()
             keepAlive()
+            // 2026-11-22 -56: 出口查询单次上限 10s；libcore 默认 30s，
+            // 慢链子会让界面顶着旧 IP 等半天。失败由 fetch() 重试一次。
+            setTimeout(10000)
             if (connected) {
                 // 本地代理认证（0.2.29 -26）：mixed 入口开了 users 就得带账号密码。
                 if (DataStore.localProxyAuthEnabled) {

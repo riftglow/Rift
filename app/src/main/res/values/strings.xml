@@ -130,6 +130,8 @@
     <string name="route_manage_assets">Manage Route Assets</string>
     <string name="route_assets">Assets</string>
     <string name="route_rules_provider">Rule Assets Provider</string>
+    <!-- 路由资源更新源只剩 Rift 自编译，且只做显示、不可选。 -->
+    <string name="rules_provider_rift">Rift 自编译</string>
     <string name="route_asset_status">Local version: %s</string>
     <string name="route_asset_no_update">No update</string>
     <string name="route_not_asset">Not an asset file: expected .srs, but %s</string>
@@ -394,7 +396,7 @@
     <string name="egress_check_direct">Mode: direct (VPN off)</string>
     <string name="egress_check_via_node">Mode: via current node (%1$s)</string>
     <string name="egress_check_via_node_plain">Mode: via current node</string>
-    <string name="egress_check_source_elapsed">Source: ip-api.com · Request time: %1$d ms</string>
+    <string name="egress_check_source_elapsed">Source: %1$s · Request time: %2$d ms</string>
     <string name="dns_leak_test">DNS leak test</string>
     <string name="dns_leak_test_summary">Resolve a domain and check whether it lands in the VPN Fake-IP range, then compare with the egress IP. Not a full leak test.</string>
     <string name="dns_leak_resolved">Resolved: %1$s → %2$s (%3$s)</string>

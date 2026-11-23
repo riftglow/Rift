@@ -239,6 +239,8 @@
     <string name="route_asset_status">本地版本: %s</string>
     <string name="route_assets">资源</string>
     <string name="route_rules_provider">路由资源更新源</string>
+    <!-- 路由资源更新源只剩 Rift 自编译，且只做显示、不可选。 -->
+    <string name="rules_provider_rift">Rift 自编译</string>
     <string name="route_manage_assets">管理路由资源</string>
     <string name="standard">标准</string>
     <string name="unavailable">不可用</string>
@@ -364,7 +366,7 @@
     <string name="egress_check_direct">模式：直连（VPN 未开启）</string>
     <string name="egress_check_via_node">模式：经当前节点（%1$s）</string>
     <string name="egress_check_via_node_plain">模式：经当前节点</string>
-    <string name="egress_check_source_elapsed">数据来源：ip-api.com · 请求耗时：%1$d ms</string>
+    <string name="egress_check_source_elapsed">数据来源：%1$s · 请求耗时：%2$d ms</string>
     <string name="dns_leak_test">DNS 泄露检测</string>
     <string name="dns_leak_test_summary">解析一个域名，看它是否落在 VPN 的 Fake-IP 网段，并对照出口 IP 判断。不是完整的泄露测试。</string>
     <string name="dns_leak_resolved">解析结果：%1$s → %2$s（%3$s）</string>

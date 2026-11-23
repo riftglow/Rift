@@ -97,6 +97,8 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
         val isp: String,
         val mode: String,
         val elapsedMs: Long,
+        // 实际答复的源（ipinfo.io／ipwho.is／cloudflare.com），“数据来源”文案据此显示。
+        val source: String,
     )
 
     private fun doEgressCheck(binding: LayoutNetworkBinding) {
@@ -127,7 +129,7 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
                         info.isp.ifBlank { getString(R.string.egress_check_unknown) }
                     binding.egressMode.text = info.mode
                     binding.egressSource.text = getString(
-                        R.string.egress_check_source_elapsed, info.elapsedMs
+                        R.string.egress_check_source_elapsed, info.source, info.elapsedMs
                     )
                     // 点 IP 测速的提示（0.2.29 -26）：测速结果复用这行。
                     binding.egressSpeed.isVisible = true
@@ -173,6 +175,7 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
             isp = json.optString("isp"),
             mode = mode,
             elapsedMs = elapsed,
+            source = json.optString("source"),
         )
     }
 

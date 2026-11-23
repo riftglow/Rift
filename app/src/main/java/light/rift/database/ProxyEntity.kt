@@ -439,6 +439,13 @@ data class ProxyEntity(
         @Update
         fun updateProxy(proxies: List<ProxyEntity>): Int
 
+        // 只写流量（2026-11-23 -66）：TrafficLooper 回写 rx/tx 时用这个，
+        // 不用整实体 @Update——那会把配置里的旧 ping 也写回去，盖掉刚测的
+        // 新延时（测完切页面回来延时变回旧值的根因）。流量显示走
+        // TrafficData 广播，不依赖 updateProfile 的 onUpdated 通知。
+        @Query("UPDATE proxy_entities SET rx = :rx, tx = :tx WHERE id = :id")
+        fun updateTraffic(id: Long, rx: Long, tx: Long): Int
+
         @Insert
         fun addProxy(proxy: ProxyEntity): Long
 

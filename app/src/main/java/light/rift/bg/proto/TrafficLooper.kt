@@ -74,7 +74,9 @@ class TrafficLooper
                 val item = idMap[ent.id] ?: return@forEach
                 ent.rx = item.rx
                 ent.tx = item.tx
-                ProfileManager.updateProfile(ent) // update DB
+                // 2026-11-23 -66：只写流量，不走 updateProfile——整实体
+                // @Update 会把配置里的旧 ping 写回去，盖掉刚测的新延时。
+                ProfileManager.updateTraffic(ent) // update DB
                 traffic[ent.id] = TrafficData(
                     id = ent.id,
                     rx = ent.rx,
@@ -138,7 +140,8 @@ class TrafficLooper
                     it.rx = rx
                     it.tx = tx
                     runOnDefaultDispatcher {
-                        ProfileManager.updateProfile(it) // update DB
+                        // 2026-11-23 -66：只写流量（见 stop 处的注释）。
+                        ProfileManager.updateTraffic(it) // update DB
                     }
                 }
             }
@@ -276,7 +279,8 @@ class TrafficLooper
                         }
                     }
                     if (toUpdate.isNotEmpty()) {
-                        runOnDefaultDispatcher { ProfileManager.updateProfile(toUpdate) }
+                        // 2026-11-23 -66：只写流量（见 stop 处的注释）。
+                        runOnDefaultDispatcher { ProfileManager.updateTraffic(toUpdate) }
                     }
                 }
                 // 0.2.21 -5：顺手把最近 60 个下行速率写进 DataStore，供首页

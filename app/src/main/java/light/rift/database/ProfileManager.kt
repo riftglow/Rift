@@ -101,6 +101,20 @@ object ProfileManager {
         AutoBackup.schedule()
     }
 
+    // 只写流量（2026-11-23 -66）：TrafficLooper 回写 rx/tx 时用这个，
+    // 不走 updateProfile——整实体 @Update 会把配置里的旧 ping 也写回去。
+    // 不通知 onUpdated（流量显示走 TrafficData 广播），也不排自动备份
+    //（流量 60 秒一刷，排备份是浪费）。
+    suspend fun updateTraffic(profile: ProxyEntity) {
+        RiftDatabase.proxyDao.updateTraffic(profile.id, profile.rx, profile.tx)
+    }
+
+    suspend fun updateTraffic(profiles: List<ProxyEntity>) {
+        profiles.forEach {
+            RiftDatabase.proxyDao.updateTraffic(it.id, it.rx, it.tx)
+        }
+    }
+
     suspend fun deleteProfile2(groupId: Long, profileId: Long) {
         if (RiftDatabase.proxyDao.deleteById(profileId) == 0) return
         if (DataStore.selectedProxy == profileId) {

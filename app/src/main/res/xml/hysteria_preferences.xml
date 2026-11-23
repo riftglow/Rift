@@ -19,6 +19,11 @@
             app:title="@string/server_port"
             app:useSimpleSummaryProvider="true" />
         <EditTextPreference
+            app:icon="@drawable/ic_maps_directions_boat"
+            app:key="serverHopPorts"
+            app:title="@string/hysteria_hop_ports"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
             app:dialogLayout="@layout/layout_password_dialog"
             app:icon="@drawable/ic_baseline_texture_24"
             app:key="serverObfs"

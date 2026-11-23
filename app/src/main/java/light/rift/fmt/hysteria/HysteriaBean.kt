@@ -12,6 +12,11 @@ class HysteriaBean : AbstractBean() {
     // Use serverPorts instead of serverPort
     var serverPorts: String = "443"
 
+    // 端口跳跃范围（2026-11-23 -67）：存链接里的 mport，如 "24000-32000"。
+    // 以前 mport 直接覆盖 serverPorts，真端口（23962）就丢了，编辑页也只
+    // 有一个“服务器端口”在显示跳跃范围。现在端口和跳跃范围分开存、分开填。
+    var hopPorts: String = ""
+
     // HY1 & 2
 
     var authPayload: String = ""
@@ -69,10 +74,11 @@ class HysteriaBean : AbstractBean() {
         if (disableChromeParrot == null) disableChromeParrot = false
         if (brutalDebug == null) brutalDebug = false
         if (serverPorts == null) serverPorts = "443"
+        if (hopPorts == null) hopPorts = ""
     }
 
     override fun serialize(output: ByteBufferOutput) {
-        output.writeInt(8)
+        output.writeInt(9)
         super.serialize(output)
 
         output.writeInt(protocolVersion!!)
@@ -98,6 +104,7 @@ class HysteriaBean : AbstractBean() {
         output.writeString(bbrProfile)
         output.writeBoolean(disableChromeParrot!!)
         output.writeBoolean(brutalDebug!!)
+        output.writeString(hopPorts)
     }
 
     override fun deserialize(input: ByteBufferInput) {
@@ -151,6 +158,20 @@ class HysteriaBean : AbstractBean() {
             bbrProfile = ""
             disableChromeParrot = false
             brutalDebug = false
+        }
+        if (version >= 9) {
+            hopPorts = input.readString()
+        } else {
+            // 旧数据迁移（2026-11-23 -67）：以前 mport 直接写进 serverPorts，
+            // 真端口丢了，serverPorts 里就是跳跃范围。把它挪到 hopPorts，
+            // serverPorts 取范围的首端口当主端口（连接行为不变：有 hopPorts
+            // 时出站照样走 server_ports 跳跃）。
+            if (serverPorts.contains("-") || serverPorts.contains(",")) {
+                hopPorts = serverPorts
+                serverPorts = serverPorts.substringBefore("-").substringBefore(",").trim()
+            } else {
+                hopPorts = ""
+            }
         }
     }
 

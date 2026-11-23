@@ -300,6 +300,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverAddress by profileCacheStore.string(Key.SERVER_ADDRESS)
     var serverPort by profileCacheStore.stringToInt(Key.SERVER_PORT)
     var serverPorts by profileCacheStore.string("serverPorts")
+    // 端口跳跃范围（2026-11-23 -67）：编辑页“端口跳跃”栏，存 mport。
+    var serverHopPorts by profileCacheStore.string("serverHopPorts")
     var serverUsername by profileCacheStore.string(Key.SERVER_USERNAME)
     var serverPassword by profileCacheStore.string(Key.SERVER_PASSWORD)
     var serverPassword1 by profileCacheStore.string(Key.SERVER_PASSWORD1)

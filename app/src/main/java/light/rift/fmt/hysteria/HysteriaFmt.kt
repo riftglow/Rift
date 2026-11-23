@@ -24,7 +24,10 @@ fun parseHysteria2(url: String): HysteriaBean {
         name = link.fragment ?: ""
 
         link.queryParameter("mport")?.also {
-            serverPorts = it
+            // 2026-11-23 -67：mport 是端口跳跃范围，单独存 hopPorts，
+            // 不再覆盖 serverPorts——以前这里把真端口（23962）丢了，
+            // 编辑页“服务器端口”显示的其实是跳跃范围。
+            hopPorts = it
         }
         link.queryParameter("sni")?.also {
             sni = it
@@ -62,7 +65,10 @@ fun HysteriaBean.toUri(): String {
         .port(getFirstPort(serverPorts))
         .username(un)
         .password(pw)
-    if (isMultiPort(displayAddress())) {
+    if (hopPorts.isNotBlank()) {
+        builder.addQueryParameter("mport", hopPorts)
+    } else if (isMultiPort(displayAddress())) {
+        // 兼容：端口栏里直接写了范围的旧数据
         builder.addQueryParameter("mport", serverPorts)
     }
     if (name.isNotBlank()) {
@@ -97,11 +103,18 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.SingBox
         2 -> SingBoxOptions.Outbound_Hysteria2Options().apply {
             type = "hysteria2"
             server = bean.serverAddress
-            val port = bean.serverPorts.toIntOrNull()
-            if (port != null) {
-                server_port = port
+            // 2026-11-23 -67：端口跳跃范围单独走 server_ports（有 hopPorts
+            // 时优先），主端口走 server_port；都没跳跃时跟以前一样，
+            // 端口栏是单端口就 server_port、是范围就 server_ports。
+            if (bean.hopPorts.isNotBlank()) {
+                server_ports = hopPortsToSingboxList(bean.hopPorts).toMutableList()
             } else {
-                server_ports = hopPortsToSingboxList(bean.serverPorts).toMutableList()
+                val port = bean.serverPorts.toIntOrNull()
+                if (port != null) {
+                    server_port = port
+                } else {
+                    server_ports = hopPortsToSingboxList(bean.serverPorts).toMutableList()
+                }
             }
             hop_interval = "${bean.hopInterval}s"
             // Hysteria2 增强（2026-11-10，规划第 13 项）：节点字段优先，未设则用

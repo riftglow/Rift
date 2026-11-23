@@ -699,7 +699,9 @@ object RawUpdater : GroupUpdater() {
                                 }
                             }
                             if (hopPorts.isNotBlank()) {
-                                bean.serverPorts = hopPorts
+                                // 2026-11-23 -67：订阅里的 ports 是跳跃范围，
+                                // 存 hopPorts，不再覆盖 serverPorts（真端口）。
+                                bean.hopPorts = hopPorts
                             }
                             proxies.add(bean)
                         }

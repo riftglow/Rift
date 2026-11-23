@@ -8,7 +8,30 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 // hysteria2://[auth@]hostname[:port]/?[key=value]&[key=value]...
 fun parseHysteria2(url: String): HysteriaBean {
-    val link = url
+    // 2026-11-23 -68：端口跳跃还有另一种链接写法——范围直接写在 URL
+    // 的端口位上（如 host:24000-32000，没有 mport）。OkHttp 的 URL
+    // 解析不接受“24000-32000”这种端口，会返回 null 导致导入失败。
+    // 所以先手动把范围抠出来，用首端口做占位，再走正常解析。
+    var hopPortsFromUrl = ""
+    var normalizedUrl = url
+    val authorityStart = url.indexOf("://").let { if (it >= 0) it + 3 else 0 }
+    val authorityEnd = url.indexOfAny(charArrayOf('/', '?', '#'), authorityStart)
+        .let { if (it >= 0) it else url.length }
+    val authority = url.substring(authorityStart, authorityEnd)
+    // host:port 部分在最后一个 "@" 之后（跳过 userinfo 里的冒号）
+    val hostPortStart = authority.lastIndexOf('@').let { if (it >= 0) it + 1 else 0 }
+    val hostPort = authority.substring(hostPortStart)
+    val lastColon = hostPort.lastIndexOf(':')
+    if (lastColon >= 0) {
+        val portPart = hostPort.substring(lastColon + 1)
+        if (portPart.contains("-") || portPart.contains(",")) {
+            hopPortsFromUrl = portPart
+            val firstPort = portPart.substringBefore("-").substringBefore(",").trim()
+            val replaceStart = authorityStart + hostPortStart + lastColon + 1
+            normalizedUrl = url.substring(0, replaceStart) + firstPort + url.substring(authorityEnd)
+        }
+    }
+    val link = normalizedUrl
         .replace("hysteria2://", "https://")
         .replace("hy2://", "https://")
         .toHttpUrlOrNull() ?: error("invalid hysteria link $url")
@@ -23,12 +46,8 @@ fun parseHysteria2(url: String): HysteriaBean {
         }
         name = link.fragment ?: ""
 
-        link.queryParameter("mport")?.also {
-            // 2026-11-23 -67：mport 是端口跳跃范围，单独存 hopPorts，
-            // 不再覆盖 serverPorts——以前这里把真端口（23962）丢了，
-            // 编辑页“服务器端口”显示的其实是跳跃范围。
-            hopPorts = it
-        }
+        // mport 显式参数优先，没有 mport 时用 URL 端口位上的范围。
+        hopPorts = link.queryParameter("mport") ?: hopPortsFromUrl
         link.queryParameter("sni")?.also {
             sni = it
         }

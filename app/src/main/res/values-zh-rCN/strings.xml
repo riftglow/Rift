@@ -74,6 +74,8 @@
     <string name="encryption">加密</string>
     <!-- feature category -->
     <string name="ipv6">IPv6 路由</string>
+    <string name="block_stun">拦截 WebRTC STUN</string>
+    <string name="block_stun_summary">拦截 UDP 3478/19302，防止 WebRTC 泄露真实 IP。如有应用需要点对点通话，可关闭。</string>
     <string name="metered">按流量计费</string>
     <string name="metered_summary">让系统认为此 VPN 按流量计费</string>
     <string name="menu_route">路由</string>

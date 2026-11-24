@@ -1055,6 +1055,18 @@ fun buildConfig(
         // 解析，与“全部直连”不一致。
         dns!!.final_ = if (forTest || DataStore.routeMode == 2) "dns-direct" else "dns-remote"
 
+        // WebRTC IPv6 泄漏兜底（2026-11-24）：AAAA 一律先走 fake-ip，再进用户 DNS 规则。
+        // 否则国内域名 AAAA 先命中用户规则走 dns-direct 拿真 IPv6，直连出去就漏了。
+        // 只在 FakeDNS 开 + IPv6 开时有意义：IPv6 关时 AAAA 已被 ipv4_only 在客户端层回空。
+        if (useFakeDns && ipv6Mode != IPv6Mode.DISABLE) {
+            dns?.rules?.add(DNSRule_DefaultOptions().apply {
+                inbound = mutableListOf("tun-in")
+                server = "dns-fake"
+                disable_cache = true
+                query_type = mutableListOf("AAAA")
+            })
+        }
+
         // dns object user rules
         if (enableDnsRouting) {
             userDNSRuleList.forEach {
@@ -1078,6 +1090,19 @@ fun buildConfig(
             // 开关打开时才生成（默认关），geoip-cn 兜底是死代码，国内站漏到 final 走代理。
             // 现在无条件生成，开关删了。代价：每连接多一次 DNS 解析，解析失败时连接直接
             // 失败（不走 final）——显性失败比隐性漏网好。
+            // WebRTC STUN 拦截（2026-11-24）：UDP 3478/19302 一律 reject（drop，静默丢弃），
+            // 防止浏览器/应用经 STUN 探测泄露真实 IP。插在 resolve 之后、用户规则之前：
+            // 国内 STUN 服务器会命中 geoip-cn 直连规则，放用户规则之后就拦不住。
+            // 只在代理模式下生成（直连模式 routeMode==2 不加，拦了也没意义）。
+            // 注意：Rule_DefaultOptions 没有 method 字段（代码生成缺口），走 _hack_config_map 注入。
+            if (DataStore.blockStun && DataStore.routeMode != 2) {
+                route?.rules?.add(0, Rule_DefaultOptions().apply {
+                    network = mutableListOf("udp")
+                    port = mutableListOf(3478, 19302)
+                    action = "reject"
+                    _hack_config_map["method"] = "drop"
+                })
+            }
             route?.rules?.add(0, Rule_DefaultOptions().apply {
                 action = "resolve"
                 strategy = genDomainStrategy(true)

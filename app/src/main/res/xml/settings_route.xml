@@ -40,6 +40,11 @@
             app:key="ipv6Mode"
             app:title="@string/ipv6"
             app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            app:icon="@drawable/ic_baseline_security_24"
+            app:key="blockStun"
+            app:summary="@string/block_stun_summary"
+            app:title="@string/block_stun" />
         <!-- 路由资源更新源只做显示、不可选：源只剩 Rift 自编译一个，没什么好选的（用户 2026-11-23 定）。 -->
         <Preference
             android:selectable="false"

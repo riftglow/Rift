@@ -77,6 +77,8 @@ object Key {
     const val RESTORE_STRATEGY = "restoreStrategy"
     // Routing mode: 0 = rule (default), 1 = global (all via proxy), 2 = direct.
     const val ROUTE_MODE = "routeMode"
+    // Block WebRTC STUN (UDP 3478/19302) so the real IP can't leak via STUN (2026-11-24).
+    const val BLOCK_STUN = "blockStun"
     const val RULES_PROVIDER = "rulesProvider"
     const val LOG_LEVEL = "logLevel"
     const val LOG_BUF_SIZE = "logBufSize"

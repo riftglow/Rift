@@ -211,6 +211,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var directDns by configurationStore.string(Key.DIRECT_DNS) { "https://223.5.5.5/dns-query" }
     var enableDnsRouting by configurationStore.boolean(Key.ENABLE_DNS_ROUTING) { true }
     var enableFakeDns by configurationStore.boolean(Key.ENABLE_FAKEDNS) { true }
+    // Block WebRTC STUN (2026-11-24, default on): UDP 3478/19302 reject/drop.
+    var blockStun by configurationStore.boolean(Key.BLOCK_STUN) { true }
 
     var rulesProvider by configurationStore.stringToInt(Key.RULES_PROVIDER) { 4 }
     var logLevel by configurationStore.stringToInt(Key.LOG_LEVEL)

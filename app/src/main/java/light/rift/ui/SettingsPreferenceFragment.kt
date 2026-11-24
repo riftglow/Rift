@@ -118,6 +118,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
         val showDirectSpeed = findPreference<SwitchPreference>(Key.SHOW_DIRECT_SPEED)
         val ipv6Mode = findPreference<Preference>(Key.IPV6_MODE)
+        val blockStun = findPreference<SwitchPreference>(Key.BLOCK_STUN)
         val trafficSniffing = findPreference<Preference>(Key.TRAFFIC_SNIFFING)
 
         val bypassLan = findPreference<SwitchPreference>(Key.BYPASS_LAN)
@@ -243,6 +244,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         anytlsMinIdleSession?.onPreferenceChangeListener = reloadListener
 
         ipv6Mode?.onPreferenceChangeListener = reloadListener
+        blockStun?.onPreferenceChangeListener = reloadListener
         allowAccess?.onPreferenceChangeListener = reloadListener
 
         acquireWakeLock?.onPreferenceChangeListener = reloadListener

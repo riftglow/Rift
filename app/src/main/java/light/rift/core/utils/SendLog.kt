@@ -28,6 +28,12 @@ object SendLog {
     private val ipv6Regex = Regex("\\b(?:[0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}\\b")
     private val credentialRegex =
         Regex("(?i)(password|passwd|pwd|token|secret)\\s*[:=]\\s*[^\\s,;\"']+")
+    // JSON 形式凭证："password": "xxx" / "secret": "..." —— 上面那条
+    // 要求 key 后直接跟 : 或 =，撞上 key 与冒号之间的引号就匹配不上，
+    // 而 rift.log 里的 [ProxyInstance] 配置转储正是 JSON 形式，Hysteria2
+    // 密码与 Clash secret 会从这里漏出去。先于 credentialRegex 跑。
+    private val jsonCredentialRegex =
+        Regex("(?i)(\"(?:password|passwd|pwd|token|secret|private_?key)\"\\s*:\\s*\")[^\"]*(\")")
 
     // 日志脱敏：掩盖公网 IP、UUID、节点链接与带凭证的 URL；内网 / Fake-IP 段与回环保留（排障要看 DNS 走了哪段）。
     // 保留时间戳、级别、错误信息、协议名与出口标签，脱敏后的日志照样能定位问题。
@@ -56,6 +62,7 @@ object SendLog {
                 "***"
             }
         }
+        redacted = jsonCredentialRegex.replace(redacted, "$1***$2")
         redacted = credentialRegex.replace(redacted, "$1=***")
         return redacted
     }
@@ -88,7 +95,9 @@ object SendLog {
     // 出口脱敏（0.2.29 -13）：分享与本地导出都走这里；报告头里含设置转储
     // （CrashHandler.buildReportHeader），一样要过 redactLog 做第二道防线，
     // 不能只靠报告头自己的过滤。
-    fun writeFullLog(out: OutputStream) {
+    // 返回 rift.log 段的结果（"rift.log: N bytes" 或 "rift.log: …失败原因"），
+    // 调用方据此告诉用户核心日志到底有没有导出来。
+    fun writeFullLog(out: OutputStream): String {
         out.write(REDACT_NOTICE.toByteArray())
         out.write(redactLog(CrashHandler.buildReportHeader()).toByteArray())
         out.write("Logcat: \n\n".toByteArray())
@@ -111,30 +120,49 @@ object SendLog {
             out.write(redactLog("Export logcat error: " + CrashHandler.formatThrowable(e)).toByteArray())
         }
         out.write("\n".toByteArray())
-        // -47：rift.log 导出加兜底。-46 的有界读已进包但导出仍无 rift.log 且无诊断行，
-        // 说明读/脱敏/写某一步抛了异常并被外层 catch 吃掉。整段包进 try-catch(Throwable)，
-        // 任何失败都写一行诊断（含异常名与磁盘文件大小），不再静默丢失。
+        // rift.log 段（-74 重写）：旧的 -47 兜底有个洞——读空/抛异常时写诊断行，
+        // 但诊断行那次 out.write 本身再抛，就被内层 catch 静默吞掉，文件里既
+        // 无内容也无诊断（-53、-65 与 2026-11-25 12:45 三份导出全是这么丢的）。
+        // 现在每种结果都在文件尾留一行状态，写失败也不吞（状态照常返回，
+        // 调用方在界面上明说核心日志缺失），不再出现“无声无息少一段”。
+        var riftStatus = "rift.log: missing (unknown)"
         try {
             val riftBytes = getRiftLog(1024 * 1024)
-            val riftText = if (riftBytes.isEmpty()) {
+            if (riftBytes.isEmpty()) {
                 val size = try {
                     val f = File(RiftApp.application.cacheDir, "rift.log")
                     if (f.exists()) f.length() else -1L
                 } catch (_: Throwable) {
                     -2L
                 }
-                redactLog("[rift.log read empty; file size=${size} bytes]\n")
+                riftStatus = "rift.log: read empty (file size=${size} bytes)"
             } else {
-                redactLog(riftBytes.toString(Charsets.UTF_8))
+                val riftText = try {
+                    redactLog(riftBytes.toString(Charsets.UTF_8))
+                } catch (t: Throwable) {
+                    Logs.w(t)
+                    riftStatus =
+                        "rift.log: redact failed (${t.javaClass.simpleName}), dropped ${riftBytes.size} raw bytes"
+                    null
+                }
+                if (riftText != null) {
+                    out.write(riftText.toByteArray())
+                    out.flush()
+                    riftStatus = "rift.log: ${riftBytes.size} bytes"
+                }
             }
-            out.write(riftText.toByteArray())
         } catch (t: Throwable) {
             Logs.w(t)
-            try {
-                out.write(redactLog("[rift.log failed: ${t.javaClass.simpleName}: ${t.message}]\n").toByteArray())
-            } catch (_: Throwable) {
-            }
+            riftStatus = "rift.log: write failed (${t.javaClass.simpleName}: ${t.message})"
         }
+        // 尾行：导出永远以 rift.log 的结果收尾，缺段一眼就能看见。
+        try {
+            out.write(redactLog("[${riftStatus}]\n").toByteArray())
+            out.flush()
+        } catch (_: Throwable) {
+            // 输出流本身已坏，文件里写不进去了；状态照常返回给调用方报出来。
+        }
+        return riftStatus
     }
 
     // Create full log and send

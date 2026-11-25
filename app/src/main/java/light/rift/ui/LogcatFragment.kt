@@ -38,11 +38,22 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
                 try {
                     val resolver = context?.contentResolver
                         ?: throw IllegalStateException("fragment detached")
+                    var riftStatus = ""
                     resolver.openOutputStream(uri)?.use {
-                        SendLog.writeFullLog(it)
+                        riftStatus = SendLog.writeFullLog(it)
                     } ?: throw IllegalStateException("cannot open output")
                     onMainDispatcher {
-                        if (isAdded) snackbar(R.string.log_exported_redacted).show()
+                        // 核心日志缺失要明说，不能只报“已导出”——以前就是这么
+                        // 把缺段的导出当成功的（-74：writeFullLog 返回状态）。
+                        if (isAdded) {
+                            // 成功态形如 "rift.log: 123456 bytes"；失败态里
+                            // "dropped N raw bytes" 也含 bytes，不能只含就判成功。
+                            if (riftStatus.matches(Regex("rift\\.log: \\d+ bytes"))) {
+                                snackbar(R.string.log_exported_redacted).show()
+                            } else {
+                                snackbar(riftStatus).show()
+                            }
+                        }
                     }
                 } catch (e: Exception) {
                     onMainDispatcher {

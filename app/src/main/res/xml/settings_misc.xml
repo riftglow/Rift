@@ -15,7 +15,7 @@
             app:key="autoSpeedTestEnabled"
             app:summary="@string/auto_speed_test_summary"
             app:title="@string/auto_speed_test" />
-        <SimpleMenuPreference
+        <light.rift.core.ui.SimpleMenuPreference
             app:defaultValue="60"
             app:entries="@array/auto_speed_test_interval_entries"
             app:entryValues="@array/auto_speed_test_interval_values"
@@ -27,7 +27,7 @@
             app:key="autoSpeedTestWifiOnly"
             app:summary="@string/auto_speed_test_wifi_only_summary"
             app:title="@string/auto_speed_test_wifi_only" />
-        <SimpleMenuPreference
+        <light.rift.core.ui.SimpleMenuPreference
             app:defaultValue="url"
             app:entries="@array/auto_speed_test_mode_entries"
             app:entryValues="@array/auto_speed_test_mode_values"

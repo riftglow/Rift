@@ -14,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -42,6 +43,7 @@ import light.rift.Key
 import light.rift.R
 import light.rift.RiftApp
 import light.rift.aidl.TrafficData
+import light.rift.bg.AutoSpeedTest
 import light.rift.bg.BaseService
 import light.rift.bg.proto.UrlTest
 import light.rift.database.DataStore
@@ -165,6 +167,43 @@ class ConfigurationFragment @JvmOverloads constructor(
             Logs.e(e)
             null
         }
+    }
+
+    /**
+     * Auto speed test progress (step ②), forwarded by MainActivity from the
+     * AIDL `cbTestProgress` callback. Routes to the currently visible group
+     * only — a round for another group is invisible here, its results are
+     * already in the DB and show on re-entry.
+     */
+    fun onTestProgress(profileId: Long, state: Int) {
+        val fragment = getCurrentGroupFragment() ?: return
+        if (profileId == AutoSpeedTest.ROUND_DONE_ID) {
+            // Only reload if this group was the one being tested (its transient
+            // table is non-empty); otherwise the user is browsing another group
+            // and a reload would just yank its scroll position.
+            if (fragment.testStates.isNotEmpty()) {
+                fragment.testStates.clear()
+                fragment.adapter?.reloadProfiles()
+            }
+            return
+        }
+        if (state == AutoSpeedTest.STATE_DONE) {
+            fragment.testStates.remove(profileId)
+        } else {
+            fragment.testStates[profileId] = state
+        }
+        val adapter = fragment.adapter ?: return
+        val index = adapter.configurationIdList.indexOf(profileId)
+        if (index >= 0) adapter.notifyItemChanged(index)
+    }
+
+    /** Multi-select menu state (step ②): "cancel selection" + test-item enable. */
+    fun refreshSelectionMenu() {
+        val adapter = getCurrentGroupFragment()?.adapter ?: return
+        toolbar.menu.findItem(R.id.action_cancel_selection)?.isVisible = adapter.selectionMode
+        val canTest = !adapter.selectionMode || adapter.selectedIds.isNotEmpty()
+        toolbar.menu.findItem(R.id.action_connection_tcp_ping)?.isEnabled = canTest
+        toolbar.menu.findItem(R.id.action_connection_url_test)?.isEnabled = canTest
     }
 
     val updateSelectedCallback = object : ViewPager2.OnPageChangeCallback() {
@@ -920,6 +959,10 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
             }
 
+            R.id.action_cancel_selection -> {
+                getCurrentGroupFragment()?.adapter?.exitSelectionMode()
+            }
+
             R.id.action_connection_tcp_ping -> {
                 pingTest(false)
             }
@@ -1064,13 +1107,24 @@ class ConfigurationFragment @JvmOverloads constructor(
     @Suppress("EXPERIMENTAL_API_USAGE")
     fun pingTest(icmpPing: Boolean) {
         if (DataStore.runningTest) return else DataStore.runningTest = true
+        // Cross-process mutex (step ②): skip while the auto worker is testing.
+        val testStartMs = System.currentTimeMillis()
+        val autoMutex = DataStore.configurationStore.getString(AutoSpeedTest.MUTEX_KEY, "") ?: ""
+        if (autoMutex.startsWith("auto:")) {
+            val ts = autoMutex.substringAfter("auto:").toLongOrNull() ?: 0L
+            if (testStartMs - ts < AutoSpeedTest.MUTEX_TTL_MS) {
+                DataStore.runningTest = false
+                return
+            }
+        }
+        DataStore.configurationStore.putString(AutoSpeedTest.MUTEX_KEY, "manual:$testStartMs")
         val test = TestDialog()
         val dialog = test.builder.show()
         val testJobs = mutableListOf<Job>()
         val group = DataStore.currentGroup()
 
         val mainJob = runOnDefaultDispatcher {
-            val profilesList = RiftDatabase.proxyDao.getByGroup(group.id).filter {
+            val allProfiles = RiftDatabase.proxyDao.getByGroup(group.id).filter {
                 if (icmpPing) {
                     if (it.requireBean().canICMPing()) {
                         return@filter true
@@ -1082,6 +1136,12 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
                 return@filter false
             }
+            // Multi-select (step ②): batch-test only the checked rows.
+            val adapter = getCurrentGroupFragment()?.adapter
+            val profilesList =
+                if (adapter?.selectionMode == true && adapter.selectedIds.isNotEmpty()) {
+                    allProfiles.filter { it.id in adapter.selectedIds }
+                } else allProfiles
             test.proxyN = profilesList.size
             val profiles = ConcurrentLinkedQueue(profilesList)
             repeat(DataStore.connectionTestConcurrent) {
@@ -1193,6 +1253,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                 // 每个 updateProfile 已经触发 onUpdated -> notifyItemChanged，
                 // 即每项只刷一次；再加一次 reloadProfiles() -> notifyDataSetChanged()
                 // 全表重绑，7 个节点就是 7 次单项 + 1 次全量在瞬间叠加，列表一闪。
+                // Cross-process mutex (step ②): release our manual-test lock.
+                val curMutex = DataStore.configurationStore.getString(AutoSpeedTest.MUTEX_KEY, "") ?: ""
+                if (curMutex.startsWith("manual:")) {
+                    DataStore.configurationStore.putString(AutoSpeedTest.MUTEX_KEY, "")
+                }
                 DataStore.runningTest = false
             }
         }
@@ -1280,13 +1345,30 @@ class ConfigurationFragment @JvmOverloads constructor(
     @OptIn(DelicateCoroutinesApi::class)
     fun urlTest() {
         if (DataStore.runningTest) return else DataStore.runningTest = true
+        // Cross-process mutex (step ②): skip while the auto worker is testing.
+        val testStartMs = System.currentTimeMillis()
+        val autoMutex = DataStore.configurationStore.getString(AutoSpeedTest.MUTEX_KEY, "") ?: ""
+        if (autoMutex.startsWith("auto:")) {
+            val ts = autoMutex.substringAfter("auto:").toLongOrNull() ?: 0L
+            if (testStartMs - ts < AutoSpeedTest.MUTEX_TTL_MS) {
+                DataStore.runningTest = false
+                return
+            }
+        }
+        DataStore.configurationStore.putString(AutoSpeedTest.MUTEX_KEY, "manual:$testStartMs")
         val test = TestDialog()
         val dialog = test.builder.show()
         val testJobs = mutableListOf<Job>()
         val group = DataStore.currentGroup()
 
         val mainJob = runOnDefaultDispatcher {
-            val profilesList = RiftDatabase.proxyDao.getByGroup(group.id)
+            val allProfiles = RiftDatabase.proxyDao.getByGroup(group.id)
+            // Multi-select (step ②): batch-test only the checked rows.
+            val adapter = getCurrentGroupFragment()?.adapter
+            val profilesList =
+                if (adapter?.selectionMode == true && adapter.selectedIds.isNotEmpty()) {
+                    allProfiles.filter { it.id in adapter.selectedIds }
+                } else allProfiles
             test.proxyN = profilesList.size
             val profiles = ConcurrentLinkedQueue(profilesList)
             repeat(DataStore.connectionTestConcurrent) {
@@ -1334,6 +1416,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                 // 每个 updateProfile 已经触发 onUpdated -> notifyItemChanged，
                 // 即每项只刷一次；再加一次 reloadProfiles() -> notifyDataSetChanged()
                 // 全表重绑，7 个节点就是 7 次单项 + 1 次全量在瞬间叠加，列表一闪。
+                // Cross-process mutex (step ②): release our manual-test lock.
+                val curMutex = DataStore.configurationStore.getString(AutoSpeedTest.MUTEX_KEY, "") ?: ""
+                if (curMutex.startsWith("manual:")) {
+                    DataStore.configurationStore.putString(AutoSpeedTest.MUTEX_KEY, "")
+                }
                 DataStore.runningTest = false
             }
         }
@@ -1496,6 +1583,10 @@ class ConfigurationFragment @JvmOverloads constructor(
 
         lateinit var undoManager: UndoSnackbarManager<ProxyEntity>
         var adapter: ConfigurationAdapter? = null
+
+        // Auto speed test transient states (step ②): profileId -> 1 testing / 2 queued.
+        // In-memory only, never written to DB; cleared when the round ends.
+        val testStates = ConcurrentHashMap<Long, Int>()
 
         override fun onSaveInstanceState(outState: Bundle) {
             super.onSaveInstanceState(outState)
@@ -1763,6 +1854,18 @@ class ConfigurationFragment @JvmOverloads constructor(
             var configurationIdList: MutableList<Long> = mutableListOf()
             val configurationList = HashMap<Long, ProxyEntity>()
 
+            // Multi-select for manual batch test (step ②): long-press a row to enter.
+            val selectedIds = LinkedHashSet<Long>()
+            var selectionMode = false
+
+            fun exitSelectionMode() {
+                if (!selectionMode && selectedIds.isEmpty()) return
+                selectionMode = false
+                selectedIds.clear()
+                notifyDataSetChanged()
+                (parentFragment as? ConfigurationFragment)?.refreshSelectionMenu()
+            }
+
             private fun getItem(profileId: Long): ProxyEntity {
                 var profile = configurationList[profileId]
                 if (profile == null) {
@@ -1953,6 +2056,12 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
 
             fun reloadProfiles() {
+                // Multi-select does not survive a full reload (step ②) — a
+                // finished auto-test round ends it too, by design.
+                if (selectionMode || selectedIds.isNotEmpty()) {
+                    selectionMode = false
+                    selectedIds.clear()
+                }
                 var newProfiles = RiftDatabase.proxyDao.getByGroup(proxyGroup.id)
                 when (proxyGroup.order) {
                     GroupOrder.BY_NAME -> {
@@ -1988,6 +2097,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                         configurationListView.scrollTo(0, true)
                     }
 
+                    // A reload ends multi-select (step ②); sync the menu.
+                    (parentFragment as? ConfigurationFragment)?.refreshSelectionMenu()
                 }
             }
 
@@ -2006,6 +2117,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             val profileType: TextView = view.findViewById(R.id.profile_type)
             val profilePrimary: TextView = view.findViewById(R.id.profile_primary)
             val profileStatus: TextView = view.findViewById(R.id.profile_status)
+            val profileCheckbox: CheckBox = view.findViewById(R.id.profile_checkbox)
 
             val trafficText: TextView = view.findViewById(R.id.traffic_text)
             val selectedView: LinearLayout = view.findViewById(R.id.selected_view)
@@ -2137,10 +2249,25 @@ class ConfigurationFragment @JvmOverloads constructor(
                 entity = proxyEntity
 
                 view.setOnClickListener {
-                    if (select) {
+                    if (selectionMode) {
+                        toggleSelection(proxyEntity.id)
+                    } else if (select) {
                         (requireActivity() as SelectCallback).returnProfile(proxyEntity.id)
                     } else {
                         selectProfile(proxyEntity)
+                    }
+                }
+
+                // Multi-select (step ②): long-press any row to enter, tap to toggle.
+                view.setOnLongClickListener {
+                    if (!selectionMode && !select) {
+                        selectionMode = true
+                        selectedIds.add(proxyEntity.id)
+                        notifyDataSetChanged()
+                        (parentFragment as? ConfigurationFragment)?.refreshSelectionMenu()
+                        true
+                    } else {
+                        false
                     }
                 }
 
@@ -2151,7 +2278,31 @@ class ConfigurationFragment @JvmOverloads constructor(
                     DataStore.groupPrimaryProfile(proxyGroup.id) == proxyEntity.id
                 bindFlag(proxyEntity)
 
-                bindStatusTraffic(proxyEntity, trafficData)
+                // Multi-select checkbox (step ②): always re-set on bind — holder
+                // reuse would otherwise carry a stale checked state to another row.
+                profileCheckbox.isVisible = selectionMode
+                profileCheckbox.isChecked = proxyEntity.id in selectedIds
+                profileCheckbox.setOnClickListener { toggleSelection(proxyEntity.id) }
+
+                // Auto speed test transient state (step ②): shown instead of the
+                // stored ping while the round is running; never written to DB.
+                val testState = testStates[proxyEntity.id]
+                if (testState != null) {
+                    profileStatus.textSize = 15f
+                    profileStatus.setTextColor(
+                        requireContext().getColour(R.color.color_rift_accent)
+                    )
+                    profileStatus.text = when (testState) {
+                        AutoSpeedTest.STATE_TESTING ->
+                            getString(R.string.connection_test_testing)
+                        AutoSpeedTest.STATE_QUEUED ->
+                            getString(R.string.auto_speed_test_queued)
+                        else -> ""
+                    }
+                    profileStatus.setOnClickListener(null)
+                } else {
+                    bindStatusTraffic(proxyEntity, trafficData)
+                }
 
                 // ⋮ 菜单（2026-11-13，0.2.23 -4）：连接/测速/编辑/分享/二维码/删除；
                 // 选节点模式（select）下不显示，点卡就是选节点。
@@ -2164,6 +2315,14 @@ class ConfigurationFragment @JvmOverloads constructor(
                         selectedView.visibility = if (selected) View.VISIBLE else View.INVISIBLE
                     }
                 }
+            }
+
+            /** Multi-select (step ②): flip one row's selection, rebind it, sync menu. */
+            private fun toggleSelection(id: Long) {
+                if (id in selectedIds) selectedIds.remove(id) else selectedIds.add(id)
+                val index = configurationIdList.indexOf(id)
+                if (index >= 0) notifyItemChanged(index)
+                (parentFragment as? ConfigurationFragment)?.refreshSelectionMenu()
             }
 
             /** 点卡 / ⋮ 菜单“连接”共用：选这个节点，切节点后若 VPN 在跑就重载。 */

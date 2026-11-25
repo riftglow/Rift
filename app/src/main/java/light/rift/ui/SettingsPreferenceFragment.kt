@@ -14,6 +14,8 @@ import light.rift.Key
 import light.rift.R
 import light.rift.BootReceiver
 import light.rift.RiftApp
+import light.rift.bg.AutoSpeedTest
+import light.rift.core.utils.Util
 import light.rift.database.DataStore
 import light.rift.database.preference.EditTextPreferenceModifiers
 import light.rift.ktx.*
@@ -210,6 +212,23 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             (activity as MainActivity?)?.refreshNavMenu(newValue as Boolean)
             needReload()
             true
+        }
+
+        // Auto speed test (step ②, 2026-11-25): switch/interval change re-schedules
+        // the :bg periodic worker (or cancels it when switched off).
+        val autoSpeedTestListener = Preference.OnPreferenceChangeListener { _, _ ->
+            runOnDefaultDispatcher { AutoSpeedTest.reconfigure() }
+            true
+        }
+        findPreference<SwitchPreference>(Key.AUTO_SPEED_TEST_ENABLED)?.onPreferenceChangeListener =
+            autoSpeedTestListener
+        findPreference<SimpleMenuPreference>(Key.AUTO_SPEED_TEST_INTERVAL)?.onPreferenceChangeListener =
+            autoSpeedTestListener
+        // "Last auto test" is display-only: show the last run time, or "never".
+        findPreference<Preference>(Key.AUTO_SPEED_TEST_LAST_TIME)?.let { lastTime ->
+            val ts = DataStore.autoSpeedTestLastTime
+            lastTime.summary = if (ts > 0) Util.timeStamp2Text(ts)
+            else getString(R.string.auto_speed_test_never)
         }
 
         // 用户手动改端口：记为非自动分配，之后端口冲突时 BaseService 不会

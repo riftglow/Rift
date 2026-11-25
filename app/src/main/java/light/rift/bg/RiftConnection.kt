@@ -43,6 +43,8 @@ class RiftConnection(
         fun cbSpeedUpdate(stats: SpeedDisplayData) {}
         fun cbTrafficUpdate(data: TrafficData) {}
         fun cbSelectorUpdate(id: Long) {}
+        // Auto speed test progress (step ②): 1 testing / 2 queued / 0 done; -1 = round finished.
+        fun cbTestProgress(profileId: Long, state: Int) {}
 
         fun stateChanged(state: BaseService.State, profileName: String?, msg: String?)
 
@@ -86,6 +88,10 @@ class RiftConnection(
 
         override fun cbSelectorUpdate(id: Long) {
             postCallback { cbSelectorUpdate(id) }
+        }
+
+        override fun cbTestProgress(profileId: Long, state: Int) {
+            postCallback { cbTestProgress(profileId, state) }
         }
 
     }

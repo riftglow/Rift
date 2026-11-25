@@ -267,6 +267,12 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var appendHttpProxy by configurationStore.boolean(Key.APPEND_HTTP_PROXY)
     var connectionTestURL by configurationStore.string(Key.CONNECTION_TEST_URL) { CONNECTION_TEST_URL }
     var connectionTestConcurrent by configurationStore.int("connectionTestConcurrent") { 5 }
+    // Auto speed test (step ②, 2026-11-25): periodic test of the current group, :bg worker.
+    var autoSpeedTestEnabled by configurationStore.boolean(Key.AUTO_SPEED_TEST_ENABLED) { false }
+    var autoSpeedTestInterval by configurationStore.stringToInt(Key.AUTO_SPEED_TEST_INTERVAL) { 60 }
+    var autoSpeedTestWifiOnly by configurationStore.boolean(Key.AUTO_SPEED_TEST_WIFI_ONLY) { true }
+    var autoSpeedTestMode by configurationStore.string(Key.AUTO_SPEED_TEST_MODE) { "url" }
+    var autoSpeedTestLastTime by configurationStore.long(Key.AUTO_SPEED_TEST_LAST_TIME) { 0L }
     var alwaysShowAddress by configurationStore.boolean(Key.ALWAYS_SHOW_ADDRESS)
 
     var tunImplementation by configurationStore.stringToInt(Key.TUN_IMPLEMENTATION) { TunImplementation.GVISOR }

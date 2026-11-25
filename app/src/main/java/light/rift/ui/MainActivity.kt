@@ -153,8 +153,15 @@ class MainActivity : ThemedActivity(),
             }
         }
         onBackPressedDispatcher.addCallback {
-            // 返回键：节点页回桌面；分类子页回设置总表；其他页回节点页。
+            // 返回键：多选模式先退出多选；节点页回桌面；分类子页回设置总表；其他页回节点页。
             val current = supportFragmentManager.findFragmentById(R.id.fragment_holder)
+            if (current is ConfigurationFragment) {
+                val adapter = current.getCurrentGroupFragment()?.adapter
+                if (adapter?.selectionMode == true) {
+                    adapter.exitSelectionMode()
+                    return@addCallback
+                }
+            }
             when {
                 current is ConfigurationFragment -> moveTaskToBack(true)
                 current is SettingsCategoryFragment -> displayFragment(SettingsFragment())
@@ -651,6 +658,11 @@ class MainActivity : ThemedActivity(),
         runOnDefaultDispatcher {
             ProfileManager.postUpdate(data)
         }
+    }
+
+    // Auto speed test progress (step ②): forward to the visible group list.
+    override fun cbTestProgress(profileId: Long, state: Int) {
+        currentConfigurationFragment()?.onTestProgress(profileId, state)
     }
 
     override fun cbSelectorUpdate(id: Long) {

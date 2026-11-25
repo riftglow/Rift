@@ -10,6 +10,36 @@
             app:title="@string/connection_test_url"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreference
+            app:defaultValue="false"
+            app:icon="@drawable/ic_baseline_speed_24"
+            app:key="autoSpeedTestEnabled"
+            app:summary="@string/auto_speed_test_summary"
+            app:title="@string/auto_speed_test" />
+        <SimpleMenuPreference
+            app:defaultValue="60"
+            app:entries="@array/auto_speed_test_interval_entries"
+            app:entryValues="@array/auto_speed_test_interval_values"
+            app:key="autoSpeedTestInterval"
+            app:title="@string/auto_speed_test_interval"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            app:defaultValue="true"
+            app:key="autoSpeedTestWifiOnly"
+            app:summary="@string/auto_speed_test_wifi_only_summary"
+            app:title="@string/auto_speed_test_wifi_only" />
+        <SimpleMenuPreference
+            app:defaultValue="url"
+            app:entries="@array/auto_speed_test_mode_entries"
+            app:entryValues="@array/auto_speed_test_mode_values"
+            app:key="autoSpeedTestMode"
+            app:title="@string/auto_speed_test_mode"
+            app:useSimpleSummaryProvider="true" />
+        <Preference
+            android:selectable="false"
+            app:key="autoSpeedTestLastTime"
+            app:summary="@string/auto_speed_test_never"
+            app:title="@string/auto_speed_test_last_time" />
+        <SwitchPreference
             app:icon="@drawable/baseline_construction_24"
             app:key="enableClashAPI"
             app:summary="@string/enable_clash_api_summary"

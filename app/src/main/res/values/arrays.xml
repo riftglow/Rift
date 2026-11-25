@@ -311,6 +311,25 @@
         <item>@string/only</item>
     </string-array>
 
+    <string-array name="auto_speed_test_interval_entries">
+        <item>@string/auto_speed_test_interval_30</item>
+        <item>@string/auto_speed_test_interval_60</item>
+        <item>@string/auto_speed_test_interval_360</item>
+    </string-array>
+    <string-array name="auto_speed_test_interval_values">
+        <item>30</item>
+        <item>60</item>
+        <item>360</item>
+    </string-array>
+    <string-array name="auto_speed_test_mode_entries">
+        <item>URL</item>
+        <item>TCP</item>
+    </string-array>
+    <string-array name="auto_speed_test_mode_values">
+        <item>url</item>
+        <item>tcp</item>
+    </string-array>
+
     <string-array name="group_types">
         <item>@string/group_basic</item>
         <item>@string/subscription</item>

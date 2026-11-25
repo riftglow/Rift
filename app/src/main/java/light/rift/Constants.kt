@@ -56,6 +56,13 @@ object Key {
 
     const val CONNECTION_TEST_URL = "connectionTestURL"
 
+    // Auto speed test (step ②, 2026-11-25): periodic URL/TCP test of the current group.
+    const val AUTO_SPEED_TEST_ENABLED = "autoSpeedTestEnabled"
+    const val AUTO_SPEED_TEST_INTERVAL = "autoSpeedTestInterval"
+    const val AUTO_SPEED_TEST_WIFI_ONLY = "autoSpeedTestWifiOnly"
+    const val AUTO_SPEED_TEST_MODE = "autoSpeedTestMode"
+    const val AUTO_SPEED_TEST_LAST_TIME = "autoSpeedTestLastTime"
+
     const val NETWORK_CHANGE_RESET_CONNECTIONS = "networkChangeResetConnections"
     const val WAKE_RESET_CONNECTIONS = "wakeResetConnections"
 

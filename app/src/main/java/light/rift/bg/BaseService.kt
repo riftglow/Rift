@@ -28,6 +28,14 @@ import java.net.UnknownHostException
 
 class BaseService {
 
+    companion object {
+        // The currently bound service binder (:bg process). The auto speed test
+        // worker runs in :bg too and pushes per-node progress through it; null
+        // when the service is not running (broadcast is then a no-op).
+        @Volatile
+        var currentBinder: Binder? = null
+    }
+
     enum class State(
         val canStop: Boolean = false,
         val started: Boolean = false,
@@ -123,6 +131,10 @@ class BaseService {
 
     class Binder(private var data: Data? = null) : IRiftAppService.Stub(), CoroutineScope,
         AutoCloseable {
+        init {
+            currentBinder = this
+        }
+
         private val callbacks = object : RemoteCallbackList<IRiftAppServiceCallback>() {
             override fun onCallbackDied(callback: IRiftAppServiceCallback?, cookie: Any?) {
                 super.onCallbackDied(callback, cookie)
@@ -189,7 +201,14 @@ class BaseService {
             broadcast { it.stateChanged(s.ordinal, profileName, msg) }
         }
 
+        // Auto speed test progress (step ②, 2026-11-25): oneway callback, a
+        // failed push must never break the test round (broadcast swallows).
+        fun broadcastTestProgress(profileId: Long, state: Int) = launch {
+            broadcast { it.cbTestProgress(profileId, state) }
+        }
+
         override fun close() {
+            if (currentBinder == this) currentBinder = null
             callbacks.kill()
             cancel()
             data = null

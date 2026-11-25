@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import light.rift.bg.AutoSpeedTest
 import light.rift.bg.SubscriptionUpdater
 import light.rift.database.DataStore
 import light.rift.ktx.app
@@ -43,6 +44,8 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         runOnDefaultDispatcher {
             SubscriptionUpdater.reconfigureUpdater()
+            // Auto speed test (step ②): re-enqueue the periodic worker after reboot.
+            AutoSpeedTest.reconfigure()
         }
 
         if (!DataStore.persistAcrossReboot) {

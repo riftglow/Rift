@@ -75,6 +75,9 @@
         app:showAsAction="always">
         <menu>
             <item
+                android:id="@+id/action_cancel_selection"
+                android:title="@string/auto_speed_test_cancel_selection" />
+            <item
                 android:id="@+id/action_connection_tcp_ping"
                 android:title="@string/connection_test_tcp_ping" />
             <item

@@ -81,6 +81,19 @@
     <string name="fakedns_message">May cause other applications need to be restarted to reconnect to
         the network after proxy stopped</string>
     <string name="connection_test_url">Connection Test URL</string>
+    <string name="auto_speed_test">Auto speed test</string>
+    <string name="auto_speed_test_summary">Periodically test all nodes in the current group</string>
+    <string name="auto_speed_test_interval">Test interval</string>
+    <string name="auto_speed_test_interval_30">About every 30 minutes</string>
+    <string name="auto_speed_test_interval_60">About every hour</string>
+    <string name="auto_speed_test_interval_360">About every 6 hours</string>
+    <string name="auto_speed_test_wifi_only">Wi-Fi only</string>
+    <string name="auto_speed_test_wifi_only_summary">Skip the round when on mobile data</string>
+    <string name="auto_speed_test_mode">Test mode</string>
+    <string name="auto_speed_test_last_time">Last auto test</string>
+    <string name="auto_speed_test_never">Never run</string>
+    <string name="auto_speed_test_queued">Queued</string>
+    <string name="auto_speed_test_cancel_selection">Cancel selection</string>
     <!-- proxy category -->
     <string name="profile_name">Profile Name</string>
     <string name="server_address">Server</string>

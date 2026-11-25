@@ -98,69 +98,77 @@ object SendLog {
     // 返回 rift.log 段的结果（"rift.log: N bytes" 或 "rift.log: …失败原因"），
     // 调用方据此告诉用户核心日志到底有没有导出来。
     fun writeFullLog(out: OutputStream): String {
-        out.write(REDACT_NOTICE.toByteArray())
-        out.write(redactLog(CrashHandler.buildReportHeader()).toByteArray())
-        out.write("Logcat: \n\n".toByteArray())
-        try {
-            val proc = Runtime.getRuntime().exec(arrayOf("logcat", "-d"))
-            try {
-                proc.inputStream.use {
-                    out.write(redactLog(it.readBytes().toString(Charsets.UTF_8)).toByteArray())
-                }
-            } finally {
-                try {
-                    proc.waitFor()
-                } catch (_: Exception) {
-                }
-                proc.destroy()
-            }
-            out.write("\n".toByteArray())
-        } catch (e: IOException) {
-            Logs.w(e)
-            out.write(redactLog("Export logcat error: " + CrashHandler.formatThrowable(e)).toByteArray())
-        }
-        out.write("\n".toByteArray())
-        // rift.log 段（-74 重写）：旧的 -47 兜底有个洞——读空/抛异常时写诊断行，
-        // 但诊断行那次 out.write 本身再抛，就被内层 catch 静默吞掉，文件里既
-        // 无内容也无诊断（-53、-65 与 2026-11-25 12:45 三份导出全是这么丢的）。
-        // 现在每种结果都在文件尾留一行状态，写失败也不吞（状态照常返回，
-        // 调用方在界面上明说核心日志缺失），不再出现“无声无息少一段”。
+        // -75：writeFullLog 绝不抛异常。-74 的尾行只在输出流还能写时才兜得住——
+        // 2026-11-25 19:39 那份导出在 logcat 后就断了（没保护的换行写抛了，
+        // 或流本身坏了），既无核心日志也无尾行。整个函数包进 try-catch(Throwable)，
+        // 任何失败都返回状态、界面上明说，不再出现“无声无息少一段”。
         var riftStatus = "rift.log: missing (unknown)"
         try {
-            val riftBytes = getRiftLog(1024 * 1024)
-            if (riftBytes.isEmpty()) {
-                val size = try {
-                    val f = File(RiftApp.application.cacheDir, "rift.log")
-                    if (f.exists()) f.length() else -1L
-                } catch (_: Throwable) {
-                    -2L
+            out.write(REDACT_NOTICE.toByteArray())
+            out.write(redactLog(CrashHandler.buildReportHeader()).toByteArray())
+            out.write("Logcat: \n\n".toByteArray())
+            try {
+                val proc = Runtime.getRuntime().exec(arrayOf("logcat", "-d"))
+                try {
+                    proc.inputStream.use {
+                        out.write(redactLog(it.readBytes().toString(Charsets.UTF_8)).toByteArray())
+                    }
+                } finally {
+                    try {
+                        proc.waitFor()
+                    } catch (_: Exception) {
+                    }
+                    proc.destroy()
                 }
-                riftStatus = "rift.log: read empty (file size=${size} bytes)"
-            } else {
-                val riftText = try {
-                    redactLog(riftBytes.toString(Charsets.UTF_8))
-                } catch (t: Throwable) {
-                    Logs.w(t)
-                    riftStatus =
-                        "rift.log: redact failed (${t.javaClass.simpleName}), dropped ${riftBytes.size} raw bytes"
-                    null
-                }
-                if (riftText != null) {
-                    out.write(riftText.toByteArray())
-                    out.flush()
-                    riftStatus = "rift.log: ${riftBytes.size} bytes"
-                }
+                out.write("\n".toByteArray())
+            } catch (e: IOException) {
+                Logs.w(e)
+                out.write(redactLog("Export logcat error: " + CrashHandler.formatThrowable(e)).toByteArray())
             }
-        } catch (t: Throwable) {
-            Logs.w(t)
-            riftStatus = "rift.log: write failed (${t.javaClass.simpleName}: ${t.message})"
-        }
-        // 尾行：导出永远以 rift.log 的结果收尾，缺段一眼就能看见。
-        try {
+            out.write("\n".toByteArray())
+            // rift.log 段：每种结果都在文件尾留一行状态（-74），写失败要返回给
+            // 调用方在界面上明说，不能只在文件里赌一把。
+            try {
+                val riftBytes = getRiftLog(1024 * 1024)
+                if (riftBytes.isEmpty()) {
+                    val size = try {
+                        val f = File(RiftApp.application.cacheDir, "rift.log")
+                        if (f.exists()) f.length() else -1L
+                    } catch (_: Throwable) {
+                        -2L
+                    }
+                    riftStatus = "rift.log: read empty (file size=${size} bytes)"
+                } else {
+                    val riftText = try {
+                        redactLog(riftBytes.toString(Charsets.UTF_8))
+                    } catch (t: Throwable) {
+                        Logs.w(t)
+                        riftStatus =
+                            "rift.log: redact failed (${t.javaClass.simpleName}), dropped ${riftBytes.size} raw bytes"
+                        null
+                    }
+                    if (riftText != null) {
+                        out.write(riftText.toByteArray())
+                        out.flush()
+                        riftStatus = "rift.log: ${riftBytes.size} bytes"
+                    }
+                }
+            } catch (t: Throwable) {
+                Logs.w(t)
+                riftStatus = "rift.log: write failed (${t.javaClass.simpleName}: ${t.message})"
+            }
+            // 尾行：导出永远以 rift.log 的结果收尾，缺段一眼就能看见。
             out.write(redactLog("[${riftStatus}]\n").toByteArray())
             out.flush()
-        } catch (_: Throwable) {
-            // 输出流本身已坏，文件里写不进去了；状态照常返回给调用方报出来。
+        } catch (t: Throwable) {
+            Logs.w(t)
+            riftStatus = "export failed: ${t.javaClass.simpleName}: ${t.message}"
+            try {
+                out.write(redactLog("[${riftStatus}]\n").toByteArray())
+                out.flush()
+            } catch (_: Throwable) {
+                // 输出流本身已坏，文件里写不进去了；状态照常返回给调用方报出来。
+            }
         }
         return riftStatus
     }

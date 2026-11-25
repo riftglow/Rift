@@ -90,6 +90,21 @@ object SendLog {
             (a == 169 && b == 254) || a >= 224
     }
 
+    // -77：大块内容分段写。00:57 那份 -76 导出停在 logcat 之后、
+    // 核心日志段之前：1MB 整块 out.write 到 SAF 输出流时坏了，
+    // 后面的尾行也写不进去。改 64KB 一段、每段 flush；同时记一
+    // 行诊断，万一再断，下次导出的 logcat 里能看到断在哪一段。
+    private fun writeChunked(out: OutputStream, bytes: ByteArray) {
+        val chunk = 64 * 1024
+        var off = 0
+        while (off < bytes.size) {
+            val len = minOf(chunk, bytes.size - off)
+            out.write(bytes, off, len)
+            out.flush()
+            off += len
+        }
+    }
+
     // Write the same full log that sendLog shares: report header + logcat + rift.log.
     // Used by both the share path and the local-export path so they never diverge.
     // 出口脱敏（0.2.29 -13）：分享与本地导出都走这里；报告头里含设置转储
@@ -111,7 +126,10 @@ object SendLog {
                 val proc = Runtime.getRuntime().exec(arrayOf("logcat", "-d"))
                 try {
                     proc.inputStream.use {
-                        out.write(redactLog(it.readBytes().toString(Charsets.UTF_8)).toByteArray())
+                        val logcatBytes =
+                            redactLog(it.readBytes().toString(Charsets.UTF_8)).toByteArray()
+                        Logs.d("SendLog: writing logcat ${logcatBytes.size} bytes")
+                        writeChunked(out, logcatBytes)
                     }
                 } finally {
                     try {
@@ -148,8 +166,9 @@ object SendLog {
                         null
                     }
                     if (riftText != null) {
-                        out.write(riftText.toByteArray())
-                        out.flush()
+                        val riftOutBytes = riftText.toByteArray()
+                        Logs.d("SendLog: writing rift.log ${riftBytes.size} raw bytes as ${riftOutBytes.size} redacted bytes")
+                        writeChunked(out, riftOutBytes)
                         riftStatus = "rift.log: ${riftBytes.size} bytes"
                     }
                 }

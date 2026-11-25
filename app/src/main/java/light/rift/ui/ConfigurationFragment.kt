@@ -2249,7 +2249,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 entity = proxyEntity
 
                 view.setOnClickListener {
-                    if (selectionMode) {
+                    if (adapter?.selectionMode == true) {
                         toggleSelection(proxyEntity.id)
                     } else if (select) {
                         (requireActivity() as SelectCallback).returnProfile(proxyEntity.id)
@@ -2260,10 +2260,10 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                 // Multi-select (step ②): long-press any row to enter, tap to toggle.
                 view.setOnLongClickListener {
-                    if (!selectionMode && !select) {
-                        selectionMode = true
-                        selectedIds.add(proxyEntity.id)
-                        notifyDataSetChanged()
+                    if (adapter?.selectionMode != true && !select) {
+                        adapter?.selectionMode = true
+                        adapter?.selectedIds?.add(proxyEntity.id)
+                        adapter?.notifyDataSetChanged()
                         (parentFragment as? ConfigurationFragment)?.refreshSelectionMenu()
                         true
                     } else {
@@ -2280,8 +2280,8 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                 // Multi-select checkbox (step ②): always re-set on bind — holder
                 // reuse would otherwise carry a stale checked state to another row.
-                profileCheckbox.isVisible = selectionMode
-                profileCheckbox.isChecked = proxyEntity.id in selectedIds
+                profileCheckbox.isVisible = adapter?.selectionMode == true
+                profileCheckbox.isChecked = adapter?.selectedIds?.contains(proxyEntity.id) == true
                 profileCheckbox.setOnClickListener { toggleSelection(proxyEntity.id) }
 
                 // Auto speed test transient state (step ②): shown instead of the
@@ -2319,9 +2319,10 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             /** Multi-select (step ②): flip one row's selection, rebind it, sync menu. */
             private fun toggleSelection(id: Long) {
-                if (id in selectedIds) selectedIds.remove(id) else selectedIds.add(id)
-                val index = configurationIdList.indexOf(id)
-                if (index >= 0) notifyItemChanged(index)
+                val ids = adapter?.selectedIds ?: return
+                if (id in ids) ids.remove(id) else ids.add(id)
+                val index = adapter?.configurationIdList?.indexOf(id) ?: -1
+                if (index >= 0) adapter?.notifyItemChanged(index)
                 (parentFragment as? ConfigurationFragment)?.refreshSelectionMenu()
             }
 

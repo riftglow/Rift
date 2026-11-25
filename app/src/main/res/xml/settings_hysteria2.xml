@@ -27,9 +27,4 @@
         app:key="hy2BrutalDebug"
         app:summary="@string/hy2_brutal_debug_summary"
         app:title="@string/hy2_brutal_debug" />
-    <Preference
-        android:selectable="false"
-        app:icon="@drawable/ic_baseline_info_24"
-        android:summary="@string/explain_hy2_summary"
-        android:title="@string/explain_hy2_title" />
 </PreferenceScreen>

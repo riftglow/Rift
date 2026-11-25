@@ -52,21 +52,11 @@
             app:icon="@drawable/ic_baseline_flip_camera_android_24"
             app:key="networkChangeResetConnections"
             app:title="@string/network_change_reset_connections" />
-        <Preference
-            android:selectable="false"
-            app:icon="@drawable/ic_baseline_info_24"
-            android:summary="@string/explain_network_reset_summary"
-            android:title="@string/explain_network_reset_title" />
         <SwitchPreference
             android:summary="@string/wake_reset_connections_summary"
             app:defaultValue="false"
             app:key="wakeResetConnections"
             app:title="@string/wake_reset_connections" />
-        <Preference
-            android:selectable="false"
-            app:icon="@drawable/ic_baseline_info_24"
-            android:summary="@string/explain_wake_reset_summary"
-            android:title="@string/explain_wake_reset_title" />
     </PreferenceCategory>
     <PreferenceCategory app:title="@string/settings_group_security_display">
         <SwitchPreference

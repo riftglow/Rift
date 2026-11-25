@@ -41,11 +41,6 @@
             app:icon="@drawable/baseline_public_24"
             app:key="mtu"
             app:title="@string/mtu" />
-        <Preference
-            android:selectable="false"
-            app:icon="@drawable/ic_baseline_info_24"
-            android:summary="@string/explain_mtu_summary"
-            android:title="@string/explain_mtu_title" />
         <light.rift.core.ui.SimpleMenuPreference
             app:defaultValue="1000"
             app:entries="@array/notification_entry"

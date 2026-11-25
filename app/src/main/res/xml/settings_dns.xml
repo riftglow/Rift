@@ -52,11 +52,6 @@
             app:key="enableFakeDns"
             app:summary="@string/fakedns_message"
             app:title="@string/enable_fakedns" />
-        <Preference
-            android:selectable="false"
-            app:icon="@drawable/ic_baseline_info_24"
-            android:summary="@string/explain_fakedns_summary"
-            android:title="@string/explain_fakedns_title" />
         <SwitchPreference
             app:defaultValue="false"
             app:icon="@drawable/ic_action_dns"

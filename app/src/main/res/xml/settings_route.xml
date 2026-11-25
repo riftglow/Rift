@@ -25,11 +25,6 @@
             app:key="trafficSniffing"
             app:summary="@string/traffic_sniffing_summary"
             app:title="@string/traffic_sniffing" />
-        <Preference
-            android:selectable="false"
-            app:icon="@drawable/ic_baseline_info_24"
-            android:summary="@string/explain_sniffing_summary"
-            android:title="@string/explain_sniffing_title" />
     </PreferenceCategory>
     <PreferenceCategory app:title="@string/settings_group_protocol_rules">
         <light.rift.core.ui.SimpleMenuPreference

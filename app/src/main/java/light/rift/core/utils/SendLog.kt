@@ -9,6 +9,7 @@ import light.rift.RiftApp
 import light.rift.ktx.Logs
 import light.rift.ktx.app
 import light.rift.utils.CrashHandler
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -113,15 +114,23 @@ object SendLog {
     // 返回 rift.log 段的结果（"rift.log: N bytes" 或 "rift.log: …失败原因"），
     // 调用方据此告诉用户核心日志到底有没有导出来。
     fun writeFullLog(out: OutputStream): String {
-        // -75：writeFullLog 绝不抛异常。-74 的尾行只在输出流还能写时才兜得住——
-        // 2026-11-25 19:39 那份导出在 logcat 后就断了（没保护的换行写抛了，
-        // 或流本身坏了），既无核心日志也无尾行。整个函数包进 try-catch(Throwable)，
-        // 任何失败都返回状态、界面上明说，不再出现“无声无息少一段”。
+        // -78：导出先在内存里拼完整，再一次性拷到输出流。
+        // 之前五次截断（-53/-65、-74 19:39、-76 00:57、-77 07:29/07:32）
+        // 有个共同点：文件停在 logcat 之后、rift.log 段之前，一个字节都
+        // 没进去，尾行也没有。-74 的尾行、-75 的 never-throws、-77 的
+        // 分块写都只兜得住“抛异常”的失败；一旦 rift.log 那步卡住（正则
+        // 在某段上失控、输出流在写大段时断掉），函数根本走不到写尾行的
+        // 地方，文件就静默地缺段、界面也不报错。
+        // 改法：① 整份导出先拼进内存 buffer，尾行一定写进 buffer 再拷，
+        // 拼的过程中任何失败都变成状态行写进文件；② rift.log 按行脱敏，
+        // 正则失控最多只卡在一行上；③ 最后把 buffer 分块拷到 out，拷
+        // 失败单独报状态——输出流的问题再也不会伪装成缺段。
         var riftStatus = "rift.log: missing (unknown)"
+        val buf = ByteArrayOutputStream()
         try {
-            out.write(REDACT_NOTICE.toByteArray())
-            out.write(redactLog(CrashHandler.buildReportHeader()).toByteArray())
-            out.write("Logcat: \n\n".toByteArray())
+            buf.write(REDACT_NOTICE.toByteArray())
+            buf.write(redactLog(CrashHandler.buildReportHeader()).toByteArray())
+            buf.write("Logcat: \n\n".toByteArray())
             try {
                 val proc = Runtime.getRuntime().exec(arrayOf("logcat", "-d"))
                 try {
@@ -129,7 +138,7 @@ object SendLog {
                         val logcatBytes =
                             redactLog(it.readBytes().toString(Charsets.UTF_8)).toByteArray()
                         Logs.d("SendLog: writing logcat ${logcatBytes.size} bytes")
-                        writeChunked(out, logcatBytes)
+                        buf.write(logcatBytes)
                     }
                 } finally {
                     try {
@@ -138,12 +147,12 @@ object SendLog {
                     }
                     proc.destroy()
                 }
-                out.write("\n".toByteArray())
+                buf.write("\n".toByteArray())
             } catch (e: IOException) {
                 Logs.w(e)
-                out.write(redactLog("Export logcat error: " + CrashHandler.formatThrowable(e)).toByteArray())
+                buf.write(redactLog("Export logcat error: " + CrashHandler.formatThrowable(e)).toByteArray())
             }
-            out.write("\n".toByteArray())
+            buf.write("\n".toByteArray())
             // rift.log 段：每种结果都在文件尾留一行状态（-74），写失败要返回给
             // 调用方在界面上明说，不能只在文件里赌一把。
             try {
@@ -157,8 +166,12 @@ object SendLog {
                     }
                     riftStatus = "rift.log: read empty (file size=${size} bytes)"
                 } else {
+                    // 按行脱敏：整段 1MB 一次过正则，万一某一行让某个模式失控，
+                    // 卡住的是整段；按行切开后最多只影响一行。各模式本来就是
+                    // 行内匹配（链接、IP、UUID、凭证都不跨行），按行切不丢掩盖。
                     val riftText = try {
-                        redactLog(riftBytes.toString(Charsets.UTF_8))
+                        riftBytes.toString(Charsets.UTF_8).lineSequence()
+                            .joinToString("\n") { redactLog(it) }
                     } catch (t: Throwable) {
                         Logs.w(t)
                         riftStatus =
@@ -168,7 +181,7 @@ object SendLog {
                     if (riftText != null) {
                         val riftOutBytes = riftText.toByteArray()
                         Logs.d("SendLog: writing rift.log ${riftBytes.size} raw bytes as ${riftOutBytes.size} redacted bytes")
-                        writeChunked(out, riftOutBytes)
+                        buf.write(riftOutBytes)
                         riftStatus = "rift.log: ${riftBytes.size} bytes"
                     }
                 }
@@ -176,20 +189,28 @@ object SendLog {
                 Logs.w(t)
                 riftStatus = "rift.log: write failed (${t.javaClass.simpleName}: ${t.message})"
             }
-            // 尾行：导出永远以 rift.log 的结果收尾，缺段一眼就能看见。
-            out.write(redactLog("[${riftStatus}]\n").toByteArray())
-            out.flush()
         } catch (t: Throwable) {
+            // 拼 buffer 时抛了：状态照常进文件、界面上明说，不再无声无息。
             Logs.w(t)
             riftStatus = "export failed: ${t.javaClass.simpleName}: ${t.message}"
-            try {
-                out.write(redactLog("[${riftStatus}]\n").toByteArray())
-                out.flush()
-            } catch (_: Throwable) {
-                // 输出流本身已坏，文件里写不进去了；状态照常返回给调用方报出来。
-            }
         }
-        return riftStatus
+        // 尾行：一定写进 buffer（哪怕上面哪步失败了），缺段一眼就能看见。
+        try {
+            buf.write(redactLog("[${riftStatus}]\n").toByteArray())
+            buf.flush()
+        } catch (_: Throwable) {
+        }
+        // 最后一步才碰输出流：把拼好的内容分块拷过去；输出流在这里断，
+        // 状态照常返回给调用方报出来，不再伪装成缺段。
+        return try {
+            Logs.d("SendLog: copying ${buf.size()} bytes to output")
+            writeChunked(out, buf.toByteArray())
+            out.flush()
+            riftStatus
+        } catch (t: Throwable) {
+            Logs.w(t)
+            "export copy failed (${t.javaClass.simpleName}: ${t.message}); $riftStatus"
+        }
     }
 
     // Create full log and send

@@ -40,7 +40,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           # 1.25 系最后一个补丁（2026-08-19 发布；1.25 线已 EOL，升 1.26/1.27 另议）
-          go-version: '1.25.14'
+          go-version: '1.26.11'
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: chmod +x run && find buildScript libcore -name "*.sh" -exec chmod +x {} + && ./run lib core
@@ -71,7 +71,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25.14'
+          go-version: '1.26.11'
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: chmod +x run && find buildScript libcore -name "*.sh" -exec chmod +x {} + && ./run lib core

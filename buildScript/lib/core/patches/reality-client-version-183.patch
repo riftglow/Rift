@@ -1,12 +1,13 @@
 diff --git a/common/tls/reality_client.go b/common/tls/reality_client.go
 --- a/common/tls/reality_client.go
 +++ b/common/tls/reality_client.go
-@@ -185,7 +185,7 @@
- 	binary.BigEndian.PutUint64(hello.SessionId, uint64(nowTime.Unix()))
+@@ -155,8 +155,8 @@ func (e *RealityClientConfig) ClientHandshake(ctx context.Context, conn net.Conn) (aTLS.Conn, error) {
+ 	hello.SessionId = make([]byte, 32)
+ 	copy(hello.Raw[39:], hello.SessionId)
  
  	hello.SessionId[0] = 1
  	hello.SessionId[1] = 8
--	hello.SessionId[2] = 1
+-	hello.SessionId[2] = 2
 +	hello.SessionId[2] = 3
- 	binary.BigEndian.PutUint32(hello.SessionId[4:], uint32(time.Now().Unix()))
+ 	binary.BigEndian.PutUint32(hello.SessionId[4:], uint32(nowTime.Unix()))
  	copy(hello.SessionId[8:], e.shortID[:])

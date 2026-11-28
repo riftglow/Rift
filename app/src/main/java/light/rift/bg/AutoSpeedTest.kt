@@ -185,11 +185,22 @@ object AutoSpeedTest {
             // the round across two groups.
             val group = DataStore.currentGroup()
             val mode = DataStore.autoSpeedTestMode
-            val profilesList = RiftDatabase.proxyDao.getByGroup(group.id).let { list ->
-                if (mode == "tcp") list.filter { it.requireBean().canTCPing() } else list
-            }
-            if (profilesList.isEmpty()) return
             try {
+                val profilesList = RiftDatabase.proxyDao.getByGroup(group.id).let { list ->
+                    if (mode == "tcp") {
+                        list.filter {
+                            // -79 B-I4：坏记录逐条跳过。原先 requireBean()
+                            // 在 try 外面，一条坏记录抛异常就杀死整轮、
+                            // 连 ROUND_DONE 都不发，UI 永远卡在“测试中”。
+                            runCatching { it.requireBean().canTCPing() }
+                                .onFailure { Logs.w(it) }
+                                .getOrDefault(false)
+                        }
+                    } else {
+                        list
+                    }
+                }
+                if (profilesList.isEmpty()) return
                 profilesList.forEach { broadcastProgress(it.id, STATE_QUEUED) }
                 val queue = ConcurrentLinkedQueue(profilesList)
                 coroutineScope {

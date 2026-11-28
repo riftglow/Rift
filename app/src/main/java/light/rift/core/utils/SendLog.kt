@@ -2,6 +2,7 @@ package light.rift.core.utils
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.core.content.FileProvider
 import light.rift.BuildConfig
 import light.rift.R
@@ -228,7 +229,20 @@ object SendLog {
             ".log",
             File(app.cacheDir, "log").also { it.mkdirs() })
 
-        FileOutputStream(logFile).use { writeFullLog(it) }
+        val status = try {
+            FileOutputStream(logFile).use { writeFullLog(it) }
+        } catch (e: Exception) {
+            Logs.w(e)
+            "export failed (${e.javaClass.simpleName}: ${e.message})"
+        }
+        // -79 D-2：分享路径以前丢弃 writeFullLog 的返回值，拷失败也照常
+        // 拉起分享，用户收到截断/空文件还以为成功了。成功态形如
+        // "rift.log: 123456 bytes"（与 LogcatFragment 的 SAF 导出同一
+        // 判据）；失败时只 Toast 报错，不分享。
+        if (!status.matches(Regex("rift\\.log: \\d+ bytes"))) {
+            Toast.makeText(context, status, Toast.LENGTH_LONG).show()
+            return
+        }
 
         context.startActivity(
             Intent.createChooser(

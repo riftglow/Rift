@@ -27,14 +27,22 @@ object SendLog {
     private val httpUrlRegex = Regex("https?://[^\\s\"'<>]+")
     private val ipv4Regex = Regex("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b")
     private val ipv6Regex = Regex("\\b(?:[0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}\\b")
+    // -79 D-1：key 部分加 [\w-]* 后缀。原先只认 password/passwd/pwd/
+    // token/secret 五个整词，SSH 的 private_key_passphrase、auth_str
+    // 这类带后缀的 key 漏网——ProxyInstance 每建一次实例就把整份配
+    // 置 JSON 打进日志，口令明文外泄。后缀用 [\w-]* 而不用 .*，避免
+    // 吞掉后面的冒号；替换仍是 "$1=***"（$1 只含 key 的词干）。
     private val credentialRegex =
-        Regex("(?i)(password|passwd|pwd|token|secret)\\s*[:=]\\s*[^\\s,;\"']+")
+        Regex("(?i)(password|passwd|pwd|token|secret|passphrase|auth|private)[\\w-]*\\s*[:=]\\s*[^\\s,;\"']+")
     // JSON 形式凭证："password": "xxx" / "secret": "..." —— 上面那条
     // 要求 key 后直接跟 : 或 =，撞上 key 与冒号之间的引号就匹配不上，
     // 而 rift.log 里的 [ProxyInstance] 配置转储正是 JSON 形式，Hysteria2
     // 密码与 Clash secret 会从这里漏出去。先于 credentialRegex 跑。
+    // -79 D-1：key 部分加 [^"]* 后缀，private_key_passphrase（private_?key
+    // + "_passphrase"）、auth_str（auth + "_str"）都进掩盖；passphrase
+    // 单独出现时也掩盖。$1 仍是 `"key": "` 整体，替换 "$1***$2" 不变。
     private val jsonCredentialRegex =
-        Regex("(?i)(\"(?:password|passwd|pwd|token|secret|private_?key)\"\\s*:\\s*\")[^\"]*(\")")
+        Regex("(?i)(\"(?:password|passwd|pwd|token|secret|private_?key|passphrase|auth)[^\"]*\"\\s*:\\s*\")[^\"]*(\")")
 
     // 日志脱敏：掩盖公网 IP、UUID、节点链接与带凭证的 URL；内网 / Fake-IP 段与回环保留（排障要看 DNS 走了哪段）。
     // 保留时间戳、级别、错误信息、协议名与出口标签，脱敏后的日志照样能定位问题。

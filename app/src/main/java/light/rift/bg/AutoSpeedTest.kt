@@ -19,12 +19,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import okhttp3.internal.closeQuietly
-import light.rift.GroupOrder
 import light.rift.R
 import light.rift.RiftApp
 import light.rift.bg.proto.UrlTest
 import light.rift.database.DataStore
-import light.rift.database.GroupManager
 import light.rift.database.ProxyEntity
 import light.rift.database.RiftDatabase
 import light.rift.ktx.Logs
@@ -238,12 +236,10 @@ object AutoSpeedTest {
                         }
                     }
                 }
-                // Sort the group by delay (once per round; updateGroup also
-                // schedules one auto-backup — do NOT call it per node).
-                if (group.order != GroupOrder.BY_DELAY) {
-                    group.order = GroupOrder.BY_DELAY
-                    GroupManager.updateGroup(group)
-                }
+                // -79 B-G8：自动轮次只更新延迟，不动 group.order。以前这里
+                // 把分组强制改成按延迟排，改了用户自选的排序。按延迟排的
+                // 分组照样在轮次结束时重排（B-I1 的 ROUND_DONE reload 从
+                // 库里按 group.order 读）；手动顺序的分组保持不动。
                 DataStore.autoSpeedTestLastTime = System.currentTimeMillis()
             } finally {
                 // Round over (or killed): let the UI clear its transient states

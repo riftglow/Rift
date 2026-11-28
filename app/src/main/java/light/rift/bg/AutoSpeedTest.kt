@@ -155,13 +155,13 @@ object AutoSpeedTest {
             // Gate 3: network. No active network -> skip; WiFi-only -> skip on cellular.
             if (!networkOk()) return Result.success()
             // Mutex: a manual batch running in the main process blocks this round.
+            // -79 B-I3：原子抢占（读-判-写包在一个 SQLite 写事务里），
+            // 不再先读再写——两个进程同时读到空键会双双开跑。
             val now = System.currentTimeMillis()
-            val mutex = DataStore.configurationStore.getString(MUTEX_KEY, "") ?: ""
-            if (mutex.startsWith("manual:")) {
-                val ts = mutex.substringAfter("manual:").toLongOrNull() ?: 0L
-                if (now - ts < MUTEX_TTL_MS) return Result.success()
-            }
-            DataStore.configurationStore.putString(MUTEX_KEY, "auto:$now")
+            if (!DataStore.configurationStore.tryAcquireTestMutex(
+                    MUTEX_KEY, "auto:$now", "manual:", now, MUTEX_TTL_MS
+                )
+            ) return Result.success()
             try {
                 runRound()
             } finally {

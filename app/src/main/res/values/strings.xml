@@ -93,6 +93,7 @@
     <string name="auto_speed_test_last_time">Last auto test</string>
     <string name="auto_speed_test_never">Never run</string>
     <string name="auto_speed_test_queued">Queued</string>
+    <string name="auto_speed_test_running">Auto speed test is running, try again later</string>
     <string name="auto_speed_test_cancel_selection">Cancel selection</string>
     <!-- proxy category -->
     <string name="profile_name">Profile Name</string>

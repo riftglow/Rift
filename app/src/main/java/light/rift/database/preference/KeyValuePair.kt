@@ -56,6 +56,31 @@ class KeyValuePair() : Parcelable {
         // conflict, everything else is kept.
         @Insert(onConflict = OnConflictStrategy.REPLACE)
         fun insertOrReplace(list: List<KeyValuePair>)
+
+        // -79 B-I3：测速互斥的原子抢占。原先是先读、再判断、再写
+        // （check-then-act）：主进程与 :bg 的自动轮次同时读到空/过期
+        // 键，会双双认为是自己持有，同时跑两轮。整个“读-判-写”包在
+        // 一个 SQLite 写事务里（Android 用 BEGIN EXCLUSIVE），另一进
+        // 程的事务会阻塞到本事务提交、再读到新值，于是只有一个抢得到。
+        // blockingPrefix 是对方的前缀（自动轮次只认 "manual:"，手动
+        // 只认 "auto:"）；同侧的键（新一轮 / 新一批手动）直接覆盖。
+        // 键不存在、已清空、或对方键已过期（now - ts >= ttlMs）都可抢。
+        @Transaction
+        fun tryAcquireTestMutex(
+            key: String,
+            newValue: String,
+            blockingPrefix: String,
+            nowMs: Long,
+            ttlMs: Long
+        ): Boolean {
+            val cur = get(key)?.string
+            if (cur != null && cur.startsWith(blockingPrefix)) {
+                val ts = cur.substringAfter(blockingPrefix).toLongOrNull() ?: 0L
+                if (nowMs - ts < ttlMs) return false
+            }
+            put(KeyValuePair(key).put(newValue))
+            return true
+        }
     }
 
     @PrimaryKey

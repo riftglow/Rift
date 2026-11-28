@@ -220,6 +220,7 @@
     <string name="auto_speed_test_last_time">上次自动测速</string>
     <string name="auto_speed_test_never">尚未运行</string>
     <string name="auto_speed_test_queued">排队中</string>
+    <string name="auto_speed_test_running">自动测速进行中，稍后再试</string>
     <string name="auto_speed_test_cancel_selection">取消多选</string>
     <string name="connection_test_available_http">延时 %dms</string>
     <string name="certificates">证书 (链)</string>

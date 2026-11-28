@@ -1118,16 +1118,20 @@ class ConfigurationFragment @JvmOverloads constructor(
     fun pingTest(icmpPing: Boolean) {
         if (DataStore.runningTest) return else DataStore.runningTest = true
         // Cross-process mutex (step ②): skip while the auto worker is testing.
+        // -79 B-I3：原子抢占——两个进程同时读到空键会双双开跑；抢不到
+        // 时提示一声再退（以前是静默不跑，用户点了以为没反应）。
         val testStartMs = System.currentTimeMillis()
-        val autoMutex = DataStore.configurationStore.getString(AutoSpeedTest.MUTEX_KEY, "") ?: ""
-        if (autoMutex.startsWith("auto:")) {
-            val ts = autoMutex.substringAfter("auto:").toLongOrNull() ?: 0L
-            if (testStartMs - ts < AutoSpeedTest.MUTEX_TTL_MS) {
-                DataStore.runningTest = false
-                return
+        if (!DataStore.configurationStore.tryAcquireTestMutex(
+                AutoSpeedTest.MUTEX_KEY, "manual:$testStartMs", "auto:",
+                testStartMs, AutoSpeedTest.MUTEX_TTL_MS
+            )
+        ) {
+            DataStore.runningTest = false
+            context?.let {
+                Toast.makeText(it, R.string.auto_speed_test_running, Toast.LENGTH_SHORT).show()
             }
+            return
         }
-        DataStore.configurationStore.putString(AutoSpeedTest.MUTEX_KEY, "manual:$testStartMs")
         val test = TestDialog()
         val dialog = test.builder.show()
         val testJobs = mutableListOf<Job>()
@@ -1287,7 +1291,22 @@ class ConfigurationFragment @JvmOverloads constructor(
     @OptIn(DelicateCoroutinesApi::class)
     fun testSingleProfile(profile: ProxyEntity) {
         if (DataStore.runningTest) return
+        // -79 B-I3：单节点测速也参加跨进程互斥。原先它既不读互斥键、
+        // 也不置 runningTest，和自动轮次 / 手动批量撞车时互相盖延迟。
+        val testStartMs = System.currentTimeMillis()
+        if (!DataStore.configurationStore.tryAcquireTestMutex(
+                AutoSpeedTest.MUTEX_KEY, "manual:$testStartMs", "auto:",
+                testStartMs, AutoSpeedTest.MUTEX_TTL_MS
+            )
+        ) {
+            context?.let {
+                Toast.makeText(it, R.string.auto_speed_test_running, Toast.LENGTH_SHORT).show()
+            }
+            return
+        }
+        DataStore.runningTest = true
         runOnDefaultDispatcher {
+            try {
             profile.status = 0
             ProfileManager.updateProfile(profile)
             var address = profile.requireBean().serverAddress
@@ -1349,6 +1368,15 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
             }
             ProfileManager.updateProfile(profile)
+            } finally {
+                // 只清自己的键；finally 里清，保证异常 / 提前 return 也不漏。
+                val curMutex =
+                    DataStore.configurationStore.getString(AutoSpeedTest.MUTEX_KEY, "") ?: ""
+                if (curMutex == "manual:$testStartMs") {
+                    DataStore.configurationStore.putString(AutoSpeedTest.MUTEX_KEY, "")
+                }
+                DataStore.runningTest = false
+            }
         }
     }
 
@@ -1356,16 +1384,20 @@ class ConfigurationFragment @JvmOverloads constructor(
     fun urlTest() {
         if (DataStore.runningTest) return else DataStore.runningTest = true
         // Cross-process mutex (step ②): skip while the auto worker is testing.
+        // -79 B-I3：原子抢占——两个进程同时读到空键会双双开跑；抢不到
+        // 时提示一声再退（以前是静默不跑，用户点了以为没反应）。
         val testStartMs = System.currentTimeMillis()
-        val autoMutex = DataStore.configurationStore.getString(AutoSpeedTest.MUTEX_KEY, "") ?: ""
-        if (autoMutex.startsWith("auto:")) {
-            val ts = autoMutex.substringAfter("auto:").toLongOrNull() ?: 0L
-            if (testStartMs - ts < AutoSpeedTest.MUTEX_TTL_MS) {
-                DataStore.runningTest = false
-                return
+        if (!DataStore.configurationStore.tryAcquireTestMutex(
+                AutoSpeedTest.MUTEX_KEY, "manual:$testStartMs", "auto:",
+                testStartMs, AutoSpeedTest.MUTEX_TTL_MS
+            )
+        ) {
+            DataStore.runningTest = false
+            context?.let {
+                Toast.makeText(it, R.string.auto_speed_test_running, Toast.LENGTH_SHORT).show()
             }
+            return
         }
-        DataStore.configurationStore.putString(AutoSpeedTest.MUTEX_KEY, "manual:$testStartMs")
         val test = TestDialog()
         val dialog = test.builder.show()
         val testJobs = mutableListOf<Job>()

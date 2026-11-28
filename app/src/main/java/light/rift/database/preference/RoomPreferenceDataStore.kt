@@ -21,6 +21,13 @@ open class RoomPreferenceDataStore(private val kvPairDao: KeyValuePair.Dao) :
     fun getString(key: String) = read(key)?.string
     fun getStringSet(key: String) = read(key)?.stringSet
 
+    // -79 B-I3：测速互斥的原子抢占（见 KeyValuePair.Dao.tryAcquireTestMutex）。
+    // 返回 true 表示抢到了（本方已写入新值），false 表示对方的键还新鲜、
+    // 本轮 / 本批不跑。
+    fun tryAcquireTestMutex(
+        key: String, newValue: String, blockingPrefix: String, nowMs: Long, ttlMs: Long
+    ): Boolean = kvPairDao.tryAcquireTestMutex(key, newValue, blockingPrefix, nowMs, ttlMs)
+
     fun reset() {
         kvPairDao.reset()
     }

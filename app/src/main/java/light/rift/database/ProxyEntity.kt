@@ -446,6 +446,12 @@ data class ProxyEntity(
         @Query("UPDATE proxy_entities SET rx = :rx, tx = :tx WHERE id = :id")
         fun updateTraffic(id: Long, rx: Long, tx: Long): Int
 
+        // 只写测速结果（-79 B-I5）：自动轮次写回 status/ping/error 时用
+        // 这个，不用整实体 @Update——读-改-写之间别的写入者（流量回写、
+        // 订阅更新、用户改配置）会被整实体写回盖掉。
+        @Query("UPDATE proxy_entities SET status = :status, ping = :ping, error = :error WHERE id = :id")
+        fun updateTestResult(id: Long, status: Int, ping: Int, error: String?): Int
+
         @Insert
         fun addProxy(proxy: ProxyEntity): Long
 

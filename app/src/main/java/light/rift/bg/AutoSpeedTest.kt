@@ -84,14 +84,12 @@ object AutoSpeedTest {
         }
     }
 
-    /** -66-safe write-back: re-read the row, change only status/ping/error. */
+    /** 只写测速结果（-79 B-I5）：定向 UPDATE 三列，不读-改-写整实体——
+     * 读到写之间别的写入者（流量回写、订阅更新、用户改配置）会被整实体
+     * 写回盖掉。行被删了则更新 0 行，直接返回。 */
     private fun writeResult(id: Long, status: Int, ping: Int, error: String?) {
         try {
-            val fresh = RiftDatabase.proxyDao.getById(id) ?: return // deleted meanwhile
-            fresh.status = status
-            fresh.ping = ping
-            fresh.error = error
-            RiftDatabase.proxyDao.updateProxy(fresh)
+            RiftDatabase.proxyDao.updateTestResult(id, status, ping, error)
         } catch (e: Exception) {
             Logs.w(e)
         }

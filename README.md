@@ -9,6 +9,7 @@
 Rift 是从 NekoBoxForAndroid 分叉出来的，留了它干净的样子，核心换成官方 sing-box 1.15，补上了 NekoBox 没有的 XHTTP。
 
 [![Platform](https://img.shields.io/badge/Platform-Android%2010%2B-blue.svg)](https://developer.android.com)
+[![Latest Release](https://img.shields.io/github/v/release/riftglow/Rift)](https://github.com/riftglow/Rift/releases)
 [![sing-box](https://img.shields.io/badge/sing--box-1.15-orange.svg)](https://github.com/SagerNet/sing-box)
 [![License](https://img.shields.io/badge/License-GPL--3.0-green.svg)](LICENSE)
 
@@ -48,8 +49,8 @@ Rift 是从 NekoBoxForAndroid 分叉出来的，留了它干净的样子，核�
 
 ## 📥 下载
 
-* 正式版与预览版均可在 [Releases](releases) 页面获取。
-* 预览版将标有 `Pre-release` 标签，具体变更请参考对应的 Release 说明。
+* 正式版在 [Releases](releases) 页面获取，具体变更请参考对应的 Release 说明。
+* 预览版为测试构建，直接发给测试者，不在 Releases 页面保留。
 
 ---
 

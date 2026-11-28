@@ -126,7 +126,20 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.SingBox
             // 时优先），主端口走 server_port；都没跳跃时跟以前一样，
             // 端口栏是单端口就 server_port、是范围就 server_ports。
             if (bean.hopPorts.isNotBlank()) {
-                server_ports = hopPortsToSingboxList(bean.hopPorts).toMutableList()
+                val hopList = hopPortsToSingboxList(bean.hopPorts)
+                if (hopList.isNotEmpty()) {
+                    server_ports = hopList.toMutableList()
+                } else {
+                    // -79 C-H-1：hopPorts 填了但解析后是空——不能发空
+                    // server_ports（核心会把它当无端口）。回落到 serverPorts
+                    // 的单端口 / 范围，跟没有 hopPorts 时一样。
+                    val port = bean.serverPorts.toIntOrNull()
+                    if (port != null) {
+                        server_port = port
+                    } else {
+                        server_ports = hopPortsToSingboxList(bean.serverPorts).toMutableList()
+                    }
+                }
             } else {
                 val port = bean.serverPorts.toIntOrNull()
                 if (port != null) {
@@ -183,13 +196,19 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.SingBox
     }
 }
 
+// -79 C-H-1：单端口段也要保留。原先只有 "a-b" / "a:b" 这种两段式
+// 才进列表，单端口（mport=单端口的链接、或跳跃栏手填单端口）被直接
+// 丢掉，server_ports 发成空列表、server_port 也不发，核心无端口
+// 可拨。非数字段照旧丢掉（不把脏输入发给核心）。
 fun hopPortsToSingboxList(s: String): List<String> {
     return s.split(",").mapNotNull {
-        val pRange = it.replace("-", ":")
-        if (pRange.split(":").size == 2) {
-            pRange
-        } else {
-            null
+        val segment = it.trim()
+        val pRange = segment.replace("-", ":")
+        val parts = pRange.split(":")
+        when {
+            parts.size == 2 && parts[0].toIntOrNull() != null && parts[1].toIntOrNull() != null -> pRange
+            parts.size == 1 && segment.toIntOrNull() != null -> segment
+            else -> null
         }
     }
 }

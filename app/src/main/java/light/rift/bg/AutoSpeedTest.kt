@@ -13,6 +13,7 @@ import java.net.Socket
 import java.net.UnknownHostException
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
@@ -201,6 +202,15 @@ object AutoSpeedTest {
                                 if (mode == "tcp") {
                                     try {
                                         writeResult(profile.id, 1, tcpPing(profile), null)
+                                    } catch (e: CancellationException) {
+                                        // -79 B-I2：取消不是失败。原先这里被
+                                        // catch (e: Exception) 吞掉、写成一
+                                        // 条失败结果，把好的延迟清成 0。
+                                        // 重新抛出：coroutineScope 会跳过排
+                                        // 序与 lastTime，finally 发 ROUND_DONE，
+                                        // doWork 的 finally 清互斥，WorkManager
+                                        // 看到的是取消、不是假成功。
+                                        throw e
                                     } catch (e: Exception) {
                                         val (status, err) = mapTcpError(e)
                                         writeResult(profile.id, status, 0, err)
@@ -208,6 +218,8 @@ object AutoSpeedTest {
                                 } else {
                                     try {
                                         writeResult(profile.id, 1, urlTest.doTest(profile), null)
+                                    } catch (e: CancellationException) {
+                                        throw e
                                     } catch (e: Exception) {
                                         writeResult(profile.id, 3, 0, e.readableMessage)
                                     }

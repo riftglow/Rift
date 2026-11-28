@@ -124,6 +124,7 @@
     <string name="ipv6">IPv6 Route</string>
     <string name="block_stun">Block WebRTC STUN</string>
     <string name="block_stun_summary">Block UDP 3478/19302 so WebRTC cannot reveal your real IP. Turn off if an app needs peer-to-peer calls.</string>
+    <string name="block_stun_summary_proxy_only">Only works in VPN mode. In proxy-only mode apps bypass the core, so STUN cannot be intercepted.</string>
     <string name="metered">Metered Hint</string>
     <string name="metered_summary">Hint system to treat VPN as metered</string>
     <string name="menu_route">Route</string>

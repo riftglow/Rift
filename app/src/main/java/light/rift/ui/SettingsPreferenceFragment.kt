@@ -121,6 +121,17 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val showDirectSpeed = findPreference<SwitchPreference>(Key.SHOW_DIRECT_SPEED)
         val ipv6Mode = findPreference<Preference>(Key.IPV6_MODE)
         val blockStun = findPreference<SwitchPreference>(Key.BLOCK_STUN)
+        // -79 C-S-1：STUN 拦截与 AAAA fake-ip 都只在 VPN（tun）模式生效——
+        // 仅代理模式下没有 tun 入站，应用的 STUN UDP 根本不进核心，开关开
+        // 着也拦不住。灰掉开关并改摘要，免得给人“已受保护”的错觉。
+        // 摘要两边都写：切回 VPN 模式重进页面时恢复默认摘要。
+        if (DataStore.serviceMode == Key.MODE_PROXY) {
+            blockStun?.isEnabled = false
+            blockStun?.summary = getString(R.string.block_stun_summary_proxy_only)
+        } else {
+            blockStun?.isEnabled = true
+            blockStun?.summary = getString(R.string.block_stun_summary)
+        }
         val trafficSniffing = findPreference<Preference>(Key.TRAFFIC_SNIFFING)
 
         val bypassLan = findPreference<SwitchPreference>(Key.BYPASS_LAN)

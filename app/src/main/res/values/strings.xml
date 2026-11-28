@@ -45,11 +45,9 @@
     <string name="service_mode">Service Mode</string>
     <string name="port_proxy">Proxy Port</string>
     <string name="local_proxy_auth">Local Proxy Authentication</string>
-    <string name="local_proxy_auth_sum">Other apps on this device need a username and password (username rift) to use the local proxy</string>
     <string name="local_proxy_password">Local Proxy Password</string>
     <string name="cag_route">Route Settings</string>
     <string name="allow_access">Allow Connections from the LAN</string>
-    <string name="allow_access_sum">Bind inbound servers to 0.0.0.0</string>
     <string name="inbound_settings">Inbound Settings</string>
     <string name="general_settings">App Settings</string>
     <string name="cag_ws">WebSocket Settings</string>
@@ -57,8 +55,6 @@
     <string name="speed_interval">Speed Notification Update Interval</string>
     <string name="cag_misc">Misc Settings</string>
     <string name="show_direct_speed">Show Direct Speed</string>
-    <string name="show_direct_speed_sum">Show the traffic speed without proxy in the notification as
-        well</string>
     <string name="security_settings">TLS Security Settings</string>
     <string name="allow_insecure">Allow Insecure</string>
     <string name="allow_insecure_sum">Disable certificate checking. When enabled, this configuration
@@ -75,20 +71,14 @@
     <string name="remote_dns">Remote DNS</string>
     <string name="direct_dns">Direct DNS</string>
     <string name="enable_dns_routing">Enable DNS Routing</string>
-    <string name="dns_routing_message">Resolve domains in bypass routes with Direct DNS. Be aware of
-        potential DNS leaks</string>
     <string name="enable_fakedns">Enable FakeDNS</string>
-    <string name="fakedns_message">May cause other applications need to be restarted to reconnect to
-        the network after proxy stopped</string>
     <string name="connection_test_url">Connection Test URL</string>
     <string name="auto_speed_test">Auto speed test</string>
-    <string name="auto_speed_test_summary">Periodically test all nodes in the current group</string>
     <string name="auto_speed_test_interval">Test interval</string>
     <string name="auto_speed_test_interval_30">About every 30 minutes</string>
     <string name="auto_speed_test_interval_60">About every hour</string>
     <string name="auto_speed_test_interval_360">About every 6 hours</string>
     <string name="auto_speed_test_wifi_only">Wi-Fi only</string>
-    <string name="auto_speed_test_wifi_only_summary">Skip the round when on mobile data</string>
     <string name="auto_speed_test_mode">Test mode</string>
     <string name="auto_speed_test_last_time">Last auto test</string>
     <string name="auto_speed_test_never">Never run</string>
@@ -123,10 +113,8 @@
     <!-- feature category -->
     <string name="ipv6">IPv6 Route</string>
     <string name="block_stun">Block WebRTC STUN</string>
-    <string name="block_stun_summary">Block UDP 3478/19302 so WebRTC cannot reveal your real IP. Turn off if an app needs peer-to-peer calls.</string>
     <string name="block_stun_summary_proxy_only">Only works in VPN mode. In proxy-only mode apps bypass the core, so STUN cannot be intercepted.</string>
     <string name="metered">Metered Hint</string>
-    <string name="metered_summary">Hint system to treat VPN as metered</string>
     <string name="menu_route">Route</string>
     <string name="route_add">Create Route</string>
     <string name="route_add_direct_domain">Add Direct Domain</string>
@@ -175,7 +163,6 @@
         productive. If the server does not support it, you will not be able to access the Internet.</string>
     <string name="mux_concurrency">Mux Concurrent Connections</string>
     <string name="proxied_apps">Apps VPN mode</string>
-    <string name="proxied_apps_summary">Configure VPN mode for selected apps</string>
     <string name="off">Off</string>
     <string name="search_apps">Search…</string>
     <string name="invert_selections">Invert selections</string>
@@ -183,7 +170,6 @@
     <string name="bypass_apps">Bypass</string>
     <string name="show_system_apps">Show system apps</string>
     <string name="auto_connect">Auto Connect</string>
-    <string name="auto_connect_summary">Enable proxy on startup/app update if it was running before</string>
     <!-- notification category -->
     <string name="service_vpn">VPN Service</string>
     <string name="service_proxy">Proxy Service</string>
@@ -289,8 +275,6 @@
     <string name="available" translatable="false">%dms</string>
     <string name="unavailable">Unavailable</string>
     <string name="always_show_address">Always Show Address</string>
-    <string name="always_show_address_sum">Always display the server address on the configuration
-        card</string>
     <string name="clear_traffic_statistics">Clear traffic statistics</string>
     <string name="connection_test">Connection test</string>
     <string name="connection_test_clear_results">Clear test results</string>
@@ -318,8 +302,6 @@
     <string name="connection_test_unreachable">Unreachable</string>
     <string name="connection_test_timeout">Timeout</string>
     <string name="append_http_proxy">Append HTTP Proxy to VPN</string>
-    <string name="append_http_proxy_sum">HTTP proxy will be used directly from (browser/ some
-        supported apps), without going through the virtual NIC device (Android 10+)</string>
     <string name="group_settings">Group Settings</string>
     <string name="subscription">Subscription</string>
     <string name="subscription_settings">Subscription Settings</string>
@@ -387,8 +369,6 @@
         ignored.</string>
 
     <string name="profile_traffic_statistics">Profile Traffic Statistics</string>
-    <string name="profile_traffic_statistics_summary">When disabled, the used traffic will not be
-        counted</string>
     <string name="ssh_public_key">Public Key</string>
     <string name="ssh_private_key">Private Key</string>
     <string name="ssh_private_key_passphrase">Private Key Passphrase</string>
@@ -518,10 +498,6 @@
     <string name="route_mode_rule">Rule</string>
     <string name="route_mode_global">Global</string>
     <string name="route_mode_direct">Direct</string>
-    <string name="mtu_summary">Maximum packet size. Try 1400 if connections are unstable.</string>
-    <string name="network_change_reset_connections_summary">When Wi-Fi or mobile data switches, drop stale connections and reconnect.</string>
-    <string name="wake_reset_connections_summary">Off by default. Tested: leaving it off keeps connections alive after sleep.</string>
-    <string name="traffic_sniffing_summary">Detect traffic protocols/domains for more accurate routing.</string>
     <string name="local_backup_title">Local backup</string>
     <string name="wireguard_removed">WireGuard was removed in the sing-box 1.15 core. This profile cannot be edited or started; please delete it and use another protocol.</string>
     <string name="local_backup_none_selected">None selected</string>
@@ -541,7 +517,6 @@
 
     <string name="packet_encoding">Packet Encoding</string>
     <string name="acquire_wake_lock">Acquire WakeLock</string>
-    <string name="acquire_wake_lock_summary">Keep the CPU on</string>
     <string name="action_switch">Switch node</string>
 
     <string name="tuic_udp_relay_mode">UDP Relay Mode</string>
@@ -559,7 +534,6 @@
     <string name="domain_strategy_for_server">Domain strategy for Server address</string>
     <string name="show_bottom_bar">Show bottom bar</string>
     <string name="glass_effect">Glass effect</string>
-    <string name="glass_effect_summary">Translucent frosted bottom bar and dialogs; Android 12+ only</string>
     <string name="utls_fingerprint">uTLS fingerprint</string>
     <string name="custom_outbound_json">Custom outbound JSON</string>
     <string name="custom_config_json">Custom config JSON</string>
@@ -567,7 +541,6 @@
     <string name="set_panel_url">Set panel URL</string>
     <string name="enable_clash_api">Enable Clash API</string>
     <string name="log_level">Log Level</string>
-    <string name="enable_clash_api_summary">Provide clash api and yacd dashboard at 127.0.0.1:9090</string>
     <string name="xtls_flow">Flow (VLESS Sub-protocol)</string>
     <string name="bypass_lan_in_core">Bypass LAN in Core</string>
     <string name="need_restart">Restart APP to apply changes</string>
@@ -669,29 +642,21 @@
     <string name="cag_hysteria2">Hysteria2 Settings</string>
     <string name="cag_anytls">AnyTLS Settings</string>
     <string name="hy2_bbr_profile">BBR profile</string>
-    <string name="hy2_bbr_profile_summary">Congestion control profile for Hysteria2. Default: unset (core default).</string>
     <string name="hy2_bbr_default">Default</string>
     <string name="hy2_bbr_standard">Standard</string>
     <string name="hy2_bbr_conservative">Conservative</string>
     <string name="hy2_bbr_aggressive">Aggressive</string>
     <string name="hy2_disable_chrome_parrot">Disable Chrome QUIC mimicry</string>
-    <string name="hy2_disable_chrome_parrot_summary">Chrome QUIC mimicry is on by default. Turn this on to disable it.</string>
     <string name="hy2_hop_interval_max">Max port hop interval</string>
-    <string name="hy2_hop_interval_max_summary">Upper bound of the randomized port hop interval, in seconds. Default: unset (same as hop interval).</string>
     <string name="hy2_hop_max_default">Default</string>
     <string name="hy2_hop_max_30">30 seconds</string>
     <string name="hy2_hop_max_60">60 seconds</string>
     <string name="hy2_hop_max_120">120 seconds</string>
     <string name="hy2_brutal_debug">BBR debug mode</string>
-    <string name="hy2_brutal_debug_summary">Enable brutal congestion control debug output. Default: off.</string>
     <string name="anytls_idle_check_interval">Idle session check interval (s)</string>
-    <string name="anytls_idle_check_interval_summary">How often to check for idle sessions. Leave blank for the core default.</string>
     <string name="anytls_idle_timeout">Idle session timeout (s)</string>
-    <string name="anytls_idle_timeout_summary">How long a session can stay idle before it is closed. Leave blank for the core default.</string>
     <string name="anytls_min_idle_session">Min idle sessions</string>
-    <string name="anytls_min_idle_session_summary">Minimum number of idle sessions to keep ready. Leave blank for the core default.</string>
     <string name="dns_optimistic">Optimistic DNS</string>
-    <string name="dns_optimistic_summary">Answer from expired cache while refreshing in the background. Default: off.</string>
     <string name="dns_optimistic_timeout">Optimistic cache window</string>
     <string name="dns_optimistic_timeout_summary">How long an expired entry may still be served. Default: core default (72 hours).</string>
     <string name="dns_optimistic_timeout_default">Default (72 hours)</string>

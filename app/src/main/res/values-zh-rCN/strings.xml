@@ -39,10 +39,8 @@
     <string name="service_mode">运行模式</string>
     <string name="port_proxy">代理端口</string>
     <string name="local_proxy_auth">本地代理认证</string>
-    <string name="local_proxy_auth_sum">本机其他应用使用本地代理时，需要账号和密码（用户名 rift）</string>
     <string name="local_proxy_password">本地代理密码</string>
     <string name="allow_access">允许来自局域网的连接</string>
-    <string name="allow_access_sum">将入站绑定至 0.0.0.0</string>
     <string name="cag_dns">DNS 设置</string>
     <string name="cag_route">路由设置</string>
     <string name="inbound_settings">入站设置</string>
@@ -75,13 +73,10 @@
     <!-- feature category -->
     <string name="ipv6">IPv6 路由</string>
     <string name="block_stun">拦截 WebRTC STUN</string>
-    <string name="block_stun_summary">拦截 UDP 3478/19302，防止 WebRTC 泄露真实 IP。如有应用需要点对点通话，可关闭。</string>
     <string name="block_stun_summary_proxy_only">仅 VPN 模式生效：仅代理模式下应用流量不经过核心，拦不住 STUN。</string>
     <string name="metered">按流量计费</string>
-    <string name="metered_summary">让系统认为此 VPN 按流量计费</string>
     <string name="menu_route">路由</string>
     <string name="proxied_apps">分应用代理</string>
-    <string name="proxied_apps_summary">代理被勾选应用的流量</string>
     <string name="off">关闭</string>
     <string name="search_apps">搜索…</string>
     <string name="invert_selections">反选</string>
@@ -89,7 +84,6 @@
     <string name="bypass_apps">绕过</string>
     <string name="show_system_apps">显示系统应用</string>
     <string name="auto_connect">自动连接</string>
-    <string name="auto_connect_summary">手机启动或更新后代理会自动重新连接</string>
     <!-- notification category -->
     <string name="service_vpn">VPN 服务</string>
     <string name="service_proxy">代理服务</string>
@@ -170,7 +164,6 @@
     <string name="http_path">HTTP 路径</string>
     <string name="show_bottom_bar">显示底栏</string>
     <string name="glass_effect">玻璃效果</string>
-    <string name="glass_effect_summary">底栏、弹窗半透明磨砂；仅 Android 12 及以上机型生效</string>
     <string name="utls_fingerprint">uTLS 指纹</string>
     <string name="grpc_service_name">gRPC 服务名称</string>
     <string name="alpn">应用层协议协商</string>
@@ -180,7 +173,6 @@
     <string name="version_x">版本 (%s)</string>
     <string name="ss_cat">Shadowsocks 设置</string>
     <string name="show_direct_speed">显示直连速度</string>
-    <string name="show_direct_speed_sum">在通知中也显示不经过代理的流量速度</string>
     <string name="select_profile">选择配置</string>
     <string name="proxy_chain">链式代理</string>
     <string name="chain_settings">链设置</string>
@@ -210,13 +202,11 @@
     <string name="group_diff">变化 (%s)</string>
     <string name="connection_test_url">连接测试链接</string>
     <string name="auto_speed_test">自动测速</string>
-    <string name="auto_speed_test_summary">定时测当前分组的全部节点</string>
     <string name="auto_speed_test_interval">测速间隔</string>
     <string name="auto_speed_test_interval_30">约每 30 分钟</string>
     <string name="auto_speed_test_interval_60">约每 1 小时</string>
     <string name="auto_speed_test_interval_360">约每 6 小时</string>
     <string name="auto_speed_test_wifi_only">仅 WiFi 测速</string>
-    <string name="auto_speed_test_wifi_only_summary">移动数据时跳过本轮</string>
     <string name="auto_speed_test_mode">测速线路</string>
     <string name="auto_speed_test_last_time">上次自动测速</string>
     <string name="auto_speed_test_never">尚未运行</string>
@@ -262,7 +252,6 @@
     <string name="standard">标准</string>
     <string name="unavailable">不可用</string>
     <string name="always_show_address">始终显示地址</string>
-    <string name="always_show_address_sum">始终在配置卡片上显示服务器地址</string>
     <string name="clear_traffic_statistics">清空流量统计数据</string>
     <string name="connection_test">连接测试</string>
     <string name="connection_test_clear_results">清理测试结果</string>
@@ -291,7 +280,6 @@
     <string name="connection_test_unreachable">不可达</string>
     <string name="tile_title">开关</string>
     <string name="append_http_proxy">追加 HTTP 代理至 VPN</string>
-    <string name="append_http_proxy_sum">浏览器 / 一些支持的应用 将直接使用 HTTP 代理, 而不经过虚拟网卡设备 (Android 10+)</string>
     <string name="group_settings">分组设置</string>
     <string name="subscription">订阅</string>
     <string name="subscription_settings">订阅设置</string>
@@ -330,9 +318,7 @@
     <string name="remote_dns">远程 DNS</string>
     <string name="direct_dns">直连 DNS</string>
     <string name="enable_dns_routing">启用 DNS 路由</string>
-    <string name="dns_routing_message">使用直连 DNS 解析绕过路由中的 domains. 注意潜在的 DNS 泄漏</string>
     <string name="enable_fakedns">启用 FakeDNS</string>
-    <string name="fakedns_message">可能导致其他应用程序在代理停止后需要重新启动以重新连接到网络</string>
     <string name="apps">应用</string>
     <string name="select_apps">选择应用</string>
     <string name="apps_message">%d 个应用</string>
@@ -371,7 +357,6 @@
     <string name="resolve_destination">解析目标地址</string>
     <string name="tun_implementation">TUN 实现</string>
     <string name="tun_implementation_sing_tun">Sing-Tun（1.15 自有协议栈）</string>
-    <string name="profile_traffic_statistics_summary">禁用后将不统计使用的流量</string>
     <string name="profile_traffic_statistics">配置流量统计</string>
     <string name="stun_test_summary">使用 STUN 确定客户端的 RFC 3478 中定义的 NAT 过滤行为。</string>
     <string name="egress_check">出口自检</string>
@@ -484,10 +469,6 @@
     <string name="route_mode_rule">规则</string>
     <string name="route_mode_global">全局</string>
     <string name="route_mode_direct">直连</string>
-    <string name="mtu_summary">数据包大小上限；网络不稳时可试 1400。</string>
-    <string name="network_change_reset_connections_summary">切换 Wi-Fi/移动网络时断开旧连接重连，避免切网后一直卡住。</string>
-    <string name="wake_reset_connections_summary">默认关闭。实测关着更稳：息屏唤醒后不断流。</string>
-    <string name="traffic_sniffing_summary">识别流量协议/域名，提高分流准确度。</string>
     <string name="local_backup_title">本地备份</string>
     <string name="wireguard_removed">WireGuard 已在 sing-box 1.15 核心中移除，该节点无法编辑或启动，请删除并换其他协议。</string>
     <string name="local_backup_none_selected">未选任何项</string>
@@ -508,7 +489,6 @@
     <string name="packet_encoding">包编码</string>
     <string name="action_switch">换节点</string>
     <string name="acquire_wake_lock">获取唤醒锁</string>
-    <string name="acquire_wake_lock_summary">保持 CPU 开启</string>
     <string name="move">移动</string>
     <string name="subscription_expire">过期: %s</string>
     <string name="update_all_subscription">更新所有订阅</string>
@@ -529,7 +509,6 @@
     <string name="is_outbound_only">设置的 JSON 是出站</string>
     <string name="set_panel_url">设置面板 URL</string>
     <string name="enable_clash_api">启用 Clash API</string>
-    <string name="enable_clash_api_summary">在 127.0.0.1:9090 提供 clash api 和 yacd 仪表板</string>
     <string name="xtls_flow">Flow（VLESS 子协议）</string>
     <string name="log_level">日志级别</string>
     <string name="need_restart">重新启动应用程序以应用更改</string>
@@ -627,29 +606,21 @@
     <string name="cag_hysteria2">Hysteria2 设置</string>
     <string name="cag_anytls">AnyTLS 设置</string>
     <string name="hy2_bbr_profile">BBR 拥塞配置</string>
-    <string name="hy2_bbr_profile_summary">Hysteria2 的拥塞控制配置。默认：不设置，走核心默认。</string>
     <string name="hy2_bbr_default">默认</string>
     <string name="hy2_bbr_standard">标准</string>
     <string name="hy2_bbr_conservative">保守</string>
     <string name="hy2_bbr_aggressive">激进</string>
     <string name="hy2_disable_chrome_parrot">关闭 Chrome QUIC 模拟</string>
-    <string name="hy2_disable_chrome_parrot_summary">Chrome QUIC 模拟默认是开着的，打开此开关把它关掉。</string>
     <string name="hy2_hop_interval_max">端口跳跃最大间隔</string>
-    <string name="hy2_hop_interval_max_summary">端口跳跃随机间隔的上限，单位秒。默认：不设置（等于跳跃间隔）。</string>
     <string name="hy2_hop_max_default">默认</string>
     <string name="hy2_hop_max_30">30 秒</string>
     <string name="hy2_hop_max_60">60 秒</string>
     <string name="hy2_hop_max_120">120 秒</string>
     <string name="hy2_brutal_debug">BBR 调试模式</string>
-    <string name="hy2_brutal_debug_summary">打开 BBR 拥塞控制的调试输出。默认：关。</string>
     <string name="anytls_idle_check_interval">空闲会话检查间隔（秒）</string>
-    <string name="anytls_idle_check_interval_summary">多久检查一次空闲会话。留空用核心默认。</string>
     <string name="anytls_idle_timeout">空闲会话超时（秒）</string>
-    <string name="anytls_idle_timeout_summary">会话空闲多久后关闭。留空用核心默认。</string>
     <string name="anytls_min_idle_session">最少空闲会话数</string>
-    <string name="anytls_min_idle_session_summary">保持备用的最少空闲会话数。留空用核心默认。</string>
     <string name="dns_optimistic">乐观 DNS</string>
-    <string name="dns_optimistic_summary">缓存过期后先返回旧结果、后台再刷新。默认：关。</string>
     <string name="dns_optimistic_timeout">乐观缓存有效期</string>
     <string name="dns_optimistic_timeout_summary">过期多久以内的缓存还能返回。默认：核心默认（72 小时）。</string>
     <string name="dns_optimistic_timeout_default">默认（72 小时）</string>

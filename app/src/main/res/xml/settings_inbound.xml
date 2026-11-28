@@ -9,7 +9,6 @@
     <SwitchPreference
         app:defaultValue="true"
         app:key="localProxyAuth"
-        app:summary="@string/local_proxy_auth_sum"
         app:title="@string/local_proxy_auth" />
     <EditTextPreference
         app:dependency="localProxyAuth"
@@ -19,11 +18,9 @@
     <SwitchPreference
         app:defaultValue="false"
         app:key="appendHttpProxy"
-        app:summary="@string/append_http_proxy_sum"
         app:title="@string/append_http_proxy" />
     <SwitchPreference
         app:icon="@drawable/ic_baseline_nat_24"
         app:key="allowAccess"
-        app:summary="@string/allow_access_sum"
         app:title="@string/allow_access" />
 </PreferenceScreen>

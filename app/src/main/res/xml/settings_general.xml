@@ -8,7 +8,6 @@
             app:defaultValue="false"
             app:icon="@drawable/ic_communication_phonelink_ring"
             app:key="isAutoConnect"
-            app:summary="@string/auto_connect_summary"
             app:title="@string/auto_connect" />
         <light.rift.core.ui.SimpleMenuPreference
             app:defaultValue="0"
@@ -34,7 +33,6 @@
             android:summary="@string/tun_implementation_sing_tun"
             android:title="@string/tun_implementation" />
         <light.rift.core.ui.MTUPreference
-            android:summary="@string/mtu_summary"
             app:defaultValue="9000"
             app:entries="@array/mtu_select"
             app:entryValues="@array/mtu_select"
@@ -52,25 +50,21 @@
         <SwitchPreference
             app:icon="@drawable/ic_device_data_usage"
             app:key="meteredNetwork"
-            app:summary="@string/metered_summary"
             app:title="@string/metered" />
         <SwitchPreference
             app:icon="@drawable/baseline_developer_board_24"
             app:key="acquireWakeLock"
-            app:summary="@string/acquire_wake_lock_summary"
             app:title="@string/acquire_wake_lock" />
     </PreferenceCategory>
     <PreferenceCategory app:title="@string/settings_group_notification_usage">
         <SwitchPreference
             app:defaultValue="true"
             app:key="profileTrafficStatistics"
-            app:summary="@string/profile_traffic_statistics_summary"
             app:title="@string/profile_traffic_statistics" />
         <SwitchPreference
             app:defaultValue="true"
             app:icon="@drawable/ic_baseline_speed_24"
             app:key="showDirectSpeed"
-            app:summary="@string/show_direct_speed_sum"
             app:title="@string/show_direct_speed"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreference
@@ -79,7 +73,6 @@
         <SwitchPreference
             app:icon="@drawable/ic_baseline_center_focus_weak_24"
             app:key="alwaysShowAddress"
-            app:summary="@string/always_show_address_sum"
             app:title="@string/always_show_address" />
     </PreferenceCategory>
     <PreferenceCategory app:title="@string/settings_group_advanced">

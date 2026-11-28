@@ -6,25 +6,21 @@
         app:entries="@array/hy2_bbr_profile_entries"
         app:entryValues="@array/hy2_bbr_profile_values"
         app:key="hy2BbrProfile"
-        app:summary="@string/hy2_bbr_profile_summary"
         app:title="@string/hy2_bbr_profile"
         app:useSimpleSummaryProvider="true" />
     <SwitchPreference
         app:defaultValue="false"
         app:key="hy2DisableChromeParrot"
-        app:summary="@string/hy2_disable_chrome_parrot_summary"
         app:title="@string/hy2_disable_chrome_parrot" />
     <light.rift.core.ui.SimpleMenuPreference
         app:defaultValue=""
         app:entries="@array/hy2_hop_interval_max_entries"
         app:entryValues="@array/hy2_hop_interval_max_values"
         app:key="hy2HopIntervalMax"
-        app:summary="@string/hy2_hop_interval_max_summary"
         app:title="@string/hy2_hop_interval_max"
         app:useSimpleSummaryProvider="true" />
     <SwitchPreference
         app:defaultValue="false"
         app:key="hy2BrutalDebug"
-        app:summary="@string/hy2_brutal_debug_summary"
         app:title="@string/hy2_brutal_debug" />
 </PreferenceScreen>

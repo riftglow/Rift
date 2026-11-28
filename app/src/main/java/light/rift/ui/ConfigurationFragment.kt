@@ -175,14 +175,21 @@ class ConfigurationFragment @JvmOverloads constructor(
      * only — a round for another group is invisible here, its results are
      * already in the DB and show on re-entry.
      */
+    // -79 B-I1：本轮是否测过当前可见分组。逐节点 DONE 会把 testStates
+    // 一项项排空，所以不能拿 testStates 是否为空判断轮次是否属于当前
+    // 页——正常跑完时守卫恒为 false，reload 永远走不到。改为：任一
+    // 非 ROUND_DONE 事件的节点在当前页 id 表里时置 true，ROUND_DONE
+    // 时只在 true 才 reloadProfiles()，否则只清 testStates、不碰列表。
+    private var testRoundForVisibleGroup = false
+
     fun onTestProgress(profileId: Long, state: Int) {
         val fragment = getCurrentGroupFragment() ?: return
         if (profileId == AutoSpeedTest.ROUND_DONE_ID) {
-            // Only reload if this group was the one being tested (its transient
-            // table is non-empty); otherwise the user is browsing another group
-            // and a reload would just yank its scroll position.
-            if (fragment.testStates.isNotEmpty()) {
-                fragment.testStates.clear()
+            // 轮次结束：瞬态表总要清；列表只在测的就是当前页时刷新，
+            // 测别的分组时不碰当前页、不 yank 用户的滚动位置。
+            fragment.testStates.clear()
+            if (testRoundForVisibleGroup) {
+                testRoundForVisibleGroup = false
                 fragment.adapter?.reloadProfiles()
             }
             return
@@ -194,7 +201,10 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
         val adapter = fragment.adapter ?: return
         val index = adapter.configurationIdList.indexOf(profileId)
-        if (index >= 0) adapter.notifyItemChanged(index)
+        if (index >= 0) {
+            testRoundForVisibleGroup = true
+            adapter.notifyItemChanged(index)
+        }
     }
 
     /** Multi-select menu state (step ②): "cancel selection" + test-item enable. */

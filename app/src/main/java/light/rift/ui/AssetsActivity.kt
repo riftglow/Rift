@@ -410,7 +410,10 @@ class AssetsActivity : ThemedActivity() {
     }
 
     // Version helpers. A version string is "<YYYY-MM-DD> <short-sha>"
-    // (or "Custom" / "<unknown>" for imported / missing files).
+    // (or "Custom" / "<unknown>" for imported / missing files), with an
+    // optional third field "downloaded" for manually downloaded files
+    // (Go I-1, -79: libcore never overwrites those). All parsers below
+    // only read fields 0/1, so the marker changes nothing here.
     private fun versionDate(version: String): String? {
         val first = version.trim().split(" ").firstOrNull() ?: return null
         return if (first.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))) first else null
@@ -749,7 +752,12 @@ class AssetsActivity : ThemedActivity() {
             // version file untouched; the return value still reports
             // the update, and the next update re-checks the SHA.
             if (branchSha != "unknown") {
-                val newVersion = "${todayString()} $branchSha"
+                // -79 Go I-1：手动下载的规则永远不被新版 APK 自带的覆盖——
+                // 版本串第三段打 "downloaded" 标记，libcore 的
+                // extractSRSAsset 认这个标记、永不覆盖。Kotlin 侧解析
+                // 只取第 0/1 段（日期/sha），标记不影响显示与过期判断；
+                // 备份文件名与回滚重建的版本串也会带上它。
+                val newVersion = "${todayString()} $branchSha downloaded"
                 writeTextAtomic(versionFile, newVersion)
                 return newVersion
             }

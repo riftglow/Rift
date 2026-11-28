@@ -56,19 +56,50 @@ func writeFileAtomic(path string, data []byte) error {
 	return nil
 }
 
+// ("<YYYY-MM-DD> <short-sha>") into YYYYMMDD for ordering. ok=false when
+// the version string has no parseable date (e.g. "Custom" is handled by
+// the caller before this is reached).
+func srsVersionDate(version string) (uint64, bool) {
+	fields := strings.Fields(strings.TrimSpace(version))
+	if len(fields) == 0 {
+		return 0, false
+	}
+	digits := strings.ReplaceAll(fields[0], "-", "")
+	if len(digits) != 8 {
+		return 0, false
+	}
+	v, err := strconv.ParseUint(digits, 10, 64)
+	return v, err == nil
+}
+
+// srsVersionDownloaded reports whether a local version string was stamped
+// by a manual download (AssetsActivity.updateSrsFile writes
+// "<YYYY-MM-DD> <short-sha> downloaded"). Such files always win over the
+// bundled ones and are never overwritten by a newer APK.
+func srsVersionDownloaded(version string) bool {
+	fields := strings.Fields(strings.TrimSpace(version))
+	return len(fields) >= 3 && fields[2] == "downloaded"
+}
+
 // extractSRSAssets extracts the bundled .srs rule-sets to the external
 // assets directory. Unlike the old geoip/geosite db files, .srs files are
 // stored raw in the APK (no xz step) and are versioned per file by
 // "<YYYY-MM-DD> <short-sha>".
 //
-// Upgrade rule (mirrors the old db logic, but on dates, not release tags):
+// Upgrade rule (2026-10-31 decision: the bundled copy is only the initial
+// version; updates come from the route resource update, and a manually
+// downloaded file always wins over the bundled one):
 //   - file missing, or its version file missing -> extract;
 //   - local version "Custom" (user-imported file) -> never overwrite;
-//   - non-official rule-assets provider -> only extract when missing,
-//     the provider's own files win;
-//   - official provider -> extract only when the bundled date is newer
-//     than the local date, so a newer manual update is never downgraded
-//     (same-day manual content wins on a tie).
+//   - local version marked "downloaded" (manually downloaded via the
+//     route resource update; stamped by AssetsActivity.updateSrsFile)
+//     -> never overwrite;
+//   - damaged local file (fails a full parse) -> re-extract, whatever
+//     the dates say (A5: a version hit is not an acceptance);
+//   - otherwise -> extract only when the bundled date is newer than
+//     the local date, so a newer manual update is never downgraded
+//     (same-day content wins on a tie; unparseable versions that are
+//     string-equal also win on a tie).
 // The version file is written only after a successful copy, so a failed
 // copy retries on the next start instead of being mistaken for current.
 func extractSRSAssets() {
@@ -95,16 +126,48 @@ func extractSRSAsset(name string) error {
 	}
 	assetVersion := string(b)
 
-	// A local rule file already exists: Rift's own downloaded rules
-	// always win over the bundled ones, so keep it. Only a missing
-	// local file (or a missing version file) falls through to
-	// extraction. A damaged local file is handled by
-	// checkLocalRuleSets via backup/loud failure, not here.
 	if _, err := os.Stat(dstName); err == nil {
-		if _, err := os.ReadFile(externalAssetsPath + versionName); err == nil {
-			return nil
+		localVersionBytes, err := os.ReadFile(externalAssetsPath + versionName)
+		if err == nil {
+			localVersion := strings.TrimSpace(string(localVersionBytes))
+			if localVersion == "Custom" {
+				return nil
+			}
+			// Manually downloaded via the route resource update:
+			// downloaded rules always win over the bundled ones, so
+			// a newer APK never overwrites them (2026-10-31 decision;
+			// the marker is stamped by AssetsActivity.updateSrsFile).
+			// Unmarked pre--79 version files fall back to the date
+			// comparison below (one-time edge: a pre--79 manual
+			// download older than the -79 bundled snapshot can be
+			// overwritten once by a newer same-repo snapshot).
+			if srsVersionDownloaded(localVersion) {
+				return nil
+			}
+			// A5: a version hit is not an acceptance. A damaged
+			// primary file whose version file still looks current
+			// must never be accepted and left to rot — a failed full
+			// parse forces a fresh extraction below, whatever the
+			// dates say. (Custom files and downloaded files are
+			// returned above and never overwritten; for those,
+			// checkLocalRuleSets handles damage via backup/loud
+			// failure instead.)
+			if !usableSRS(dstName, "binary") {
+				// Fall through to extraction.
+			} else {
+				bundledDate, bOk := srsVersionDate(assetVersion)
+				localDate, lOk := srsVersionDate(localVersion)
+				if bOk && lOk {
+					if bundledDate <= localDate {
+						return nil
+					}
+				} else if strings.TrimSpace(assetVersion) == localVersion {
+					return nil
+				}
+			}
 		}
-		// Missing version file: fall through and extract.
+		// Missing version file (or unparseable versions that differ):
+		// fall through and extract.
 	}
 
 	f, err := asset.Open(apkAssetPrefixSingBox + name)
